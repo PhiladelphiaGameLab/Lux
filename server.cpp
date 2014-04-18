@@ -1,11 +1,24 @@
 #include <iostream>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <netdb.h>
+#include <stdio.h>
 
 int main(int argc, char *argv[]){
-	
-	// establish a socket to listen on using a cmd line arg
+	if (argc < 2) {
+      		std::cout << "ERROR, no port provided" << std::endl;
+      		exit(0);
+   	}
+	// establish a socket to listen on using a cmd line arg	
 	
 	// spawn BGT(s)
-	// array of BGT ports 
+	// create an array(?) of BGT ports 
+	
+
 	while(1){
 		// accept clients, send them the port address they should be on
 
