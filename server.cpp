@@ -50,6 +50,7 @@ typedef struct broadcastStruct{
     std::list<struct sockaddr_in> socketList;
     // message queue
     std::queue<char*> BroadcastQueue;
+    Socket socket;
 };
 
 
@@ -57,7 +58,8 @@ void broadcastThread(struct broadcastStruct *broadcast){
 	while(1){
 		if(!broadcast->BroadcastQueue.empty()){ // if there is something in the broadcast queue
 			for (std::list<UDPServerSocket>::iterator socket = broadcast->SocketList.begin(); socket != broadcast->SocketList.end(); socket++){
-				socket.send(*broadcast->BroadcastQueue.front());
+				// this is the send command, but it is not implemeneted in socket.cpp
+				//broadcast->socket.send(&socket,*broadcast->BroadcastQueue.front());
 			}
 			broadcast->BroadcastQueue.pop();
 		}
@@ -76,6 +78,9 @@ void battleGroundThread(struct BGT *BGTData){
 	// open listening port
 	Socket socket = new Socket();
 	socket.init();
+
+	broadcastData.socket = socket;
+
 	// update the Port# in the BGT struct
 	BGTData->port = socket.Getport();
     struct sockaddr_in cli_addr;
