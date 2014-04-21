@@ -47,7 +47,7 @@ typedef struct BGTStruct{
 };
 typedef struct broadcastStruct{
     // socket list
-    std::list<struct sockaddr_in> socketList;
+    std::list<struct sockaddr_in> SocketList;
     // message queue
     std::queue<char*> BroadcastQueue;
     Socket socket;
@@ -57,9 +57,9 @@ typedef struct broadcastStruct{
 void broadcastThread(struct broadcastStruct *broadcast){
 	while(1){
 		if(!broadcast->BroadcastQueue.empty()){ // if there is something in the broadcast queue
-			for (std::list<UDPServerSocket>::iterator socket = broadcast->SocketList.begin(); socket != broadcast->SocketList.end(); socket++){
+			for (std::list<struct sockaddr_in>::iterator socket = broadcast->SocketList.begin(); socket != broadcast->SocketList.end(); socket++){
 				// this is the send command, but it is not implemeneted in socket.cpp
-				broadcast->socket.send(&socket,*broadcast->BroadcastQueue.front());
+				broadcast->socket.send(&socket,broadcast->BroadcastQueue.front());
 			}
 			broadcast->BroadcastQueue.pop();
 		}
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]){
     socket.init(); // initialize it after to give a chance to change variables
 
     // launch battle ground threads Here
-    pthread_t BGTID
+    pthread_t BGTID;
     struct BGTStruct BGT;
 
     pthread_create(&BGTID, NULL, (void *) &battleGroundThread, (void *) &BGT);
