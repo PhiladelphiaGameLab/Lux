@@ -59,7 +59,7 @@ void broadcastThread(struct broadcastStruct *broadcast){
 		if(!broadcast->BroadcastQueue.empty()){ // if there is something in the broadcast queue
 			for (std::list<UDPServerSocket>::iterator socket = broadcast->SocketList.begin(); socket != broadcast->SocketList.end(); socket++){
 				// this is the send command, but it is not implemeneted in socket.cpp
-				//broadcast->socket.send(&socket,*broadcast->BroadcastQueue.front());
+				broadcast->socket.send(&socket,*broadcast->BroadcastQueue.front());
 			}
 			broadcast->BroadcastQueue.pop();
 		}
