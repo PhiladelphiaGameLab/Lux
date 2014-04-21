@@ -89,8 +89,7 @@ void Socket::send(struct sockaddr_in* cli_addr){
 		}
  }
 
-Socket::~Socket()
-{
+Socket::~Socket(){
     //dtor
 }
 int main(){

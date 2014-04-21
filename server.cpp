@@ -41,9 +41,12 @@ void error(char *msg){
 	perror(msg);
 	exit(1);
 }
-
+// information on the connection to the database
+typedef struct DBC{
+}
 typedef struct BGTStruct{
     int port;
+    struct DBC DBConnection;
 };
 typedef struct broadcastStruct{
     // socket list
@@ -55,11 +58,14 @@ typedef struct broadcastStruct{
 
 
 void broadcastThread(struct broadcastStruct *broadcast){
+    // establish new sending port
+    Socket sendSocket = new Socket();
+	sendSocket.init();
 	while(1){
 		if(!broadcast->BroadcastQueue.empty()){ // if there is something in the broadcast queue
-			for (std::list<struct sockaddr_in>::iterator socket = broadcast->SocketList.begin(); socket != broadcast->SocketList.end(); socket++){
+			for (std::list<struct sockaddr_in>::iterator clientSocket = broadcast->SocketList.begin(); clientSocket != broadcast->SocketList.end(); clientSocket++){
 				// this is the send command, but it is not implemeneted in socket.cpp
-				broadcast->socket.send(&socket,broadcast->BroadcastQueue.front());
+				sendSocket.send(&*clientSocket,*(broadcast->BroadcastQueue.front()));
 			}
 			broadcast->BroadcastQueue.pop();
 		}
@@ -75,6 +81,16 @@ void battleGroundThread(struct BGT *BGTData){
 	pthread_t BTID;
 	pthread_create(&BTID, NULL, (void *) &broadcastThread, (void *) &broadcastData);
 
+
+    /*
+
+    should add another thread that decides who needs to know what, sends in a struct of
+        socket list of who needs to know
+        information
+    that should be what is broadcast from the broadcast queue, but worry about that in a few days.
+
+    */
+
 	// open listening port
 	Socket socket = new Socket();
 	socket.init();
@@ -82,12 +98,13 @@ void battleGroundThread(struct BGT *BGTData){
 	broadcastData.socket = socket;
 
 	// update the Port# in the BGT struct
-	BGTData->port = socket.Getport();
+	*BGTData.port = socket.Getport();
     struct sockaddr_in cli_addr;
 	while(1){
 		// listen on port for clients
 		socket.recieve(&cli_addr);
 		// update the Socket List if the client is new
+		// if the socket is updated but the token is the same then just update the socket for the client
 		broadcastData.socketList.push(cli_addr);
 		// push any messages from clients into Broadcast queue
 		broadcastData.BroadcastQueue.push(socket.GetMessage());
@@ -122,6 +139,10 @@ int main(int argc, char *argv[]){
 		//socket.send(&cli_addr, BGT.port);
 
         // track users and their BGTs here.
+
+        // if a BGT crashes then relaunch it and you will need to know the database it is using
+        //
+
 	}
 	return 0;
 }
