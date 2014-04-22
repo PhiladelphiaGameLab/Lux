@@ -1,8 +1,8 @@
 TODO:
-	Fix the pointers 
-	Create a Class Around the main class opposed to a file
-	Make sure the ports can properly connect
-	Test with simple C++ client (or python maybe)
+*Fix the pointers 
+*Create a Class Around the main class opposed to a file
+*Make sure the ports can properly connect
+*Test with simple C++ client (or python maybe)
 	
 # Sections:	
 
