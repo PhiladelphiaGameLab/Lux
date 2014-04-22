@@ -3,9 +3,6 @@ TODO:
 	Create a Class Around the main class opposed to a file
 	Make sure the ports can properly connect
 	Test with simple C++ client (or python maybe)
-	
-
-	discuss the use of seperate processes/pipes vs threads 
 
 
 # Sections:	
@@ -31,23 +28,23 @@ TODO:
 
 
 
-	int main(int argc, char *argv[]){
-		Socket socket(port);
-		socket.init();
-		
-		for(i in #BGT){
-			read_Next_Location_Area
-			pthread_create(&BGT);
-			map(BGT_Location, BGT_Port)
+		int main(int argc, char *argv[]){
+			Socket socket(port);
+			socket.init();
+			
+			for(i in #BGT){
+				read_Next_Location_Area
+				pthread_create(&BGT);
+				map(BGT_Location, BGT_Port)
+			}
+			forever(){
+				socket.recieve(cli_addr);
+				verify(cli_token);
+				location = cli_location;
+				port = map_Query(cli_location);
+				socket.send(cli_addr, port);
+			}
 		}
-		forever(){
-			socket.recieve(cli_addr);
-			verify(cli_token);
-			location = cli_location;
-			port = map_Query(cli_location);
-			socket.send(cli_addr, port);
-		}
-	}
 
 
 ## Battle Ground Thread (BGT) -> Task 2
