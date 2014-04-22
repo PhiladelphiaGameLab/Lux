@@ -43,7 +43,7 @@ void error(char *msg){
 }
 // information on the connection to the database
 typedef struct DBC{
-}
+};
 typedef struct BGTStruct{
     int port;
     struct DBC DBConnection;
@@ -59,7 +59,7 @@ typedef struct broadcastStruct{
 
 void broadcastThread(struct broadcastStruct *broadcast){
     // establish new sending port
-    Socket sendSocket = new Socket();
+    Socket sendSocket;
 	sendSocket.init();
 	while(1){
 		if(!broadcast->BroadcastQueue.empty()){ // if there is something in the broadcast queue
@@ -75,11 +75,11 @@ void broadcastThread(struct broadcastStruct *broadcast){
 
 void battleGroundThread(struct BGT *BGTData){
 
-    struct broadcastStruct broadcastData;
+    struct broadcastStruct broadcastData();
 
 	// spawn the broadcast thread
 	pthread_t BTID;
-	pthread_create(&BTID, NULL, (void *) &broadcastThread, (void *) &broadcastData);
+	pthread_create(&BTID, NULL, void* (*)&broadcastThread, (void *) &broadcastData);
 
 
     /*
@@ -92,22 +92,22 @@ void battleGroundThread(struct BGT *BGTData){
     */
 
 	// open listening port
-	Socket socket = new Socket();
+	Socket socket;
 	socket.init();
 
 	broadcastData.socket = socket;
 
 	// update the Port# in the BGT struct
-	*BGTData.port = socket.Getport();
+	BGTData->port = socket.Getport();
     struct sockaddr_in cli_addr;
 	while(1){
 		// listen on port for clients
 		socket.recieve(&cli_addr);
 		// update the Socket List if the client is new
 		// if the socket is updated but the token is the same then just update the socket for the client
-		broadcastData.socketList.push(cli_addr);
+		broadcastData.SocketList.push_front(cli_addr);
 		// push any messages from clients into Broadcast queue
-		broadcastData.BroadcastQueue.push(socket.GetMessage());
+		//broadcastData.BroadcastQueue.push(socket.GetMessage());
 	}
 }
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
 
     // open a new socket to listen on
     int port = atoi(argv[1]);
-    Socket socket = new Socket(port); // construct a socket
+    Socket socket(port); // construct a socket
     socket.init(); // initialize it after to give a chance to change variables
 
     // launch battle ground threads Here

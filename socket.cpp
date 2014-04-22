@@ -83,7 +83,7 @@ void Socket::send(struct sockaddr_in* cli_addr){
 		}
 }
 
- void send(struct sockaddr_in* cli_addr, char message){
+ void Socket::send(struct sockaddr_in* cli_addr, char message){
         if(n = sendto(sockfd,message,sizeof(message),0,(struct sockaddr *)&cli_addr,fromlen) < 0){
 			error("send");
 		}
