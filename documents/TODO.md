@@ -1,4 +1,5 @@
 TODO:
+
 *Fix the pointers 
 *Create a Class Around the main class opposed to a file
 *Make sure the ports can properly connect
