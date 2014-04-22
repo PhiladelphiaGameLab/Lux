@@ -4,3 +4,14 @@ TODO:
 	Make sure the ports can properly connect
 	Test with simple C++ client (or python maybe)
 	
+
+	discuss the use of seperate processes/pipes vs threads 
+
+
+Sections:
+	AuthO Process with Rest API
+	Download and Patch Server
+	Chat Processes with friends/networks
+	Main Message Passing Server
+	Ghosting on MMPS
+	Admin Functionality	
