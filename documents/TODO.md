@@ -11,7 +11,8 @@ TODO:
 
 # Sections:	
 
-## Location Based HashMap -> Task 1
+## Location Based HashMap -> Task 1 **(5 days using std Map)**
+*Mike?*
 
 * Build a HashMap that can map location to general Bucket for BGT
 * Within the HashMap, a second query can get you the LBHM for the BGT
@@ -21,7 +22,8 @@ TODO:
 * Non-Blocking, need to be able to read many and not block unless writing
 * Needs to be stored in shared memory
 
-## Main Message Passing Server (MMPS) -> Task 1
+## Main Message Passing Server (MMPS) -> Task 1 **(2 Days using assumed)**
+*Jake*
 
 * user connects, verify token/IP from CTT
 	* Access Database and find corresponding Client location
@@ -51,7 +53,7 @@ TODO:
 			}
 
 
-## Battle Ground Thread (BGT) -> Task 2
+## Battle Ground Thread (BGT) -> Task 2 **(7 days)**
 
 * set up area database by cloning base (if needed)
 * Receive user message
@@ -66,7 +68,8 @@ TODO:
 * update objects in db
 * Pipe Messages into analytics Queue
 
-## Shout Thread -> Task 3
+## Shout Thread -> Task 3 **(2 days)**
+*Jake*
 
 * Read messages from Shout Queue
 * Check message location
@@ -74,13 +77,14 @@ TODO:
 * Send message to everyone in HML area 
 	* Convert to string first
 
-## Broadcast Thread -> Task 3
+## Broadcast Thread -> Task 3 **(2 days)**
+*Jake*
 
 * Read Messages from Broadcast Queue
 * Send Message to everyone in the HashMap Location
 	* Convert to string first
 
-## Chat Server -> Task 4
+## Chat Server -> Task 4 **(10 days)**
 
 * Graph Database
 * Main thread stores Sockets
@@ -89,7 +93,7 @@ TODO:
 * Send Messages to broadcast and shout threads like above 
 
 
-## AuthO Process with Rest API -> Task 4
+## AuthO Process with Rest API -> Task 4 **(6 days)**
 
 * php accessing a mysql database with named pipe for c++ to read from
 * php generates user token for session after client is verified
@@ -99,7 +103,7 @@ TODO:
 * Client sign-ups handled in same API
 * Basic Sign-up form avaliable but connects to server via API 
 
-## Fail recovery Process
+## Fail recovery Process 
 	
 * Process to relaunch failed threads
 * Process to make sure that there is no interupt to gameplay on updates	
