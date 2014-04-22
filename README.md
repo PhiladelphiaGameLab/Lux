@@ -1,3 +1,3 @@
 # Lux 
 
-this is the lux project
+This is the lux project Master Repo.
