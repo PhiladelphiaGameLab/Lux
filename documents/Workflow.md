@@ -7,6 +7,7 @@
 3. Clone the repository to your local machine
 
 		$ git clone https://github.com/<username>/Lux-1.git
+		$ cd Lux-1
 
 4. Enter Username/password
 5. Assign upstream to the original 
