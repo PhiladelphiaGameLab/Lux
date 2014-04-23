@@ -42,6 +42,7 @@ class Socket{
         void recieve(struct sockaddr_in* cli_addr);
         void send(struct sockaddr_in* cli_addr);
         void send(struct sockaddr_in* cli_addr, char message);
+        void Socket::send(std::list<struct sockaddr_in> SocketList, char message);
         int main();
         /** Default destructor */
         virtual ~Socket();

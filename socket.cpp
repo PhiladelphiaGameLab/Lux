@@ -88,6 +88,11 @@ void Socket::send(struct sockaddr_in* cli_addr){
 			error("send");
 		}
  }
+  void Socket::send(std::list<struct sockaddr_in> SocketList, char message){
+      		for (std::list<struct sockaddr_in>::iterator clientSocket = broadcast->SocketList.begin(); clientSocket != broadcast->SocketList.end(); clientSocket++){
+				send(*clientSocket, message);
+      		}
+ }
 
 Socket::~Socket(){
     //dtor
