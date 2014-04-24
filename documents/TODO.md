@@ -4,6 +4,12 @@ TODO:
 * Create a Class Around the main class opposed to a file
 * Make sure the ports can properly connect
 * Test with simple C++ client (or python maybe)
+* 
+
+
+* Edit the GitHub standard documents and what needs to be included
+* Create a makefile for making new github repositories with appropriate files in them
+	* Could also be a program or whatever (php?)
 	
 # Sections:	
 
