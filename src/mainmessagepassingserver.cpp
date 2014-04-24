@@ -109,8 +109,7 @@ int MainMessagePassingServer::start(){
 		// accept clients, who will send in their "User Token"
 		socket.recieve(&cli_addr);
 		// this will be how we read the "User Token"
-		char clientMessage[256] = socket.GetMessage();
-		JSObject message = JSON.parse(clientMessage);
+		json_t clientMessage = socket.GetMessage();
 
         // if the client checks out
 		if(verifyClient(message.clientID, message.Token) > 0){

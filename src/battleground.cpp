@@ -54,19 +54,18 @@ BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, Has
 	    // accept clients, who will send in their "User Token"
 		socket.recieve(&cli_addr);
 		// this will be how we read the "User Token"
-		char clientMessage[256] = socket.GetMessage();
-		JSObject message = JSON.parse(clientMessage);
+		json_t message = socket.GetMessage();
 
 		 // if the client checks out
 		if(verifyClient(message.clientID, message.Token) > 0){
             int updated = HMBL.updateLocation(cli_addr, message.client_location);
             if(updated > 0){
                 if(message.type == "broadcast"){
-                    write(BCP, JSON.stringify(message), sizeof(message));
+                    write(BCP, message, sizeof(message));
                 }else if(message.type == "shout"){
-                    write(SP, JSON.stringify(message), sizeof(message));
+                    write(SP, message, sizeof(message));
                 }
-                write(AP, JSON.stringify(message), sizeof(message)); // send to analyitics
+                write(AP, message, sizeof(message)); // send to analyitics
 
                 // UPDATE IN DOCUMENT DB
 
