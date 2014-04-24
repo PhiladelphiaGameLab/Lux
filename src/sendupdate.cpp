@@ -32,13 +32,12 @@ SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL)
 	sendSocket.init();
 
 	// buffer for messages
-    char buf[MAX_BUF];
+    json_t msg;
 	FIFO = open(sendFIFO, O_RDONLY);
 	while(1){
 		read(FIFO, buf, MAX_BUF);
-        JSObject message = JSON.parse(buf); // parse to JSON
         // read location from header
-
+        json_object_get(msg, "type");
         // Test if broadcast or shout, if shout, check location and
         std::list<struct sockaddr_in> SocketList;
         if(message.type == "broadcast"){
@@ -48,10 +47,7 @@ SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL)
         }
 
         // Strip header from message
-        JSObject sendingMessage = message.object;
-
-        // convert message to string
-        std::string toBeSent = JSON.stringify(sendingMessage);
+        json_t sendingMessage = json_object_get(msg, "object");
 
 		// this is the send command
 		sendSocket.send(SocketList, toBeSent);

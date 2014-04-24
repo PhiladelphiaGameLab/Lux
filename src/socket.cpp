@@ -68,13 +68,21 @@ void Socket::init(){
 }
 
 // needs to recieve the client address pointer
-void Socket::recieve(struct sockaddr_in* cli_addr){
+json_t Socket::recieve(struct sockaddr_in* cli_addr){
         if(n = recvfrom(sockfd,buf,message_size,0,(struct sockaddr *)&cli_addr,&fromlen) < 0){
 			error("Receive");
 		}
 		write(1,"Received a datagram: ",21);
        	write(1,buf,n);
-       	//message = buf;
+
+       	json_t root = json_loads(buf, 0, &error);
+        free(text);
+
+        if(!root){
+            fprintf(stderr, "error: on line %d: %s\n", error.line, error.text);
+            return 1;
+        }
+        return root;
 }
 
 void Socket::send(struct sockaddr_in* cli_addr){
@@ -83,14 +91,20 @@ void Socket::send(struct sockaddr_in* cli_addr){
 		}
 }
 
- void Socket::send(struct sockaddr_in* cli_addr, char message){
+void Socket::send(struct sockaddr_in* cli_addr, char * message[]){
         if(n = sendto(sockfd,message,sizeof(message),0,(struct sockaddr *)&cli_addr,fromlen) < 0){
 			error("send");
 		}
  }
-  void Socket::send(std::list<struct sockaddr_in> SocketList, char message){
-      		for (std::list<struct sockaddr_in>::iterator clientSocket = broadcast->SocketList.begin(); clientSocket != broadcast->SocketList.end(); clientSocket++){
-				send(*clientSocket, message);
+
+ void Socket::send(struct sockaddr_in* cli_addr, json_t JSMessage){
+        const char * message[] = json_string_value(JSMessage);
+        send(*cli_addr, message);
+ }
+
+  void Socket::send(std::list<struct sockaddr_in> SocketList, json_t JSMessage){
+      		for (std::list<struct sockaddr_in>::iterator cli_addr = broadcast->SocketList.begin(); cli_addr != broadcast->SocketList.end(); cli_addr++){
+				send(*cli_addr, message);
       		}
  }
 
