@@ -70,9 +70,9 @@ void sendUpdatesThread(char * sendFIFO){
         // Test if broadcast or shout, if shout, check location and
         std::list<struct sockaddr_in> SocketList;
         if(message.type == "broadcast"){
-            SocketList = HMBL.getSocketLists();
+            SocketList = HMBL.getSockets();
         }else if(message.type == "shout"){
-            SocketList = HMBL.getSocketLists(message.location);
+            SocketList = HMBL.getSockets(message.location);
         }
 
         // Strip header from message
