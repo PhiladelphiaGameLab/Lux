@@ -38,54 +38,8 @@ class SendUpdate
         SendUpdate& operator=(const SendUpdate& other);
 
         static void createSUT(int sendFIFO, HashMapBasedLocation* HMBL)
-
-        /** Access sendSocket
-         * \return The current value of sendSocket
-         */
-        Socket GetsendSocket() { return sendSocket; }
-        /** Set sendSocket
-         * \param val New value to set
-         */
-        void SetsendSocket(Socket val) { sendSocket = val; }
-        /** Access sendFIFO
-         * \return The current value of sendFIFO
-         */
-        int GetsendFIFO() { return sendFIFO; }
-        /** Set sendFIFO
-         * \param val New value to set
-         */
-        void SetsendFIFO(int val) { sendFIFO = val; }
-        /** Access sendingMessage
-         * \return The current value of sendingMessage
-         */
-        JSObject GetsendingMessage() { return sendingMessage; }
-        /** Set sendingMessage
-         * \param val New value to set
-         */
-        void SetsendingMessage(JSObject val) { sendingMessage = val; }
-        /** Access message
-         * \return The current value of message
-         */
-        JSObject Getmessage() { return message; }
-        /** Set message
-         * \param val New value to set
-         */
-        void Setmessage(JSObject val) { message = val; }
-        /** Access toBeSent
-         * \return The current value of toBeSent
-         */
-        std::string GettoBeSent() { return toBeSent; }
-        /** Set toBeSent
-         * \param val New value to set
-         */
-        void SettoBeSent(std::string val) { toBeSent = val; }
     protected:
     private:
-        Socket sendSocket; //!< Member variable "sendSocket"
-        int sendFIFO; //!< Member variable "sendFIFO"
-        JSObject sendingMessage; //!< Member variable "sendingMessage"
-        JSObject message; //!< Member variable "message"
-        std::string toBeSent; //!< Member variable "toBeSent"
 };
 
 #endif // SENDUPDATE_H

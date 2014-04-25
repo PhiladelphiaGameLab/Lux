@@ -97,14 +97,13 @@ void Socket::send(struct sockaddr_in* cli_addr, char * message[]){
 		}
  }
 
- void Socket::send(struct sockaddr_in* cli_addr, json_t JSMessage){
-        const char * message[] = json_string_value(JSMessage);
-        send(*cli_addr, message);
+void Socket::send(struct sockaddr_in* cli_addr, json_t JSMessage){
+        send(*cli_addr, json_string_value(JSMessage));
  }
 
-  void Socket::send(std::list<struct sockaddr_in> SocketList, json_t JSMessage){
+void Socket::send(std::list<struct sockaddr_in> SocketList, json_t JSMessage){
       		for (std::list<struct sockaddr_in>::iterator cli_addr = broadcast->SocketList.begin(); cli_addr != broadcast->SocketList.end(); cli_addr++){
-				send(*cli_addr, message);
+				send(*cli_addr, JSMessage);
       		}
  }
 
