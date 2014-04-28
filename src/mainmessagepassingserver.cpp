@@ -106,6 +106,14 @@ int MainMessagePassingServer::createThreads(int numThreads){
 int MainMessagePassingServer::start(){
     struct sockaddr_in cli_addr;
 	while(1){
+
+	    /*
+	    Why do we establish a socket for a single message,
+	    Why don't we have an HTTP request or something so the client only has to establish a single socket connection
+	    */
+
+
+
 		// accept clients, who will send in their "User Token"
 		socket.recieve(&cli_addr);
 		// this will be how we read the "User Token"
