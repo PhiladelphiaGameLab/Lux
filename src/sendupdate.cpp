@@ -19,28 +19,75 @@
  */
 
 #include "sendupdate.h"
+
+struct pipe{
+    int pipe;
+};
+
 static void SendUpdate::createSUT(int sendFIFO, HashMapBasedLocation* HMBL){
     // static function so pthread can launch an instance of the BGT class
     SendUpdate SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL);
 }
 
-static void SendUpdate::dbWriter(){ // dbWriter thread
-    // get message
-    // write to database
+static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
+    mongo::DBClientConnection c;
+    c.connect("localhost");
+
+    int FIFO = open(dbP.pipe, O_RDONLY);
+
+    while(1){
+        // get message
+        read(FIFO, msg, MAX_BUF);
+
+        // write to database
+        // ....
+    }
 }
+
+
+static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
+
+    mongo::DBClientConnection c;
+    c.connect("localhost");
+
+    Socket sendSocket;
+	sendSocket.init();
+
+	int FIFO = open(newRevPipe.pipe, O_RDONLY);
+	struct newConnectionInfo piped;
+
+    while(1){
+        // read socket
+        read(FIFO, piped, MAX_BUF);
+        // read documents from mongo
+        for (std::list<int bucketID>::iterator bucket = piped->BucketList.begin(); bucket != piped->BucketList.end(); bucket++){
+            // query the database
+            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << bucket) ));
+            // iterate elements from the buckets
+            while (cursor->more()){
+                // send both client and message to the socket Class
+                sendSocket.send(piped.socket, cursor->next().jsonString());
+            }
+        }
+    }
+}
+
 
 SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL){
 
     char * dbWriter = "/temp/dbWriter";
     mkfifo(dbWriter, 0666);
-    int SP = open(dbWriter, O_WRONLY);
-    pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, void); // spawn dbWriter thread
+    int DBW = open(dbWriter, O_WRONLY);
+    struct pipe dbP;
+    dbP.pipe = DBW;
+    pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, (void *) &dbP); // spawn dbWriter thread
 
     // establish new sending port
     Socket sendSocket;
 	sendSocket.init();
 
-	FIFO = open(sendFIFO, O_RDONLY);
+	int FIFO = open(sendFIFO, O_RDONLY);
+
 	struct sendUpdates msg;
 	while(1){
 		read(FIFO, msg, MAX_BUF);
