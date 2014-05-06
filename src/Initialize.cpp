@@ -6,11 +6,6 @@
 #DEFINE DATABASE_NAME "dev.objects"
 
 
-std::string getEnvStr(std::string const& key){
-    char const* val = getenv(key.c_str());
-    return val == NULL ? std::string() : std::string(val);
-}
-
 BSONObj relevantDocuments(BGTInfo bgtInfo){
 // find the relevant documents in the mongo database
 
@@ -55,28 +50,22 @@ BSONObj getClientDoc(EUID){
         return clientDoc;
     }
     string err = c.getLastError();
+    return NULL;
 }
 
 
 int main(int argc, char *argv[]){
-    // send the content type first
-    printf("Content-Type: text/html\n\n");
-    std::string GET = getEnvStr("QUERY_STRING");
-    std::string EUIDpos ("EUID=");
-    std::string accessTokenpos ("accessToken=");
+    std::string GET  = CGI::start();
+    std::string EUID = CGI::get(GET, "EUID", EUID_SIZE);
+    std::string EUID = CGI::get(GET, "accessToken", ACCESSTOKEN_SIZE);
+
     if (GET != ""){
-        // find the EUID
-        std::size_t foundEUID = str.find(EUIDpos);
-        if (foundEUID != std::string::npos){
-            std::string EUID = std::string str2 = str.substr (foundEUID,EUID_SIZE);
-        }
-        // find the Access Token
-        std::size_t foundAccessToken = str.find(accessTokenpos);
-        if (foundAccessToken != std::string::npos){
-            std::string accessToken = std::string str2 = str.substr (foundAccessToken,ACCESSTOKEN_SIZE);
-        }
+        // find the EUID & access Token
+        std::string EUID = CGI::get(GET, "EUID", EUID_SIZE);
+        std::string EUID = CGI::get(GET, "accessToken", ACCESSTOKEN_SIZE);
+
         // validate that they were found before moving forward
-        if(!EUID.Equals(null) && !accessToken.Equals(null)){
+        if(!EUID != "" && !accessToken != ""){
             // Authenticate access token
             if(authenticate::AuthenticateAccessToken(accessToken, EUID, SERVER_SECRET)){
                 // query mongo for user info
@@ -85,12 +74,7 @@ int main(int argc, char *argv[]){
                 // query FindBGT
                 BGTInfo bgtInfo= findBGT::find(clientDocument);
 
-                printf("{");
-                // query mongo for relevant documents including BGT document (with socket)
-                printf("\tobjects:\n");
                 BSONObj rDocs = relevantDocuments(bgtInfo);
-                printf("}");
-
             }
         }
     }

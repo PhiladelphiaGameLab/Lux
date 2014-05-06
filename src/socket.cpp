@@ -68,21 +68,21 @@ void Socket::init(){
 }
 
 // needs to recieve the client address pointer
-json_t Socket::recieve(struct sockaddr_in* cli_addr){
+BSONObj Socket::recieve(struct sockaddr_in* cli_addr){
         if(n = recvfrom(sockfd,buf,message_size,0,(struct sockaddr *)&cli_addr,&fromlen) < 0){
 			error("Receive");
 		}
 		write(1,"Received a datagram: ",21);
        	write(1,buf,n);
 
-       	json_t root = json_loads(buf, 0, &error);
-        free(text);
 
-        if(!root){
+        BSONObj recieved = mongo::fromjson(buf, message_size);
+
+        if(!recieved){
             fprintf(stderr, "error: on line %d: %s\n", error.line, error.text);
             return 1;
         }
-        return root;
+        return recieved;
 }
 
 void Socket::send(struct sockaddr_in* cli_addr){
@@ -91,19 +91,26 @@ void Socket::send(struct sockaddr_in* cli_addr){
 		}
 }
 
-void Socket::send(struct sockaddr_in* cli_addr, char * message[]){
+void Socket::send(struct sockaddr_in* cli_addr, std::string message){
+        char *msgChar = new char[message.size()+1]
+        msgChar[message.size()]=0;
+        memcpy(msgChar,message.c_str(),message.size());
+        send(*cli_addr, msgChar);
+}
+
+ void Socket::send(struct sockaddr_in* cli_addr, char * message[]){
         if(n = sendto(sockfd,message,sizeof(message),0,(struct sockaddr *)&cli_addr,fromlen) < 0){
 			error("send");
 		}
  }
 
-void Socket::send(struct sockaddr_in* cli_addr, json_t JSMessage){
-        send(*cli_addr, json_string_value(JSMessage));
+void Socket::send(struct sockaddr_in* cli_addr, BSONObj BSMessage){
+        send(*cli_addr, BSMessage.jsonString());
  }
 
-void Socket::send(std::list<struct sockaddr_in> SocketList, json_t JSMessage){
+void Socket::send(std::list<struct sockaddr_in> SocketList, BSONObj BSMessage){
       		for (std::list<struct sockaddr_in>::iterator cli_addr = broadcast->SocketList.begin(); cli_addr != broadcast->SocketList.end(); cli_addr++){
-				send(*cli_addr, JSMessage);
+				send(*cli_addr, BSMessage);
       		}
  }
 

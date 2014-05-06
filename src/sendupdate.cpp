@@ -24,39 +24,31 @@ static void SendUpdate::createSUT(int sendFIFO, HashMapBasedLocation* HMBL){
     SendUpdate SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL);
 }
 
+static void SendUpdate::dbWriter(){ // dbWriter thread
+    // get message
+    // write to database
+}
 
 SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL){
+
+    char * dbWriter = "/temp/dbWriter";
+    mkfifo(dbWriter, 0666);
+    int SP = open(dbWriter, O_WRONLY);
+    pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, void); // spawn dbWriter thread
+
     // establish new sending port
     Socket sendSocket;
 	sendSocket.init();
 
-	// buffer for messages
-    json_t msg;
 	FIFO = open(sendFIFO, O_RDONLY);
+	struct sendUpdates msg;
 	while(1){
 		read(FIFO, msg, MAX_BUF);
-        // read location from header
-        const char *message_type = json_string_value(json_object_get(msg, "type"));
-        // Test if broadcast or shout, if shout, check location and
-        std::list<struct sockaddr_in> SocketList;
-        if(message_type == "broadcast"){
-            SocketList = HMBL.getSockets();
-        }else if(message_type == "shout"){
-            // loop through all the values at location and put them in an array
-            json_t location = json_object_get(msg, "location");
-            int message_location[json_array_size(location)];
-            for(i = 0; i < json_array_size(location); i++){
-                message_location[i] = json_array_get(location, i);
-            }
-            SocketList = HMBL.getSockets(message_location);
-        }
-
-        // Strip header from message
-        json_t sendingMessage = json_object_get(msg, "object");
-
-		// this is the send command
-		sendSocket.send(SocketList, sendingMessage);
-    }
+        // break msg into sockets & object
+        // send to socket list via socket class
+        sendSocket.send(msg.SocketList, msg.message);
+        // write message to database thread
+        write(dbWriter, msg.message, sizeof(msg.message));
 }
 
 SendUpdate::~SendUpdate(){//dtor
