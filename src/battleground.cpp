@@ -30,22 +30,12 @@ void BattleGround::newConnectionsThread(){
 }
 
 BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, HashMapBasedLocation* HMBL, struct DBC DBConnection, int AP){
-        // DO SOMETHING DOCUMENT DATABASE RELATED
 
-    char * shout = "/temp/shout";
-    mkfifo(shout, 0666);
-    int SP = open(shout, O_WRONLY);
-    pthread_create(&BGTID, NULL, (void *) &createSUT, (void *) &BGTparam); // spawn BGT
-
-    char * broadcast = "/temp/broadcast";
-    mkfifo(broadcast, 0666);
-    int BCP  = open(broadcast, O_WRONLY);
-    pthread_create(&BGTID, NULL, (void *) &createSUT, (void *) &BGTparam); // spawn BGT
-
-    char * newConnection = "/temp/newConnection";
-    mkfifo(newConnection, 0666);
-    int NCP = open(newConnection, O_WRONLY);
-    pthread_create(&BGTID, NULL, (void *) &newConnectionsThread, (void *) &BGTparam); // spawn BGT
+    // create pipe to send updates on
+    char * sendUpdates = "/temp/sendUpdates";
+    mkfifo(sendUpdates, 0666);
+    int SP = open(sendUpdates, O_WRONLY);
+    pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &BGTparam); // spawn sendUpdates thread
 
     Socket recieveSocket;
 	recieveSocket.init();

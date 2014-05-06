@@ -19,44 +19,83 @@
  */
 
 #include "sendupdate.h"
+
+struct pipe{
+    int pipe;
+};
+
 static void SendUpdate::createSUT(int sendFIFO, HashMapBasedLocation* HMBL){
     // static function so pthread can launch an instance of the BGT class
     SendUpdate SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL);
 }
 
+static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
+    mongo::DBClientConnection c;
+    c.connect("localhost");
+
+    int FIFO = open(dbP.pipe, O_RDONLY);
+
+    while(1){
+        // get message
+        read(FIFO, msg, MAX_BUF);
+
+        // write to database
+        // ....
+    }
+}
+
+
+static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
+
+    mongo::DBClientConnection c;
+    c.connect("localhost");
+
+    Socket sendSocket;
+	sendSocket.init();
+
+	int FIFO = open(newRevPipe.pipe, O_RDONLY);
+	struct newConnectionInfo piped;
+
+    while(1){
+        // read socket
+        read(FIFO, piped, MAX_BUF);
+        // read documents from mongo
+        for (std::list<int bucketID>::iterator bucket = piped->BucketList.begin(); bucket != piped->BucketList.end(); bucket++){
+            // query the database
+            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << bucket) ));
+            // iterate elements from the buckets
+            while (cursor->more()){
+                // send both client and message to the socket Class
+                sendSocket.send(piped.socket, cursor->next().jsonString());
+            }
+        }
+    }
+}
+
 
 SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL){
+
+    char * dbWriter = "/temp/dbWriter";
+    mkfifo(dbWriter, 0666);
+    int DBW = open(dbWriter, O_WRONLY);
+    struct pipe dbP;
+    dbP.pipe = DBW;
+    pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, (void *) &dbP); // spawn dbWriter thread
+
     // establish new sending port
     Socket sendSocket;
 	sendSocket.init();
 
-	// buffer for messages
-    json_t msg;
-	FIFO = open(sendFIFO, O_RDONLY);
+	int FIFO = open(sendFIFO, O_RDONLY);
+
+	struct sendUpdates msg;
 	while(1){
 		read(FIFO, msg, MAX_BUF);
-        // read location from header
-        const char *message_type = json_string_value(json_object_get(msg, "type"));
-        // Test if broadcast or shout, if shout, check location and
-        std::list<struct sockaddr_in> SocketList;
-        if(message_type == "broadcast"){
-            SocketList = HMBL.getSockets();
-        }else if(message_type == "shout"){
-            // loop through all the values at location and put them in an array
-            json_t location = json_object_get(msg, "location");
-            int message_location[json_array_size(location)];
-            for(i = 0; i < json_array_size(location); i++){
-                message_location[i] = json_array_get(location, i);
-            }
-            SocketList = HMBL.getSockets(message_location);
-        }
-
-        // Strip header from message
-        json_t sendingMessage = json_object_get(msg, "object");
-
-		// this is the send command
-		sendSocket.send(SocketList, sendingMessage);
-    }
+        // break msg into sockets & object
+        // send to socket list via socket class
+        sendSocket.send(msg.SocketList, msg.message);
+        // write message to database thread
+        write(dbWriter, msg.message, sizeof(msg.message));
 }
 
 SendUpdate::~SendUpdate(){//dtor
