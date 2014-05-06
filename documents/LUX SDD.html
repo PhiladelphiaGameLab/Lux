@@ -1,0 +1,700 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.5  (Linux)">
+	<META NAME="AUTHOR" CONTENT="Jake ">
+	<META NAME="CREATED" CONTENT="20140501;9423000">
+	<META NAME="CHANGEDBY" CONTENT="Jake ">
+	<META NAME="CHANGED" CONTENT="20140502;10315400">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 0.79in }
+		@page:first { }
+		P { margin-bottom: 0.08in }
+		H1 { margin-bottom: 0.08in }
+		H1.western { font-family: "Liberation Sans", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 16pt }
+		H1.ctl { font-family: "Lohit Hindi"; font-size: 16pt }
+		H2 { margin-bottom: 0.08in }
+		H2.western { font-family: "Liberation Sans", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-family: "Lohit Hindi"; font-size: 14pt; font-style: italic }
+		H3 { margin-bottom: 0.08in }
+		H3.western { font-family: "Liberation Sans", sans-serif }
+		H3.cjk { font-family: "WenQuanYi Micro Hei" }
+		H3.ctl { font-family: "Lohit Hindi" }
+		H4 { margin-bottom: 0.08in }
+		H4.western { font-family: "Liberation Sans", sans-serif; font-size: 11pt; font-style: italic }
+		H4.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 11pt; font-style: italic }
+		H4.ctl { font-family: "Lohit Hindi"; font-size: 11pt; font-style: italic }
+		H5 { margin-bottom: 0.08in }
+		H5.western { font-family: "Liberation Sans", sans-serif; font-size: 11pt }
+		H5.cjk { font-family: "WenQuanYi Micro Hei"; font-size: 11pt }
+		H5.ctl { font-family: "Lohit Hindi"; font-size: 11pt }
+		A:link { so-language: zxx }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<H1 CLASS="western"><A NAME="__RefHeading__109_71977014"></A>Introduction</H1>
+<H2 CLASS="western"><A NAME="__RefHeading__111_71977014"></A>Purpose</H2>
+<P>This Document is intended to provide an overview of the Lux
+Backend system design. It should provide reference to developers, as
+well as a reference to project advisors in order to help further the
+project. 
+</P>
+<H2 CLASS="western"><A NAME="__RefHeading__113_71977014"></A>Scope</H2>
+<P>	The Lux Backend system is a generic Multi-player game server-side
+system, intended for use with Massive Multilayer online games. The
+system is designed to be released open source for use by not only the
+Philadelphia Game Lab, but also other game development firms who are
+looking to develop online games without the resources that might be
+needed to develop a responsive server side process. In order to
+provide security for Multi-player games, an authentication system has
+been included in the design. 
+</P>
+<P>	We believe that the Lux system is designed to be generic enough
+for use by almost any Multi-player game, while still being complete
+enough to exclude the need for further development on the server
+processes. Since the Lux system will be released open source, the
+code will be made available on GitHub for public access, however an
+installation kit (or make file) will be included with the final
+release. 
+</P>
+<P>	The first project built on the Lux backend is a Massive
+Multi-player online game being developed in-house by the Philadelphia
+Game Lab. This will allow for close work in development of necessary
+features and improvements that may be excluded or overlooked in the
+initial release. Development on this MMO will begin once the
+server-side system has reached an appropriately useful stage. 
+</P>
+<H2 CLASS="western"><A NAME="__RefHeading__117_71977014"></A>Definitions
+and Acronyms</H2>
+<P>MMO – Massive Multi-player Online Game</P>
+<P>BGT – Battle Ground Thread</P>
+<P>HMBL – HashMap Based Location</P>
+<H1 CLASS="western" STYLE="page-break-before: always"><A NAME="__RefHeading__121_71977014"></A>
+System Architecture</H1>
+<P>	The System is broken into several sections that interact with
+each other. The main functionality of the system is designed as a
+Message Passing Server that takes in Messages from client processes,
+finds the relevant recipients of the processes and  forwards that
+message onto the recipients socket. In order to determine which
+sockets the message is “relevant” for, we are developing our own
+data structure that functions as a 2D HashMap of the game Map.
+Sockets will be used for communication in order to speed the message
+passing system. In order to ensure that all clients are in sync with
+each-other, the client game process will pass all updates to
+objects/sprites in the game onto the server, and all messages will be
+passed back out. 
+</P>
+<P>	A database of all objects will be kept to maintain a record of
+the current state of the game, and to allow new players to enter the
+game at it's current state. The handling and sending of object
+updates will be done on the client developer's end, however a
+reference guide will be provided to ease in this processes. Clients
+will be expected to send the “state” of all game objects,
+including the model that the game objects uses (store on the
+End-users local machine), the animation that the game model is
+currently in (and the time of the animation if necessary), and the
+location of the game object. Since objects will be updated on each
+frame, and only objects that the client has changed will need to be
+sent back to the server, we will minimize the traffic sent between
+frames without compromising game or introducing unnecessary lag into
+the game. 
+</P>
+<P>	The game will provide a portion dedicated to Authorization, which
+will be an extension of the OAuth 2.0 protocol. Clients will include
+an OAuth 2.0 system that is external to our server system, and can
+either be of their own development or an external service such as
+Google or Facebook. To increase security, the OAuth, and in game
+Authorization are  kept completely separate from the message passing
+server aspect, and from all other aspects of the server. In order to
+validate the End-user and verify that they are the user they claim to
+be, a static hashing method will be implemented that can hash a users
+credentials to check that they are the user in question. 
+</P>
+<P>	Included with the system is a chat server, and banking system,
+both of which can be implemented either with the game server, or
+either should function independently enough to be used as a stand
+alone system. The chat server will function as a chat server and
+miniature social network tool that can be integrated fully with a
+game, without restricting the game to any particular social or
+hierarchical structure. The banking system functions as a store of
+transactions for a particular user, or group, and acts independent
+from the rest of the system in order to prevent any conflict. 
+</P>
+<H2 CLASS="western"><A NAME="__RefHeading__123_71977014"></A>Architectural
+Design</H2>
+<P>	The System is split into 10 separate modules that work as
+independently from one another as possible while still creating a
+full system. These modules are split into 3 major implementation
+types, HTTP servers, continual socket servers, and helper classes.
+The HTTP servers include an Authorization server, a Initialization
+Server, a Social Network server, and Bank server. These function on a
+HTTP protocol and will get in HTTP requests and return the output
+from a compiled program that is run when the request is received. The
+socket servers include a Battle Ground thread, and a chat server.
+These servers all listen on a socket, and receive messages before
+parsing them and sending a response to other sockets connected to the
+server. The helper classes include a static authorization class, a
+custom data structure for storing an end users position on the
+virtual landscape (HashMap Based Location), a Battle Ground Spawning
+thread, and a class designed to assign End-users to a given Battle
+Ground thread (Find BGT Class). The functionality of these 3 modules
+varies greatly and will be discussed in further depth later. 
+</P>
+<H3 CLASS="western"><A NAME="__RefHeading__152_71977014"></A>HTTP
+Servers</H3>
+<P>	The HTTP servers that are used within the game are portions of
+the game that do not need to function as quickly as other portions
+(eg: sockets), but still need to ensure reliable data transfer. The
+HTTP servers will work by receiving a formatted URL request to an
+HTTP server built into our functionality, which will be parsed for
+parameters. These parameters will determine the pre-compiled program
+that needs to be run, as well as the unique parameters to that
+program. As an example</P>
+<P>	<A HREF="https://localhost:3000/Auth?clientID=xxx&amp;AccessToken=xxx">https://localhost:3000/Auth?clientID=xxx&amp;AccessToken=xxx</A>
+</P>
+<P>would run the Authorization server with the parameters:</P>
+<P>	$ auth -c xxx -AT xxx</P>
+<P>and return the output from that program as the response to the
+request. The response will be a JSON formated string that can be
+parsed and interpreted in the client program. 
+</P>
+<P>	“{ 
+</P>
+<P>	EUID: \“123\”,</P>
+<P>	 AccessToken: \“xxx\”</P>
+<P>	}”</P>
+<P>	For the request processing we would like to use a fully
+functional HTTP server that can be adapted to return the output from
+our compiled program, opposed to adapting or building a smaller less
+capable HTTP server. We would prefer to use a system that can
+directly run a compiled program rather than having an interpreter
+read a php file that executes the program (this would add a lot of
+overhead to each HTTP request). 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__154_71977014"></A>Authorization
+Server 
+</H4>
+<P>	The Authorization Server is designed as an extension of the OAuth
+protocol, and acts as a next step in the Authorization process,
+without involving the End-User any further than an OAuth redirect for
+log-in. The only extra step that the client program must perform is a
+single HTTP request to the Authorization Server. After completing the
+OAuth process, the client program will forward the information
+returned (including the access token and unique client ID) to the
+Authorization server. The Authorization server will then validate the
+JWT formatted client ID as being a valid identifier and use this to
+access the players End-User ID from a key-value store (either
+Voldemort or Raik). The client ID will be validated using the static
+Authorization class. 
+</P>
+<P>	Using the client ID returned from the OAuth process as the “key”,
+the key-value store will return the unique End-User ID that will be
+used in the game. The rest of the information returned by the OAuth
+will be updated in the key-value store, but will not be utilized at
+this point in the development, it is only stored for possible future
+features. The End-User ID is a unique identifier that is generated
+when a user first creates an account, and will need to be created
+within the Authorization server if the user is not already a
+registered player. 
+</P>
+<P>	After the End-User ID is acquired from the key-value store, the
+Authorization server will call the static Authorization class again
+to create a unique in-game access-token. This access token will be a
+hash of the users End-User ID, a server secret, and a time bucket
+representing the current server time. After creating this
+access-token, the HTTP server will return to the client the End-User
+ID, and the new access-token. The access-token is not stored in any
+database, but the client will need to use it to verify their identity
+on other servers. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__156_71977014"></A>Initialization
+Server</H4>
+<P>	The Initialization server functions to get a single HTTP request
+in from a client, and respond with the Socket on which to connect,
+and the initial objects in the client game instance that need to be
+loaded. The request sent into the Initialization Server should
+include only the End-User ID and the access-token. The access token
+and End-User ID are then validated using the static Authorization
+Class. The End-User ID is then used to access a document database to
+retrieve the User's “Document”. This Document contains
+information on the player location, XP, and any other player specific
+information. This information is passed directly into the Find BGT
+Class, which uses the document information to determine which BGT the
+client should be connected to. 
+</P>
+<P>	After the call to the Find BGT Class, the Initialization server
+will take the returned information, including the BGT ID and the
+relevant “Bucket” numbers. The buckets will be described later in
+the HashMap Based Location Data structure. This information is then
+used to call the document database again, and find all the
+information that is relevant to the client at the start of their game
+play. The socket that the BGT is listening on and all the objects
+obtained from the document database are then passed back to the
+client as the response from the initial HTTP request. The client is
+then responsible for loading the Sprites saved on their local machine
+based on the information passed, and connecting to the socket
+specified by the response. Once the client finishes initializing the
+game session, they connect to the Battle Ground thread and begin game
+play. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__158_71977014"></A>Social
+Network Server</H4>
+<P>	The Social Network server acts to receive requests from clients
+regarding joining and leaving groups, adding friends, and removing
+friends. A host of other features are included, but they all work in
+the same fashion, so they can be grouped together into a single
+functional description. The only difference between each call will be
+the database query that is used to make the change to the End-Users
+social network, or to retrieve information that will be returned. 
+</P>
+<P>	The basis for both the social network and the chat server is the
+use of a graph database to establish and define the connection
+between users and groups. Each user and group will have an assigned
+Node, and the connection between the Nodes function as the
+“Friendship” or “Group Membership”. Each HTTP request that
+comes in will be formated to use a predefined query to the graph,
+which will substitute certain parameters to return the desired
+results, or edits. 
+</P>
+<P>	The Social Network Server will get the HTTP request containing
+the action to be performed, the client ID, the client access-token,
+and the necessary parameters for the action. After using the static
+Authorization Class to determine that the client is sending an
+authentic request, the server will parse the necessary parameters
+into the desired query, and perform the query on the database. The
+response from the HTTP request will be the response from the
+database, which will be either a list of desired nodes/connections, a
+success message, or a failure message. Failures may result from
+attempting to make a query on a non-existent connection or node, but
+should not occur if the social network is properly used by the client
+program. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__160_71977014"></A>Bank
+Server</H4>
+<P>	Like the Social Network Server, the bank server will function as
+a large HTTP API that can take in a certain defined set of changes,
+and act almost directly on the database from the given parameters
+after proper Authentication from the Static Authentication Class. In
+order to add a second layer of security, there may be some need for
+PIN code access or IP verification during a session. 
+</P>
+<P>	The basic functionality will be receiving, transferring, and
+spending of in-game currency. Since the full functionality of the
+Bank Server, and the necessary parameters have not been defined, this
+section will be left unexplored. 
+</P>
+<H3 CLASS="western"><A NAME="__RefHeading__162_71977014"></A>Socket
+Servers</H3>
+<P>	The Socket Servers are designed to function as message passing
+servers that receive a message on their own listening socket, perform
+minimal processing and pass the message onto a sending queue that
+sends messages on it's own sending socket. In order to keep the
+systems response time up (and the client lag down) the Socket servers
+preform as little work on each message as possible before sending
+them out. The main functionality within each of the receiving sockets
+is to find which sockets will need to receive each message, and
+forward the message onto a sending thread. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__164_71977014"></A>Battle
+Ground Thread</H4>
+<P>	The Battle Ground Thread holds the main functionality for the
+server, which is receiving and updating the objects during the game
+play. The BGT will first open a socket connection to listen to, and
+then receive messages on the socket to be parsed into JSON objects.
+These objects will contain a header which contains the client that
+sent the message, and the location of that client. The first query to
+the HBML will function to update the location of the player who sent
+the object update, and remove the reference to the old location. It
+will also update the socket that the client is using- in case the
+client is forced to choose a new socket for any disconnection reason,
+without forcing the client to reconnect via the Initialization
+server. 
+</P>
+<P>	The second call the the HMBL will be the location of the object
+itself, and the radius of which clients will need to be notified of
+this change. The radius portion will be static to the object for the
+most part, although client processes will be able to alter this. The
+HMBL call will return a linked list of the sockets relevant to this
+update. This object update, and the list of relevant sockets will
+then be piped off to a Send Updates thread that is unique to the BGT.
+The Send Updates Thread will function only to traverse the linked
+list of sockets and send the object update to each of the client
+sockets that the update is relevant to. After sending the update to
+all sockets, the Send Update Thread will pipe the message to a
+Database Writer thread that will update the object definition in the
+document database. This update, and the document database, will not
+be accessed at any point during the game play, but is only used by
+the initialization thread to prepare a new client who is preparing to
+enter the Battle Ground Thread. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__166_71977014"></A>Chat
+Server</H4>
+<P>	The Chat Server functions along-side the Social Network Server,
+and works off the same graph database as the social network server.
+The functionality however is very different, and more similarly
+reflects that of the Battle Ground Thread's functionality. As a
+message comes into the Chat server on the socket it is listening on,
+it will parse the message into JSON, query the graph database for a
+list of relevant sockets, and send out the message to the list of
+sockets via it's own unique Send Updates Thread. On each message that
+comes in, the header to the message will contain the Sending user,
+who will need to be authenticated using the Authentication class, and
+the End-User's node in the graph database will have to updated with
+the socket that the message came in on. 
+</P>
+<H3 CLASS="western"><A NAME="__RefHeading__168_71977014"></A>Helper
+Classes/Structures</H3>
+<P>	The Helper Classes and Structures are the aspects of the server
+that do not directly communicate with the client process, but instead
+are accessed by specific portions of the server for specific
+purposes. The Authorization class is accessed by any process that is
+receiving a message or sending a message to a client. The HashMap
+Based Location is created as an instance inside the Battle Ground
+thread and is specific to that Battle Ground thread. The Battle
+Ground Thread Spawner is only concerned with data in the Find BGT
+Class, and ensures that the proper BGT and proper number of BGTs are
+currently online; it is the only Helper class that runs continually-
+and will be used as the main thread that launches all the other
+threads and ensures that they are still online. The Find BGT Class
+will share many elements with the HMBL class, and will have many of
+it's methods statically called from the HMBL class, but will run
+separate to the BGT as a way to track the BGTs and determine the
+proper BGT for a client to connect to. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__170_71977014"></A>Authorization
+Class</H4>
+<P>	The Authorization class is designed to be a static class,
+accessible from any other server component, in order to authorize
+clients without communication between individual threads. The
+functions within the Authorization class are static and the class
+will be called from various points in the system. The methods include
+a method to create an access token from the End-User ID, the Time
+bucket, and the server secret. One to verify that the access token
+matches the End-User ID, which will rehash the token and compare it
+to the token passed in. A method to authenticate the JWT from the
+OAuth process, which will follow the standards laid out for
+Authenticating a JWT, which will return the unique identifier from
+the JWT. 
+</P>
+<P>	Lastly, the Authorization Class will contain a method for
+refreshing a User token if it has expired, which will rehash the
+passed token using the previous time bucket and make sure that it
+matches, and then create a  new token in the current time bucket and
+return that. This method will be called anytime that a access token
+fails, but will need to be called from outside of the class. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__172_71977014"></A>HashMap
+Based Location 
+</H4>
+<P>	The HashMap Based Location tool is the heart of the systems
+ability to quickly process which clients need to be updated of
+changes to an object, and quickly determining the location of an
+object relative to other objects on the virtual map. The actual HMBL
+stores only the clients and their respective sockets, which allows
+for quickly compiling a list of sockets that a message needs to be
+sent to. The HMBL tool is instanced within a BGT and is not a shared
+data structure, so there are no shared locks, mutual exclusion, or
+blocking- only the BGT accesses the HMBL. 
+</P>
+<P>	The structure of the HMBL tool is predicated on the use of two
+HashTables. The first HashTable is used only to hold relationship
+between a client and a pointer to their socket in the second
+HashTable. This is done so that when a request to update the client's
+socket comes in, the HMBL can immediately find and unlink the
+previous socket. As a precaution, sockets are given an “expiration
+time” when they are logged into the second HashMap which will be
+checked against the current time when the socket is accessed. If the
+socket has expired (without having been previously unlinked) it is
+assumed that the client connection was terminated, and thus that
+socket no longer needs to have messages sent to it. This leads to the
+HMBL immediately unlinking the socket and continuing with it's task. 
+</P>
+<P>	The second HashTable is a linear array of buckets that can be
+mapped to using a hashing function that is dependent on the clients
+current x,y coordinates on the map. The bucket's virtual size is
+dependent on the needs of the game, but is sized sufficiently small
+that a limited number of sockets are mapped to any given bucket. The
+HMBL's ability to return “relevant” sockets based on the radius
+of the object is dependent on the linear array's ability to have each
+element accessed in constant time given the index. If a socket is in
+a given bucket, and the radius is 1 level out, then each of the
+buckets around it can be found using a formula. This gives access to
+the buckets at constant time, assuming the buckets can be mapped to
+in constant time, and the formula to find the surrounding buckets is
+constant time. The only growth is for elements with a larger radius,
+there will be a large growth between the amount of buckets that need
+to be accessed. Since within each bucket the sockets will be stored
+as a (presumably doubly) linked list, it is still possible to link
+them together in constant time by not traversing the list, but
+instead just linking them to the end of the previous bucket's list. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__174_71977014"></A>Battle
+Ground Spawner Thread</H4>
+<P>	The Battle Ground Spawner Thread functions just to maintain the
+BGT's and grow the map, or the number of arenas currently in use. As
+the number of Battle Ground Threads needed grows, the Battle Ground
+Spawner Thread will spawn a new BGT. This process is done by first
+duplicating a document collection that reflect the starting state of
+the battle ground thread being spawned (loading map elements, setting
+the spawn points, ect) and linking that to the Battle Ground thread
+that is being spawned, as well as to the Find BGT class. 
+</P>
+<P>	If a BGT should crash, or go down, then the Spawner thread would
+simply request the database collection of that thread, and create a
+new BGT that is linked to the existing document collection. Since
+BGTs will be launched within the Battle Ground Spawner Thread, it
+will be able to see if any BGT has crashed, as well as kill any BGT
+that is no longer necessary. 
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__176_71977014"></A>Find BGT
+Class</H4>
+<P>	The Find BGT class maintains an active list of the BGTs that are
+being played on, and contains a custom hashing function dependent on
+the game type to find which thread a client should be linked to. Once
+a client connects to the initialization server, the Find BGT Class
+will be able to use static methods, and simple definitions of each
+BGT to calculate which BGT the client is best matched with. Depending
+on game type, this could be based on the location of the client, the
+XP of the client, or the crowding of any given BGT. Each type of
+mapping will be implemented, and client Developers will simply need
+to specify which option they wish to use when the process is
+launched. 
+</P>
+<P>	The Find BGT Class will access many of the statically defined
+methods of the HMBL to locate the position on the map that the client
+is currently trying to access, and be able to find all the relevant
+buckets that will need to be queried from the document database. This
+separation allows the BGT to remain solely accessible from the BGT,
+while not completely isolating the information that would be needed
+to connect a client to the BGT. 
+</P>
+<H2 CLASS="western"></H2>
+<H1 CLASS="western" STYLE="page-break-before: always">Component
+Design</H1>
+<H3 CLASS="western"><A NAME="__RefHeading__223_71977014"></A>Developer
+1</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__225_71977014"></A>Initialization
+Server</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+parameters into </FONT>
+</P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Access-Token</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	End-User
+ID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Query
+Document Store for End-User Document</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+Document into JSON</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Pass
+JSON Document to Find BGT Class</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	return
+BGT ID &amp; int[] Bucket List</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Query
+Document Store for BGT Document</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Query
+Document Store for BGT Objects in relevant Buckets</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Build
+JSON response and return to client</FONT></P>
+<H4 CLASS="western"><A NAME="__RefHeading__372_71977014"></A>Battle
+Ground Spawner Thread</H4>
+<P STYLE="margin-left: 0.98in"><BR><BR>
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__374_71977014"></A>Send
+Updates Thread</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Open
+Database Writer Pipe</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Spawn
+Database Writer Thread</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">LOOP:</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message from Pipe</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Break
+Message into Socket List &amp; Message</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Pipe
+Message to Database Writer Thread</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Iterate
+through Socket List &amp; Send Message to Each</FONT></P>
+<P STYLE="margin-left: 0.98in"><BR><BR>
+</P>
+<H3 CLASS="western"><A NAME="__RefHeading__229_71977014"></A>Developer
+2</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__231_71977014"></A>HashMap
+Based Location 
+</H4>
+<P STYLE="margin-left: 0.98in"><BR><BR>
+</P>
+<H4 CLASS="western"><A NAME="__RefHeading__233_71977014"></A>Find BGT
+Class</H4>
+<P STYLE="margin-left: 0.98in"><BR><BR>
+</P>
+<H3 CLASS="western"><A NAME="__RefHeading__235_71977014"></A>Developer
+3</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__237_71977014"></A>Battle
+Ground Thread</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Create
+new HMBL</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Open
+Send Updates Pipe</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Spawn
+Send Updates Thread</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Open
+Socket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">LOOP:</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+message from socket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Parse
+Message into JSON</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message Header for Access-token/EUID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Authenticate
+Access-Token // Authentication Class</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message Header for User Location</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Query
+HMBL to update User Location</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">		Return
+linked list of relevant sockets</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Strip
+message Header</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Pipe
+message body and Sockets to Send Updates Thread</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	</FONT></P>
+<H3 CLASS="western"><A NAME="__RefHeading__239_71977014"></A>Developer
+4</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__241_71977014"></A>Social
+Network Server</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+Parameters into Command and Args</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Use
+Switch to choose Appropriate Command</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Query
+Graph Database with Appropriate Command</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Return
+the results from the graph Database to client	</FONT></P>
+<H4 CLASS="western"><A NAME="__RefHeading__243_71977014"></A>Chat
+Server</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Open
+Send Updates Pipe</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Spawn
+Send Updates Thread (w/ DatabaseWrite = false)</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Open
+Socket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">LOOP:</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message from socket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Parse
+Message into JSON</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message Header for Access-token/EUID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Authenticate
+Access-Token // Authentication Class</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Read
+Message Header for recipient(s)</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Query
+Graph Database to Update Sender Socket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Query
+Graph Database for recipients </FONT>
+</P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">		Return
+JSON of recipient Sockets</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Pipe
+Message body and Sockets to Send Updates Thread</FONT></P>
+<H3 CLASS="western"><A NAME="__RefHeading__245_71977014"></A>Developer
+5</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__247_71977014"></A>Authorization
+Server</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+parameters into </FONT>
+</P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	string
+Access-Token</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	string
+Unique ID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	string
+Client API Key</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	string
+Refresh Token</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Authenticate
+Unique ID // Auth Class</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Check
+KV store for Unique ID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Return
+End-User ID</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	OR
+create new End-User in KV store</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Update
+Access-Token in KV store </FONT>
+</P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Hash
+a new Access-Token // Auth Class</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">JSON
+response to HTTP request</FONT></P>
+<H3 CLASS="western"><A NAME="__RefHeading__158_719770141"></A>Developer
+6</H3>
+<H4 CLASS="western"><A NAME="__RefHeading__160_719770141"></A>Bank
+Server</H4>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+Parameters into Command and Args</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Use
+Switch to choose Appropriate Command</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Query
+HM Store with Appropriate Command</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Return
+the results from the HM Store to client</FONT></P>
+<H4 CLASS="western"><A NAME="__RefHeading__376_71977014"></A><FONT FACE="Liberation Mono, monospace">Authorization
+Class</FONT></H4>
+<H5 CLASS="western"><A NAME="__RefHeading__378_71977014"></A><FONT FACE="Liberation Mono, monospace">string
+createAccessToken(string EndUserID, string serverSecret)</FONT></H5>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Get
+Current Time bucket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Hash
+Parameters + time bucket using... ?</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Return
+new Hash as access-token</FONT></P>
+<H5 CLASS="western"><A NAME="__RefHeading__380_71977014"></A><FONT FACE="Liberation Mono, monospace">string
+authenticateJWT(string JWT)</FONT></H5>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Parse
+to JSON</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Authenticate
+JWT</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Return
+Unique ID from JWT</FONT></P>
+<H5 CLASS="western"><A NAME="__RefHeading__382_71977014"></A><FONT FACE="Liberation Mono, monospace">int
+authenticateUserID(string AccessToken, string EUID, string SS)</FONT></H5>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Call
+CreateAccessToken with parameters</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Compare
+new hash to AccessToken (string compare)</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">return
+the compare</FONT></P>
+<P STYLE="margin-left: 0.98in"><BR><BR>
+</P>
+<H5 CLASS="western"><A NAME="__RefHeading__384_71977014"></A><FONT FACE="Liberation Mono, monospace">String
+refreshUserToken(string AccessToken, string EUID, string SS)</FONT></H5>
+<P STYLE="margin-left: 0.98in; margin-bottom: 0in"><FONT FACE="Liberation Mono, monospace">Get
+Previous Time bucket</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Hash
+Parameters + time bucket using... ?</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">Compare
+new hash to AccessToken (string compare)</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">If
+compare == true</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	Call
+CreateAccessToken</FONT></P>
+<P STYLE="margin-left: 0.98in"><FONT FACE="Liberation Mono, monospace">	return
+new AccessToken</FONT></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H4 CLASS="western"></H4>
+</BODY>
+</HTML>
