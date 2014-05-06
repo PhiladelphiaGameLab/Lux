@@ -38,9 +38,11 @@ static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
     while(1){
         // get message
         read(FIFO, msg, MAX_BUF);
-
+        // strip message header
+                                // WHERE    // SET
+                                // read _id     set all w/ upsert
+        c.update(DATABASE_NAME, QUERY(),    BSON("$inc"<<BSON("a"<<2)), false, true);
         // write to database
-        // ....
     }
 }
 
@@ -65,6 +67,8 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
             auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << bucket) ));
             // iterate elements from the buckets
             while (cursor->more()){
+                // strip sender access token & such
+
                 // send both client and message to the socket Class
                 sendSocket.send(piped.socket, cursor->next().jsonString());
             }
@@ -73,10 +77,9 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
 }
 
 
-SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL){
+SendUpdate::SendUpdate(struct sendUpdateArgs SUTA){
 
-    char * dbWriter = "/temp/dbWriter";
-    mkfifo(dbWriter, 0666);
+    mkfifo("/temp/dbWriter", 0666);
     int DBW = open(dbWriter, O_WRONLY);
     struct pipe dbP;
     dbP.pipe = DBW;
@@ -86,16 +89,18 @@ SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL){
     Socket sendSocket;
 	sendSocket.init();
 
-	int FIFO = open(sendFIFO, O_RDONLY);
+	int readPipe = open(SUTA.pipe, O_RDONLY);
 
 	struct sendUpdates msg;
 	while(1){
-		read(FIFO, msg, MAX_BUF);
+		read(readPipe, msg, MAX_BUF);
         // break msg into sockets & object
         // send to socket list via socket class
         sendSocket.send(msg.SocketList, msg.message);
         // write message to database thread
-        write(dbWriter, msg.message, sizeof(msg.message));
+        if(SUTA.writeToDb > 0){
+            write(dbWriter, msg.message, sizeof(msg.message));
+        }
 }
 
 SendUpdate::~SendUpdate(){//dtor
