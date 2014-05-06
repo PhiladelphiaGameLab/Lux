@@ -31,6 +31,13 @@ typedef struct broadcastStruct{
     Socket socket;
 };
 
+void mongoConnect() {
+  mongo::DBClientConnection c;
+  c.connect("localhost");
+  return c;
+}
+
+
 MainMessagePassingServer::MainMessagePassingServer(int port, std::string configFile){
     // open a new socket to listen on
     int port = atoi(argv[1]);
@@ -43,7 +50,16 @@ MainMessagePassingServer::MainMessagePassingServer(int port, std::string configF
     int AP = open(analytics, O_WRONLY);
 
     // connect to the database
-    DBConnection UserDB();
+    mongoConnect();
+
+    try {
+        mongo::DBClientConnection c = mongoConnect();
+        std::cout << "connected ok" << std::endl;
+      } catch( const mongo::DBException &e ) {
+        std::cout << "caught " << e.what() << std::endl;
+      }
+      return EXIT_SUCCESS;
+    }
 
     // connect to the client's online database?
     Verify verify();
@@ -70,37 +86,7 @@ MainMessagePassingServer& MainMessagePassingServer::operator=(const MainMessageP
 }
 
 int MainMessagePassingServer::createThreads(int numThreads){
-    // Spawn BGTs
-    for(int i=0; i < numThreads; i++){
-        typedef struct BGTID{
-            int location[6];
-            char name[20];
-            int id;
-        }BGTIdentity;
 
-        BGTIdentity.location; // read location from config file [x,y,z,x',y',z']
-        BGTIdentity.name; // read name from config file
-        BGTIdentity.id; // randomly generate ID?
-
-        typedef struct BGTparameters{
-            int port;
-            struct DBC DBConnection;
-            struct BGTID BGTIdentity;
-            HashMapBasedLocation* HMBL;
-            int AP;
-
-        }BGTparam;
-
-        BGTparam.BGTIdentity = BGTIdentity;
-        BGTparam.DBConnection; // A struct holding the database connection string
-        BGTparam.AP = AP;
-
-        pthread_t BGTID; // ID for BGT;
-        pthread_create(&BGTID, NULL, (void *) &BattleGround::createBGT, (void *) &BGTparam); // spawn BGT
-
-        HMBL.addBGT(BGTIdentity, BGTparams); // Put into HMBL
-    }
-    return 0;
 }
 
 int MainMessagePassingServer::start(){

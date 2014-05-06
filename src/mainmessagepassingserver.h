@@ -19,6 +19,10 @@
  */#ifndef MAINMESSAGEPASSINGSERVER_H
 #define MAINMESSAGEPASSINGSERVER_H
 
+#include <cstdlib>
+#include <iostream>
+#include "mongo/client/dbclient.h"
+
 
 class MainMessagePassingServer
 {
