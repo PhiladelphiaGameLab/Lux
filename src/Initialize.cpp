@@ -2,7 +2,6 @@
 
 #DEFINE EUID_SIZE 20
 #DEFINE ACCESSTOKEN_SIZE 150
-#DEFINE SERVER_SECRET "LUXisAwesome!"
 #DEFINE DATABASE_NAME "dev.objects"
 
 
@@ -67,7 +66,7 @@ int main(int argc, char *argv[]){
         // validate that they were found before moving forward
         if(!EUID != "" && !accessToken != ""){
             // Authenticate access token
-            if(authenticate::AuthenticateAccessToken(accessToken, EUID, SERVER_SECRET)){
+            if(Authenticate::authenticateAccessToken(accessToken, EUID)){
                 // query mongo for user info
                 BSONObj clientDocument = getClientDoc(EUID);
 
