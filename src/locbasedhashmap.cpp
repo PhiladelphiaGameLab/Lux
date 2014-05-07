@@ -93,10 +93,60 @@
 		}
 
 //OPERATORS - Would like to add [] based operators to allow people to get from the HashTable easier
-		// LinkedList& LocationBasedHash::operator[](int idx){
+		LinkedList& LocationBasedHash::operator[](int idx){
+			hashTable[idx];
+		}
 
-		// }
+		const LinkedList& LocationBasedHash::operator[](int idx) const{
+			hashTable[idx];
+		}
 
-		// const LinkedList& LocationBasedHash::operator[](int idx) const{
 
-		// }
+
+
+		//---------------------------------------
+
+		HMBS::HMBS(int gt, int mog){
+			gameType = gt;
+			maxOpenGames = mog;
+
+			battlegrounds = new std::list<BattleGround> [mog];
+		}
+
+		HMBS::HMBS(){
+			HMBS(1, 10); //DEFAULTS
+		}
+
+		HMBS::~HMBS(){
+			for(int i = 0; i < maxOpenGames; i++){
+				battlegrounds[i].clear();
+			}
+
+			delete[] battlegrounds;
+		}
+
+		int HMBS::hashFunction(int val){
+			//BLANK FOR NOW UNTIL FIGURE THIS OUT
+			//TODO: FIGURE OUT HASH FUNCTION
+		}
+
+		BattleGround HMBS::get(int x, int y){
+
+			return battlegrounds.front();  //for now, not sure how to do this
+		}
+
+		BattleGround HMBS::getIndex(int idx){
+			battlegrounds[idx];
+		}
+
+		void HMBS::addBGT(int x, int y){
+			battlegrounds.add(new BattleGround());
+		}
+
+		BattleGround& HMBS::operator[](int idx){
+			battlegrounds[idx];
+		}
+
+  		const BattleGround& HMBS::operator[](int idx) const{
+			battlegrounds[idx];
+  		}

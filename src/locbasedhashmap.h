@@ -45,27 +45,27 @@ class HMBL{
 		std::list<struct sockaddr_in> getIndex(int idx);
 		std::list<struct sockaddr_in>* getSockets();
 		void updateLocation(int x, int y, struct sockaddr_in location);
-		// std::list<struct sockaddr_in>& operator[](int idx);
-  	// const std::list<struct sockaddr_in>& operator[](int idx) const;
+		std::list<struct sockaddr_in>& operator[](int idx);
+  		const std::list<struct sockaddr_in>& operator[](int idx) const;
 };
 
-class BattleGroundHash{
+class HMBS{
 	private:
 		int gameType;
 		int maxOpenGames;
-		HMBL hashTable[];
+		std::list<BattleGround>* battlegrounds;
 
 	public:
-		BattleGroundHash(int gt, int mog);
-		BattleGroundHash();
-		~BattleGroundHash();
+		HMBS(int gt, int mog);
+		HMBS();
+		~HMBS();
 
 		int hashFunction(int val);
-		HMBL get(int x, int y);
-		HMBL getIndex(int idx);
+		BattleGround get(int x, int y);
+		BattleGround getIndex(int idx);
 		void addBGT(int x, int y);
-		// LocationBasedHash& operator[](int idx);
-  	// const LocationBasedHash& operator[](int idx) const;
+		BattleGround& operator[](int idx);
+  		const BattleGround& operator[](int idx) const;
 };
 
 #endif // LBHM_H_INCLUDED
