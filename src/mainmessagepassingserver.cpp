@@ -110,7 +110,7 @@ int MainMessagePassingServer::start(){
             // look up the user location in the database
             BGTID userLocation = UserDB.BGTID(message.clientID);
             // compare that to existing threads
-            int clientPort = HMBL.getBGT(userLocation);
+            int clientPort = HMBS.getBGT(userLocation);
             // send the Port that the client needs back to the client
             socket.send(&cli_addr, clientPort);
 		}else{
