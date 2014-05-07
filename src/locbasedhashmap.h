@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <list>
 #include "socket.h"
+#include "battleground.h"
 
 class HMBL{
 	private:
@@ -61,7 +62,7 @@ class HMBS{
 		~HMBS();
 
 		int hashFunction(int val);
-		BattleGround get(int x, int y);
+		BattleGround getBGT(int x, int y);
 		BattleGround getIndex(int idx);
 		void addBGT(int x, int y);
 		BattleGround& operator[](int idx);
