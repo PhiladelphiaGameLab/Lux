@@ -18,72 +18,81 @@
  * - Mike
  */
 
-#include "battlegroundhash.h"
+#include "BattleGroundHash.h"
  	//CONSTRUCTORS
-		LocationBasedHash::LocationBasedHash(int mapw, int maph, int col, int row){
+		HMBL::HMBL(int mapw, int maph, int col, int row){
 			mapwidth = mapw;
 			mapheight = maph;
 			columns = col;
 			rows = row;
 			
-			hashTable = new std::list<struct sockaddr_in>[columns * rows];
+			hashTable = new std::list<struct sockaddr_in> [columns * rows];
 		}
 
-		LocationBasedHash::LocationBasedHash(){
-			mapwidth = 100;
-			mapheight = 100;
-			columns = 20;
-			rows = 20;
-			
-			hashTable = new std::list<struct sockaddr_in>[columns * rows];
+		HMBL::HMBL(){
+			HMBL(100, 100, 20, 20);
 		}
 
 //DESTRUCTOR
-		LocationBasedHash::~LocationBasedHash(){
+		HMBL::~HMBL(){
 			for(int i = 0; i < columns * rows; i++){
 				hashTable[i].clear();
 			}
 
-			free(hashTable);
+			delete[] hashTable;
 		}
 
 //HELPER
-		int LocationBasedHash::hashFunction(int val1, int val2)){
+		int HMBL::hashFunction(int val1, int val2){
 			return val1%columns + (val2%rows)*columns;
 		}
 
 //GETTERS
-		std::list<struct sockaddr_in>* LocationBasedHash::get(int x, int y){
-			std::list<struct sockaddr_in>* retVal = new std::list<struct sockaddr_in>();
+		std::list<struct sockaddr_in>* HMBL::getSocketLists(int x, int y){
+			std::list<struct sockaddr_in>* retVal = new std::list<struct sockaddr_in>;
 			int i = hashFunction(x, y);
 
-			retVal.merge(hashTable[i]);
-			retVal.merge(hashTable[i-1]);
-			retVal.merge(hashTable[i+1]);
-			retVal.merge(hashTable[i+columns]);
-			retVal.merge(hashTable[i+columns-1]);
-			retVal.merge(hashTable[i+columns+1]);
-			retVal.merge(hashTable[i-columns]);
-			retVal.merge(hashTable[i-columns-1]);
-			retVal.merge(hashTable[i-columns+1]);
-			
+			retVal->merge(hashTable[i]);
+			if(i % columns != 0)
+				retVal->merge(hashTable[i-1]);
+			if(i % columns != columns-1)
+				retVal->merge(hashTable[i+1]);
+
+			if(i < columns*(rows - 1)){
+				retVal->merge(hashTable[i+columns]);
+				if(i % columns != 0)
+					retVal->merge(hashTable[i+columns-1]);
+				if(i % columns != columns-1)
+					retVal->merge(hashTable[i+columns+1]);
+			}
+			if(i > columns){
+				retVal->merge(hashTable[i-columns]);
+				if(i % columns != 0)
+					retVal->merge(hashTable[i-columns-1]);
+				if(i % columns != columns-1)
+					retVal->merge(hashTable[i-columns+1]);
+			}
 			return retVal;
 		}
 
-		std::list<struct sockaddr_in> LocationBasedHash::getIndex(int idx){
-			return hashTable(idx);
+		std::list<struct sockaddr_in> HMBL::getIndex(int idx){
+			return hashTable[idx];
 		}
 
-		std::list<struct sockaddr_in>[] getSockets(){
+		std::list<struct sockaddr_in>* HMBL::getSockets(){
 			return hashTable;
 		}
 
 //SETTERS
-		void LocationBasedHash::updateLocation(int x, int y, struct sockaddr_in location){
+		void HMBL::updateLocation(int x, int y, struct sockaddr_in location){
 			hashTable[hashFunction(x,  y)].push_back(location);
 		}
 
-//OPERATORS
+		void HMBL::removeUserFromLocation(){
+			//NOT SURE HOW TO EXACTLY TO DO THIS
+		}
+
+//OPERATORS - Would like to add [] based operators to allow people to get from the HashTable easier
 		// LinkedList& LocationBasedHash::operator[](int idx){
 
 		// }
@@ -91,6 +100,3 @@
 		// const LinkedList& LocationBasedHash::operator[](int idx) const{
 
 		// }
-}
-
-#endif // SERVER_H_INCLUDED
