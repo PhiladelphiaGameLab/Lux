@@ -44,31 +44,27 @@ BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, Has
 	    // accept clients, who will send in their "User Token"
 		socket.recieve(&cli_addr);
 		// this will be how we read the "User Token"
-		json_t message = socket.GetMessage();
+		BSONObj message = socket.GetMessage();
 
-		 // if the client checks out
-		if(verifyClient(message.clientID, message.Token) > 0){
-            int updated = HMBL.updateLocation(cli_addr, message.client_location);
-            if(updated > 0){
-                if(message.type == "broadcast"){
-                    write(BCP, message, sizeof(message));
-                }else if(message.type == "shout"){
-                    write(SP, message, sizeof(message));
-                }
-                write(AP, message, sizeof(message)); // send to analyitics
+        // get accessToken from BSONObj message
+        std::string accessToken = ;
+        // get EUID from BSONObj message
+        std::string EUID = ;
 
-                // UPDATE IN DOCUMENT DB
 
-            }else if(updated == -1){ // not in correct thread
-                socket.send(&cli_addr, "{error: \"This is not the thread you are looking for\"}");
-            }else if(updated == 0){ // new user
-                write(NCP, cli_addr, sizeof(cli_addr));
-            }
+        // authenticate message
+        if(Authenticate::authenticateAccessToken(accessToken, EUID)){
+            // get location from message
+            int[3] location = ;
+            int radius = ;
 
-		}else{
-		    // Client Didn't Check out.
-            socket.send(&cli_addr, "{error: \"Error Verifying Identity\"}");
-		}
+            // query HMBL for socket list
+            std::list<struct sockaddr_in> SocketList = ;
+
+            // pipe updates to send updates thread
+            write(SP, message, sizeof(message));
+
+        }
 
 	}
 }
