@@ -39,10 +39,12 @@ class Socket{
         Socket();
         void init();
         void error(char* msg);
-        void recieve(struct sockaddr_in* cli_addr);
+        BSONObj recieve(struct sockaddr_in* cli_addr);
         void send(struct sockaddr_in* cli_addr);
-        void send(struct sockaddr_in* cli_addr, char message);
-        void Socket::send(std::list<struct sockaddr_in> SocketList, char message);
+        void send(struct sockaddr_in* cli_addr, BSONObj BSMessage);
+        void send(std::list<struct sockaddr_in> SocketList, BSONObj BSMessage);
+        void send(struct sockaddr_in* cli_addr, std::string message);
+        void Socket::send(struct sockaddr_in* cli_addr, char * message[]);
         int main();
         /** Default destructor */
         virtual ~Socket();
