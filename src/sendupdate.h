@@ -23,21 +23,6 @@
 class SendUpdate
 {
     public:
-        /** Default constructor */
-        SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL);
-        /** Default destructor */
-        virtual ~SendUpdate();
-        /** Copy constructor
-         *  \param other Object to copy from
-         */
-        SendUpdate(const SendUpdate& other);
-        /** Assignment operator
-         *  \param other Object to assign from
-         *  \return A reference to this
-         */
-        SendUpdate& operator=(const SendUpdate& other);
-
-        static void createSUT(int sendFIFO, HashMapBasedLocation* HMBL)
     protected:
     private:
 };

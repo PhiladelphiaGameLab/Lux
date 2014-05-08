@@ -1,14 +1,10 @@
 #ifndef AUTHORIZATIONSERVER_H
 #define AUTHORIZATIONSERVER_H
 
+// Stand Alone CGI script
 
-class AuthorizationServer
-{
-    public:
-        AuthorizationServer();
-        virtual ~AuthorizationServer();
-    protected:
-    private:
-};
+#include "Authenticate.h"
+#include "CGI.h"
+
 
 #endif // AUTHORIZATIONSERVER_H

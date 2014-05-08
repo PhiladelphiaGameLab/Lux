@@ -2,6 +2,9 @@
 #define AUTHENTICATE_H
 
 
+// Static class
+// allows for basic authentication stuff
+
 class Authenticate{
     public:
         static std::string createAccessToken(std::string EUID);

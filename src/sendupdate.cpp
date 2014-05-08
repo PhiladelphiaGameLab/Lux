@@ -24,10 +24,6 @@ struct pipe{
     int pipe;
 };
 
-static void SendUpdate::createSUT(int sendFIFO, HashMapBasedLocation* HMBL){
-    // static function so pthread can launch an instance of the BGT class
-    SendUpdate SendUpdate::SendUpdate(int sendFIFO, HashMapBasedLocation* HMBL);
-}
 
 static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
     mongo::DBClientConnection c;
@@ -77,7 +73,7 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
 }
 
 
-SendUpdate::SendUpdate(struct sendUpdateArgs SUTA){
+static void SendUpdate::sendUpdate(struct sendUpdateArgs SUTA){
     if(SUTA.writeToDb > 0){
         mkfifo("/temp/dbWriter", 0666);
         int DBW = open(dbWriter, O_WRONLY);
@@ -102,16 +98,4 @@ SendUpdate::SendUpdate(struct sendUpdateArgs SUTA){
         if(SUTA.writeToDb > 0){
             write(dbWriter, msg.message, sizeof(msg.message));
         }
-}
-
-SendUpdate::~SendUpdate(){//dtor
-}
-
-SendUpdate::SendUpdate(const SendUpdate& other){//copy ctor
-}
-
-SendUpdate& SendUpdate::operator=(const SendUpdate& rhs){
-    if (this == &rhs) return *this; // handle self assignment
-    //assignment operator
-    return *this;
 }

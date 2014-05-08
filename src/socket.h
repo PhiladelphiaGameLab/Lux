@@ -32,6 +32,8 @@
 
 #define MESSAGE_SIZE 256
 
+// instanciable class
+
 class Socket{
     public:
         /** Default constructor */
