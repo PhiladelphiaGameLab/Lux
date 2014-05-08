@@ -20,29 +20,37 @@
 
 #include "battleground.h"
 
-static void BattleGround::createBGT(){
-    // static function so pthread can launch an instance of the BGT class
-    BattleGroundThread BGT(BGTParam.port, BGTParam.DBConnection, BGTParam.BGTIdentity......... );
-}
+void static BattleGround::battleGround(void *param){
 
-void BattleGround::newConnectionsThread(){
-// need to handle new connections to the BGT
-}
-
-BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, HashMapBasedLocation* HMBL, struct DBC DBConnection, int AP){
+    // this pipe stuff should be right:
 
     // create pipe to send updates on
-    char * sendUpdates = "/temp/sendUpdates";
-    mkfifo(sendUpdates, 0666);
-    int SP = open(sendUpdates, O_WRONLY);
-    pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &BGTparam); // spawn sendUpdates thread
+    const char *pipeLocation = "/temp/pipe"; // needs to be unique somehow
+    if(mkfifo(pipeLocation, 0666) == 0){ // creates the pipe in the file system
+        int pipe = open(pipeLocation, O_WRONLY); // open  the pipe for writing
 
-    Socket recieveSocket;
-	recieveSocket.init();
+        // so should the idea of this pthread
+
+        s_SUT param;
+        param.pipeLocation = pipeLocation;
+
+        pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &param); // spawn sendUpdates thread
+
+    }
+
+
+    // construct a HMBL
+
+    Socket socket; // create a socket object
+	socket.init(); // initialize/open the socket
+
+    // will need to pass the socket that was opened back to the
+    // spawn BGT so that it can use that later for redirection
 
 	while(1){
+	    sockaddr_in cli_addr;
 	    // accept clients, who will send in their "User Token"
-		BSONObj message = recieveSocket.recieve(&cli_addr);
+		BSONObj message = socket.recieve(&cli_addr);
 
         // get accessToken from BSONObj message
         std::string accessToken = ;
@@ -57,29 +65,12 @@ BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, Has
             int radius = ;
 
             // query HMBL for socket list
-            std::list<struct sockaddr_in> SocketList = ;
+            std::list<struct sockaddr_in> SocketList = ;// need to pass in cli_addr
 
             // pipe updates to send updates thread
-            write(SP, message, sizeof(message));
+            write(pipe, message, sizeof(message));
 
         }
 
 	}
-}
-
-BattleGround::~BattleGround()
-{
-    //dtor
-}
-
-BattleGround::BattleGround(const BattleGround& other)
-{
-    //copy ctor
-}
-
-BattleGround& BattleGround::operator=(const BattleGround& rhs)
-{
-    if (this == &rhs) return *this; // handle self assignment
-    //assignment operator
-    return *this;
 }

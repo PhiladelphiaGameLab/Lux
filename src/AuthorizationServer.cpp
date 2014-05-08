@@ -1,13 +1,14 @@
 #include "AuthorizationServer.h"
-#include "Authenticate.h"
-#include "CGI.h"
+
 int main(int argc, char *argv[]){
 
-    std::string GET  = CGI::init();
-    std::string JWT = CGI::get(GET, "JWT", EUID_SIZE);
-    std::string APIKey = CGI::get(GET, "APIKey", ACCESSTOKEN_SIZE);
+    CGI enviorment; // create instance of CGI Class
 
-    std::string uniqueID = Authenticate::authenticateJWT(JWT, APIKey);
+    std::string JWT = enviorment.get("JWT"); // get JWT
+    std::string APIKey = enviorment.get("APIKey"); // Get client APIKey
+
+    std::string uniqueID = Authenticate::authenticateJWT(JWT, APIKey); // create a unique ID with the Authenticate class
+
     if(uniqueID != ""){
         // query Key-Value store
         // get back EUID

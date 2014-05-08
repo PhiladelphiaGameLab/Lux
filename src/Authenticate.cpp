@@ -1,6 +1,7 @@
 #DEFINE SERVER_SECRET "LUXisAwesome!"
 
 
+
 static std::string Authenticate::createAccessToken(std::string EUID){
     return "afalsdasda";
 }
