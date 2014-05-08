@@ -42,9 +42,7 @@ BattleGround::BattleGround(int[6] location, char[20] name, int id, int port, Has
 
 	while(1){
 	    // accept clients, who will send in their "User Token"
-		socket.recieve(&cli_addr);
-		// this will be how we read the "User Token"
-		BSONObj message = socket.GetMessage();
+		BSONObj message = recieveSocket.recieve(&cli_addr);
 
         // get accessToken from BSONObj message
         std::string accessToken = ;

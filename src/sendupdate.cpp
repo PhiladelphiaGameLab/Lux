@@ -78,12 +78,13 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
 
 
 SendUpdate::SendUpdate(struct sendUpdateArgs SUTA){
-
-    mkfifo("/temp/dbWriter", 0666);
-    int DBW = open(dbWriter, O_WRONLY);
-    struct pipe dbP;
-    dbP.pipe = DBW;
-    pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, (void *) &dbP); // spawn dbWriter thread
+    if(SUTA.writeToDb > 0){
+        mkfifo("/temp/dbWriter", 0666);
+        int DBW = open(dbWriter, O_WRONLY);
+        struct pipe dbP;
+        dbP.pipe = DBW;
+        pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, (void *) &dbP); // spawn dbWriter thread
+    }
 
     // establish new sending port
     Socket sendSocket;
