@@ -13,8 +13,7 @@ typedef struct s_BGTInfo{
 */
 
 
-class FindBGT
-{
+class FindBGT{
     public:
         s_BGTInfo find(BSONObj clientDocument);
     protected:

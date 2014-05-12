@@ -1,10 +1,5 @@
 #include "CGI.h"
 
-std::string CGI::getEnvStr(std::string key){
-    char const* val = getenv(key.c_str());
-    return val == NULL ? std::string() : std::string(val);
-}
-
 //--------------------------------------------------------------
 //  THIS FUNCTION NEEDS TO BE DONE.
 //--------------------------------------------------------------
@@ -37,6 +32,9 @@ void CGI::decode_string(std::string str){
    str[outpos] = '\0';
 }
 
+//--------------------------------------------------------------
+//  THIS FUNCTION NEEDS TO BE DONE.
+//--------------------------------------------------------------
 CGI::CGI(){
    // Initialize private variables
    ArgCnt = 0;
@@ -136,8 +134,16 @@ int CGI::GetCnt(){
    return ArgCnt;
 }
 
+// done
 void CGI::error(std::string message, int code){
     std::cout << "{ \t\"status\": \"error\", \n\t\"message\": \"" << message <<  " \n\t\"code\": " << code << "\n}" << std::endl;
+}
+
+
+// done
+std::string CGI::getEnvStr(std::string key){
+    char const* val = getenv(key.c_str());
+    return val == NULL ? std::string() : std::string(val);
 }
 
 

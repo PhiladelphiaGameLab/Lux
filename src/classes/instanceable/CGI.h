@@ -7,13 +7,14 @@
 
 class CGI{
     public:
-        CGI::CGI();
-        static std::string CGI::getEnvStr(std::string key);
-        void CGI::decode_string(std::string str);
-        std::string CGI::get(std::string name);
-        std::string CGI::GetName(int index);
-        std::string CGI::GetValue(int index);
-        int CGI::GetCnt();
+        CGI();
+        static std::string getEnvStr(std::string key);
+        void decode_string(std::string str);
+        std::string get(std::string name);
+        std::string GetName(int index);
+        std::string GetValue(int index);
+        int GetCnt();
+        void error(std::string message, int code)
     protected:
     private:
         int ArgCnt;
