@@ -5,7 +5,7 @@
 class DBWriter
 {
     public:
-        DBWriter();
+        static void spawn(struct pipe params_in)
     protected:
     private:
 };

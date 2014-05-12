@@ -5,7 +5,6 @@
 class FindBGT
 {
     public:
-        FindBGT();
     protected:
     private:
 };
