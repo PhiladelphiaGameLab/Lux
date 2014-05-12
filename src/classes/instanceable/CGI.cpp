@@ -1,76 +1,14 @@
 #include "CGI.h"
 
-CGI::CGI(){
-    cout << "Content-Type: text/html\n\n" << endl;
-    get = getEnvStr("QUERY_STRING");
-    // handle POST and PUT as well
-
-    if(getEnvStr("REQUEST_METHOD").compare("GET") == 0){
-
-    }else if(getEnvStr("REQUEST_METHOD").compare("POST") == 0){
-
-    }else if(getEnvStr("REQUEST_METHOD").compare("PUT") == 0){
-
-    }
-}
-
-static std::string CGI::getEnvStr(std::string const& key){
+std::string CGI::getEnvStr(std::string key){
     char const* val = getenv(key.c_str());
     return val == NULL ? std::string() : std::string(val);
 }
 
-std::string CGI::get(std::string parameter, size_t size){
-
-    // Sanatize input
-
-    parameter += "=";
-    std::size_t start = get.find(parameter);
-    std::size_t end = get.find("&", start);
-    std::string found;
-    if (start != std::string::npos){
-        if(end != std::string::npos){
-            found = get.substr(start,end-start);
-        }else{
-            found = get.substr(start,strlen(get)-start);
-        }
-    }
-    return found;
-}
-
-/*
-
 //--------------------------------------------------------------
-// Purpose: Utilities for reading CGI arguments
-// Author:  John Gauch
-// Date:    Spring 2002
+//  THIS FUNCTION NEEDS TO BE DONE.
 //--------------------------------------------------------------
-
-#include "cgi.h"
-using namespace std;
-
-//--------------------------------------------------------------
-// Function for copying a substring.
-//--------------------------------------------------------------
-char *copy_string(char *str, int start, int end)
-{
-   // Create string
-   char *copy = (char *)malloc(end-start+1);
-   if (copy == NULL)
-      return NULL;
-
-   // Copy substring
-   int pos;
-   for (pos = start; pos < end; pos++)
-      copy[pos-start] = str[pos];
-   copy[pos-start] = '\0';
-   return copy;
-}
-
-//--------------------------------------------------------------
-// Function for decoding CGI strings.
-//--------------------------------------------------------------
-void decode_string(char *str)
-{
+void CGI::decode_string(std::string str){
    const char *digits = "0123456789ABCDEF";
    int length = strlen(str);
 
@@ -99,66 +37,58 @@ void decode_string(char *str)
    str[outpos] = '\0';
 }
 
-//--------------------------------------------------------------
-// Constructor function reads and parses CGI arguments.
-//--------------------------------------------------------------
-Cgi::Cgi()
-{
+CGI::CGI(){
    // Initialize private variables
    ArgCnt = 0;
-   for (int pos = 0; pos < MAX_ARGS; pos++)
-      Name[pos] = Value[pos] = NULL;
-
+   for (int pos = 0; pos < MAX_ARGS; pos++){
+        Name[pos] = Value[pos] = NULL;
+   }
    // Read environment variables
-   char *request_method = getenv("REQUEST_METHOD");
-   char *query_string = getenv("QUERY_STRING");
-   char *content_length = getenv("CONTENT_LENGTH");
-   // printf("request_method=%s\n", request_method);
-   // printf("query_string=%s\n", query_string);
-   // printf("content_length=%s\n", content_length);
+   std::string request_method = CGI::getEnvStr("REQUEST_METHOD");
+   std::string query_string = CGI::getEnvStr("QUERY_STRING");
+   std::string content_length = CGI::getEnvStr("CONTENT_LENGTH");
+
    int query_length = 0;
 
    // Check request_method variable
-   if (request_method == NULL)
+   if (request_method == "")
       return;
 
    // Handle GET requests
-   if (strcmp(request_method, "GET") == 0)
-   {
-      if (query_string == NULL)
+   if (request_method.compare("GET") == 0){
+      if (query_string == "")
          return;
-      if (content_length == NULL)
-         query_length = strlen(query_string);
+      if (content_length == "")
+         query_length = strlen(query_string.c_str);
       else
-         query_length = atoi(content_length);
+         query_length = atoi(content_length.c_str);
    }
 
    // Handle POST requests
-   if (strcmp(request_method, "POST") == 0)
-   {
-      if (content_length == NULL)
+   if (request_method.compare("POST") == 0){
+      if (content_length == "")
          return;
       else
-         query_length = atoi(content_length);
+         query_length = atoi(content_length.c_str);
       query_string = (char *)malloc(query_length);
       if (query_string == NULL)
          return;
-      for (int pos = 0; pos < query_length; pos++)
-	 query_string[pos] = fgetc(stdin);
+      for (int pos = 0; pos < query_length; pos++){
+        query_string[pos] = fgetc(stdin);
+      }
    }
 
    // Separate query_string into arguments
    int start_name, end_name, start_value, end_value = -1;
-   while (end_value < query_length)
-   {
+   while (end_value < query_length){
       // Find argument name
       start_name = end_name = end_value + 1;
       while ((end_name<query_length) && (query_string[end_name] != '='))
          end_name++;
 
       // Copy and decode name string
-      Name[ArgCnt] = copy_string(query_string, start_name, end_name);
-      decode_string(Name[ArgCnt]);
+      std::string xd = query_string.substr(start_name, end_name);
+      Name[ArgCnt] = decode_string(xd);
 
       // Find argument value
       start_value = end_value = end_name + 1;
@@ -166,66 +96,49 @@ Cgi::Cgi()
          end_value++;
 
       // Copy and decode value string
-      Value[ArgCnt] = copy_string(query_string, start_value, end_value);
-      decode_string(Value[ArgCnt]);
+      std::string md = query_string.substr(start_value, start_value);
+      Value[ArgCnt] = decode_string(md);
       ArgCnt++;
    }
 }
 
-
-//--------------------------------------------------------------
-// Destructor function releases memory.
-//--------------------------------------------------------------
-Cgi::~Cgi()
-{
-}
-
-//--------------------------------------------------------------
-// Argument lookup by name.
-//--------------------------------------------------------------
-char *Cgi::GetArg(const char name[])
-{
+// done
+std::string CGI::get(std::string name){
    // Lookup argument by name
-   for (int arg=0; arg<ArgCnt; arg++)
-      if (strcmp(name, Name[arg]) == 0)
-         return Value[arg];
-
-   // Return NULL if not found
-   return NULL;
+   for (int i=0; i<ArgCnt; i++){}
+      if (name.compare(Name[i]) == 0){
+        return Value[i];
+      }
+    }
+   return "";
 }
 
-//--------------------------------------------------------------
-// Argument name lookup by number.
-//--------------------------------------------------------------
-char *Cgi::GetName(int index)
-{
+// done
+std::string CGI::GetName(int index){
    // Lookup argument by location
-   if ((index >= 0) && (index < ArgCnt))
+   if ((index >= 0) && (index < ArgCnt)){
       return Name[index];
-   else
-      return NULL;
+   }
+   return "";
 }
 
-//--------------------------------------------------------------
-// Argument value lookup by number.
-//--------------------------------------------------------------
-char *Cgi::GetValue(int index)
-{
+// done
+std::string CGI::GetValue(int index){
    // Lookup argument by location
-   if ((index >= 0) && (index < ArgCnt))
+   if ((index >= 0) && (index < ArgCnt)){
       return Value[index];
-   else
-      return NULL;
+   }
+   return "";
 }
 
-//--------------------------------------------------------------
-// Return number of CGI arguments.
-//--------------------------------------------------------------
-int Cgi::GetCnt()
-{
+// done
+int CGI::GetCnt(){
    return ArgCnt;
 }
 
-*/
+void CGI::error(std::string message, int code){
+    std::cout << "{ \t\"status\": \"error\", \n\t\"message\": \"" << message <<  " \n\t\"code\": " << code << "\n}" << std::endl;
+}
+
 
 
