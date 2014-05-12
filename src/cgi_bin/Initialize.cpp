@@ -1,6 +1,6 @@
 #include "Initialize.h"
 
-static void Initialize::relevantDocuments(BGTInfo bgtInfo){
+void Initialize::relevantDocuments(BGTInfo bgtInfo){
 
     try{
         // find the relevant documents in the mongo database
@@ -30,7 +30,7 @@ static void Initialize::relevantDocuments(BGTInfo bgtInfo){
     }
 }
 
-static BSONObj Initialize::getClientDoc(EUID){
+BSONObj Initialize::getClientDoc(EUID){
 
     try{
         mongo::DBClientConnection c;

@@ -13,6 +13,10 @@ class Authenticate{
         static std::string refreshAccessToken(std::string AccessToken, std::string EUID);
     protected:
     private:
+        static std::string createAccessToken(std::string EUID, std::string timeBucket);
+        static std::string getTimeBucket();
+        static std::string getPreviousTimeBucket();
+
 };
 
 #endif // AUTHENTICATE_H

@@ -20,56 +20,7 @@
 
 #include "sendupdate.h"
 
-
-static void SendUpdate::dbWriter(struct pipe params_in){ // dbWriter thread
-    mongo::DBClientConnection c;
-    c.connect("localhost");
-
-    int FIFO = open(params_in.pipe, O_RDONLY);
-
-    while(1){
-        // get message
-        read(FIFO, msg, MAX_BUF);
-        // strip message header
-                                // WHERE    // SET
-                                // read _id     set all w/ upsert
-        c.update(DATABASE_NAME, QUERY(),    BSON("$inc"<<BSON("a"<<2)), false, true);
-        // write to database
-    }
-}
-
-
-static void SendUpdate::sendNewRelevant(struct pipe params_in){
-
-    mongo::DBClientConnection c;
-    c.connect("localhost");
-
-    Socket sendSocket;
-	sendSocket.init();
-
-	int FIFO = open(params_in.pipe, O_RDONLY);
-	struct newConnectionInfo piped;
-
-    while(1){
-        // read socket
-        read(FIFO, piped, MAX_BUF);
-        // read documents from mongo
-        for (std::list<int bucketID>::iterator bucket = piped->BucketList.begin(); bucket != piped->BucketList.end(); bucket++){
-            // query the database
-            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << bucket) ));
-            // iterate elements from the buckets
-            while (cursor->more()){
-                // strip sender access token & such
-
-                // send both client and message to the socket Class
-                sendSocket.send(piped.socket, cursor->next().jsonString());
-            }
-        }
-    }
-}
-
-
-static void SendUpdate::sendUpdate(struct sendUpdateArgs params_in){
+void SendUpdate::spawn(struct sendUpdateArgs params_in){
     if(params_in.writeToDb > 0){
         mkfifo("/temp/dbWriter", 0666);
         int DBW = open(dbWriter, O_WRONLY);
@@ -82,16 +33,17 @@ static void SendUpdate::sendUpdate(struct sendUpdateArgs params_in){
     Socket sendSocket;
 	sendSocket.init();
 
-	int readPipe = open(params_in.pipe, O_RDONLY);
+	int FIFO = open(params_in.pipe, O_RDONLY);
 
-	struct sendUpdates msg;
+	struct sendUpdates piped;
 	while(1){
-		read(readPipe, msg, MAX_BUF);
-        // break msg into sockets & object
+		read(FIFO, piped, MAX_BUF);
+        // break piped into sockets & object
         // send to socket list via socket class
-        sendSocket.send(msg.SocketList, msg.message);
+        sendSocket.send(piped.SocketList, piped.message);
         // write message to database thread
         if(params_in.writeToDb > 0){
-            write(dbWriter, msg.message, sizeof(msg.message));
+            write(dbWriter, piped.message, sizeof(piped.message));
         }
+    }
 }

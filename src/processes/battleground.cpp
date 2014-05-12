@@ -20,7 +20,7 @@
 
 #include "battleground.h"
 
-void static BattleGround::battleGround(void *param_in){
+void BattleGround::spawn(void *param_in){
 
     // this pipe stuff should be right:
 
@@ -42,7 +42,7 @@ void static BattleGround::battleGround(void *param_in){
     // construct a HMBL
     locbasedhashmap HMBL;
 
-    Socket socket; // create a socket object
+    Socket socket(param_in.port); // create a socket object
 	socket.init(); // initialize/open the socket
 
 

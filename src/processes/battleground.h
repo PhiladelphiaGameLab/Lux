@@ -27,13 +27,13 @@ typedef struct s_SUT{
 };
 
 typedef struct s_BGT{
-
+    int port;
 };
 
 
 class BattleGround{
     public:
-        void static battleGround(void *param);
+        static void spawn(void *param);
     protected:
     private:
 };

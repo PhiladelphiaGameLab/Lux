@@ -6,8 +6,8 @@
 class CGI{
     public:
         CGI();
-        std::string getEnvStr(std::string const& key);
         std::string get(std::string str, std::string parameter, size_t size);
+        static std::string getEnvStr(std::string const& key);
     protected:
     private:
 };
