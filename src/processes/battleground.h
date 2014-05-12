@@ -22,10 +22,13 @@
 
 // static class (thread)
 
-typedef struct{
+typedef struct s_SUT{
     const char *pipeLocation;
-}s_SUT;
+};
 
+typedef struct s_BGT{
+
+};
 
 
 class BattleGround{

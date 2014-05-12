@@ -20,7 +20,7 @@
 
 #include "battleground.h"
 
-void static BattleGround::battleGround(void *param){
+void static BattleGround::battleGround(void *param_in){
 
     // this pipe stuff should be right:
 
@@ -40,32 +40,39 @@ void static BattleGround::battleGround(void *param){
 
 
     // construct a HMBL
+    locbasedhashmap HMBL;
 
     Socket socket; // create a socket object
 	socket.init(); // initialize/open the socket
+
 
     // will need to pass the socket that was opened back to the
     // spawn BGT so that it can use that later for redirection
 
 	while(1){
 	    sockaddr_in cli_addr;
-	    // accept clients, who will send in their "User Token"
+	    // accept clients, who will send in their update
 		BSONObj message = socket.recieve(&cli_addr);
 
         // get accessToken from BSONObj message
-        std::string accessToken = ;
+        std::string accessToken = message["sender"]["accessToken"].String(); // this should be as easy as this- but might not be.
         // get EUID from BSONObj message
-        std::string EUID = ;
+        std::string EUID = message["sender"]["EUID"].String();
 
 
         // authenticate message
         if(Authenticate::authenticateAccessToken(accessToken, EUID)){
             // get location from message
-            int[3] location = ;
-            int radius = ;
+            int location[0] = atoi(message["object"]["location"["x"].String().c_str());
+            int location[1] = atoi(message["object"]["location"["y"].String().c_str());
+            int radius = atoi(message["sender"]["radius"].String().c_str());
 
             // query HMBL for socket list
-            std::list<struct sockaddr_in> SocketList = ;// need to pass in cli_addr
+            std::list<struct sockaddr_in> SocketList = ;// need to pass in cli_addr, location, and radius
+
+            // pass message to undecided server logic class that client will fill in
+            // sadly this might be unavoidable
+            // :-(
 
             // pipe updates to send updates thread
             write(pipe, message, sizeof(message));

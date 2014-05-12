@@ -5,6 +5,9 @@
 
 #include "Authenticate.h"
 #include "CGI.h"
+#include <iostream>
+
+using namespace std;
 
 
 #endif // AUTHORIZATIONSERVER_H
