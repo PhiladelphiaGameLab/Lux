@@ -3,4 +3,9 @@
 
 // Stand Alone CGI script
 
+
+typedef struct s_BGTInfo{
+
+};
+
 #endif // INITIALIZE_H

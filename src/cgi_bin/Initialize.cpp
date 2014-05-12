@@ -5,7 +5,7 @@
 #DEFINE DATABASE_NAME "dev.objects"
 
 
-BSONObj relevantDocuments(BGTInfo bgtInfo){
+void relevantDocuments(BGTInfo bgtInfo){
 // find the relevant documents in the mongo database
 
     // connect to the database
@@ -54,27 +54,21 @@ BSONObj getClientDoc(EUID){
 
 
 int main(int argc, char *argv[]){
-    std::string GET  = CGI::start();
-    std::string EUID = CGI::get(GET, "EUID", EUID_SIZE);
-    std::string EUID = CGI::get(GET, "accessToken", ACCESSTOKEN_SIZE);
+    CGI environment
+    std::string EUID = environment.get(GET, "EUID");
+    std::string accessToken = environment.get(GET, "accessToken");
 
-    if (GET != ""){
-        // find the EUID & access Token
-        std::string EUID = CGI::get(GET, "EUID", EUID_SIZE);
-        std::string EUID = CGI::get(GET, "accessToken", ACCESSTOKEN_SIZE);
+    // validate that they were found before moving forward
+    if(!EUID != "" && !accessToken != ""){
+        // Authenticate access token
+        if(Authenticate::authenticateAccessToken(accessToken, EUID)){
+            // query mongo for user info
+            BSONObj clientDocument = getClientDoc(EUID);
 
-        // validate that they were found before moving forward
-        if(!EUID != "" && !accessToken != ""){
-            // Authenticate access token
-            if(Authenticate::authenticateAccessToken(accessToken, EUID)){
-                // query mongo for user info
-                BSONObj clientDocument = getClientDoc(EUID);
+            // query FindBGT
+            s_BGTInfo bgtInfo= findBGT::find(clientDocument);
 
-                // query FindBGT
-                BGTInfo bgtInfo= findBGT::find(clientDocument);
-
-                BSONObj rDocs = relevantDocuments(bgtInfo);
-            }
+            relevantDocuments(bgtInfo);
         }
     }
 

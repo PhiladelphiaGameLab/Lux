@@ -18,7 +18,9 @@
  * - Jake
  */#ifndef SENDUPDATE_H
 #define SENDUPDATE_H
-
+typedef struct pipe{
+    int pipe;
+};
 
 class SendUpdate
 {

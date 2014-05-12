@@ -20,16 +20,12 @@
 
 #include "sendupdate.h"
 
-struct pipe{
-    int pipe;
-};
 
-
-static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
+static void SendUpdate::dbWriter(struct pipe params_in){ // dbWriter thread
     mongo::DBClientConnection c;
     c.connect("localhost");
 
-    int FIFO = open(dbP.pipe, O_RDONLY);
+    int FIFO = open(params_in.pipe, O_RDONLY);
 
     while(1){
         // get message
@@ -43,7 +39,7 @@ static void SendUpdate::dbWriter(struct pipe dbP){ // dbWriter thread
 }
 
 
-static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
+static void SendUpdate::sendNewRelevant(struct pipe params_in){
 
     mongo::DBClientConnection c;
     c.connect("localhost");
@@ -51,7 +47,7 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
     Socket sendSocket;
 	sendSocket.init();
 
-	int FIFO = open(newRevPipe.pipe, O_RDONLY);
+	int FIFO = open(params_in.pipe, O_RDONLY);
 	struct newConnectionInfo piped;
 
     while(1){
@@ -73,8 +69,8 @@ static void SendUpdate::sendNewRelevant(struct pipe newRevPipe){
 }
 
 
-static void SendUpdate::sendUpdate(struct sendUpdateArgs SUTA){
-    if(SUTA.writeToDb > 0){
+static void SendUpdate::sendUpdate(struct sendUpdateArgs params_in){
+    if(params_in.writeToDb > 0){
         mkfifo("/temp/dbWriter", 0666);
         int DBW = open(dbWriter, O_WRONLY);
         struct pipe dbP;
@@ -86,7 +82,7 @@ static void SendUpdate::sendUpdate(struct sendUpdateArgs SUTA){
     Socket sendSocket;
 	sendSocket.init();
 
-	int readPipe = open(SUTA.pipe, O_RDONLY);
+	int readPipe = open(params_in.pipe, O_RDONLY);
 
 	struct sendUpdates msg;
 	while(1){
@@ -95,7 +91,7 @@ static void SendUpdate::sendUpdate(struct sendUpdateArgs SUTA){
         // send to socket list via socket class
         sendSocket.send(msg.SocketList, msg.message);
         // write message to database thread
-        if(SUTA.writeToDb > 0){
+        if(params_in.writeToDb > 0){
             write(dbWriter, msg.message, sizeof(msg.message));
         }
 }
