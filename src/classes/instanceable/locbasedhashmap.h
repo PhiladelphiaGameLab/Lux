@@ -18,13 +18,16 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * - Mike
+ * - Mike Oak
  */
 
 #include <stdlib.h>
 #include <list>
 #include "socket.h"
 #include "battleground.h"
+#include "Hashing.h"
+
+template <class T>
 
 class HMBL{
 	private:
@@ -32,7 +35,7 @@ class HMBL{
 		int mapheight;
 		int columns;
 		int rows;
-		std::list<struct sockaddr_in>* hashTable;
+		std::list<T>* hashTable;
 
 		void removeUserFromLocation();
 
@@ -41,32 +44,12 @@ class HMBL{
 		HMBL();
 		~HMBL();
 
-		int hashFunction(int val1, int val2);
-		std::list<struct sockaddr_in>* getSocketLists(int x, int y);
-		std::list<struct sockaddr_in> getIndex(int idx);
-		std::list<struct sockaddr_in>* getSockets();
-		void updateLocation(int x, int y, struct sockaddr_in location);
-		std::list<struct sockaddr_in>& operator[](int idx);
-  		const std::list<struct sockaddr_in>& operator[](int idx) const;
-};
-
-class HMBS{
-	private:
-		int gameType;
-		int maxOpenGames;
-		std::list<BattleGround>* battlegrounds;
-
-	public:
-		HMBS(int gt, int mog);
-		HMBS();
-		~HMBS();
-
-		int hashFunction(int val);
-		BattleGround getBGT(int x, int y);
-		BattleGround getIndex(int idx);
-		void addBGT(int x, int y);
-		BattleGround& operator[](int idx);
-  		const BattleGround& operator[](int idx) const;
+		std::list<T>* getSocketLists(int x, int y);
+		std::list<T> getIndex(int idx);
+		std::list<T>* getSockets();
+		void add(int loc, T value);
+		std::list<T>& operator[](int idx);
+  		const std::list<T>& operator[](int idx) const;
 };
 
 #endif // LBHM_H_INCLUDED
