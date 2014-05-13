@@ -40,6 +40,7 @@ class Socket{
         void Sets_addr(unsigned long val) { s_addr = val; }
         int Getmessage_size() { return message_size; }
         void Setmessage_size(int val) { message_size = val; }
+        static int getOpenPort();
     protected:
     private:
         unsigned short port;

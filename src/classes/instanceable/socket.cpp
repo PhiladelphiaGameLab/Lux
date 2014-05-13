@@ -22,6 +22,11 @@ Socket::Socket(){
     Sets_addr(INADDR_ANY);
 }
 
+int Socket::getOpenPort(){
+
+}
+
+
 void Socket::init(){
     // creates a new socket
     sockfd = socket(sin_family, SOCK_DGRAM, 0);
