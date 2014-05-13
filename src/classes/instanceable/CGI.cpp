@@ -1,8 +1,6 @@
 #include "CGI.h"
 
-//--------------------------------------------------------------
-//  THIS FUNCTION NEEDS TO BE DONE.
-//--------------------------------------------------------------
+// done
 std::string CGI::decode_string(std::string str){
    const char *digits = "0123456789ABCDEF";
    int length = str.length();
@@ -20,19 +18,16 @@ std::string CGI::decode_string(std::string str){
          char ch2 = toupper(str[++pos]);
          str[outpos++] = 16*(strchr(digits, ch1)-strchr(digits,'0'))
                        + strchr(digits, ch2)-strchr(digits,'0');
-      }
-
-       //Handle remaining characters
-      else
+      //Handle remaining characters
+      }else{
          str[outpos++] = str[pos];
+      }
    }
    return str;
 }
 
-//--------------------------------------------------------------
-//  THIS FUNCTION NEEDS TO BE DONE.
-//--------------------------------------------------------------
 CGI::CGI(){
+// done
    // Initialize private variables
    ArgCnt = 0;
    for (int pos = 0; pos < MAX_ARGS; pos++){
@@ -60,7 +55,6 @@ CGI::CGI(){
    }
 
 
-
    // Handle POST requests
    if (request_method.compare("POST") == 0){
       if (content_length == "")
@@ -75,7 +69,7 @@ CGI::CGI(){
       }
    }
 
-//      ?test=fun2&name=jake2&team=true2&EUID=123432
+//?test=fun%7B&name=Jake Ailor&team=true&EUID=12343&
 
 
    // Separate query_string into arguments
@@ -89,7 +83,7 @@ CGI::CGI(){
       }
 
       // Copy and decode name string
-      std::string xd = query_string.substr(start_name, end_name);
+      std::string xd = query_string.substr(start_name, end_name-start_name);
       Name[ArgCnt] = decode_string(xd);
 
       // Find argument value
@@ -99,8 +93,9 @@ CGI::CGI(){
       }
 
       // Copy and decode value string
-      std::string md = query_string.substr(start_value, end_value);
+      std::string md = query_string.substr(start_value, end_value-start_value);
       Value[ArgCnt] = decode_string(md);
+      std::cout << Name[ArgCnt] << " : " << Value[ArgCnt] << " : " << start_name << "-" << end_name << "; " << query_length <<  std::endl;
       ArgCnt++;
    }
 
@@ -111,7 +106,6 @@ std::string CGI::get(std::string name){
    // Lookup argument by name
    int i;
    for (i=0; i<ArgCnt; i++){
-      std::cout << "Is this " << name << "? " << Name[i] << " : " << Value[i] << std::endl;
       if (name.compare(Name[i]) == 0){
         return Value[i];
       }
