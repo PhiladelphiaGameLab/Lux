@@ -61,17 +61,24 @@ int main(int argc, char *argv[]){
     std::string accessToken = environment.get("accessToken");
 
     // validate that they were found before moving forward
-    if(!EUID != "" && !accessToken != ""){ // CGI will return "" if they are not found (opposed to null)
+    if(!EUID != "" && !accessToken != ""){
         // Authenticate access token
         if(Authenticate::authenticateAccessToken(accessToken, EUID)){
             // query mongo for user info
-            BSONObj Initialize::clientDocument = getClientDoc(EUID);
+            BSONObj clientDocument = Initialize::getClientDoc(EUID);
+            if(clientDocument != NULL){
+                    // query FindBGT
+                    s_BGTInfo bgtInfo = findBGT::find(clientDocument);
 
-            // query FindBGT
-            s_BGTInfo bgtInfo = findBGT::find(clientDocument);
-
-            Initialize::relevantDocuments(bgtInfo);
+                    Initialize::relevantDocuments(bgtInfo);
+            }else{
+                CGI::error("Client Does Not Exist. Please try Rehashing", 1);
+            }
+        }else{
+            CGI::error("Invalid Access Token. Please try Rehashing", 2);
         }
+    }else{
+        CGI::error("Missing Access Token or End-User ID", 3)
     }
 
   return EXIT_SUCCESS;
