@@ -1,6 +1,3 @@
-#ifndef SERVER_H_INCLUDED
-#define SERVER_H_INCLUDED
-
 /*
  * This code was orginally written and developed by the Lux Backend Team
  * at Philadelphia Game Lab:
@@ -20,6 +17,25 @@
  *
  * - Jake
  */
+#ifndef BATTLEGROUND_H
+#define BATTLEGROUND_H
+
+// static class (thread)
+
+typedef struct s_SUT{
+    const char *pipeLocation;
+};
+
+typedef struct s_BGT{
+    int port;
+};
 
 
-#endif // SERVER_H_INCLUDED
+class BattleGround{
+    public:
+        static void spawn(void *param);
+    protected:
+    private:
+};
+
+#endif // BATTLEGROUND_H
