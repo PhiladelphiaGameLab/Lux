@@ -11,22 +11,22 @@ std::string CGI::decode_string(std::string str){
    int pos;
    for (pos=0; pos<length; pos++){
       // Handle white space
-      if (str[pos] == '+')
+      if (str[pos] == '+'){
          str[outpos++] = ' ';
 
       // Handle hex characters
-      else if (str[pos] == '%')
-      {
+      }else if (str[pos] == '%'){
          char ch1 = toupper(str[++pos]);
          char ch2 = toupper(str[++pos]);
          str[outpos++] = 16*(strchr(digits, ch1)-strchr(digits,'0'))
                        + strchr(digits, ch2)-strchr(digits,'0');
       }
 
-      // Handle remaining characters
+       //Handle remaining characters
       else
          str[outpos++] = str[pos];
    }
+   return str;
 }
 
 //--------------------------------------------------------------
@@ -75,30 +75,32 @@ CGI::CGI(){
       }
    }
 
+//      ?test=fun2&name=jake2&team=true2&EUID=123432
+
+
    // Separate query_string into arguments
-   int start_name, end_name, start_value, end_value = -1;
+   int start_name, end_name, start_value, end_value = 0;
    while (end_value < query_length){
       // Find argument name
 
       start_name = end_name = end_value + 1;
-      while ((end_name<query_length) && (query_string[end_name] != '='))
+      while ((end_name<query_length) && query_string[end_name] != '='){
          end_name++;
+      }
 
       // Copy and decode name string
       std::string xd = query_string.substr(start_name, end_name);
       Name[ArgCnt] = decode_string(xd);
-      std::cout << xd << " : " << Name[ArgCnt] << std::endl;
-
 
       // Find argument value
       start_value = end_value = end_name + 1;
-      while ((end_value<query_length) && (query_string[end_value] != '&'))
+      while ((end_value<query_length) && query_string[end_value] != '&'){
          end_value++;
+      }
 
       // Copy and decode value string
-      std::string md = query_string.substr(start_value, start_value);
+      std::string md = query_string.substr(start_value, end_value);
       Value[ArgCnt] = decode_string(md);
-      std::cout << md << " : " << Value[ArgCnt] << std::endl;
       ArgCnt++;
    }
 
@@ -109,6 +111,7 @@ std::string CGI::get(std::string name){
    // Lookup argument by name
    int i;
    for (i=0; i<ArgCnt; i++){
+      std::cout << "Is this " << name << "? " << Name[i] << " : " << Value[i] << std::endl;
       if (name.compare(Name[i]) == 0){
         return Value[i];
       }
