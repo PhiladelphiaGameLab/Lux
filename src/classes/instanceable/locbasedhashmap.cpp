@@ -20,7 +20,8 @@
 
 #include "locbasedhashmap.h"
  	//CONSTRUCTORS
-		HMBL::HMBL(int mapw, int maph, int col, int row){
+		template <class T>
+		HMBL<T>::HMBL(int mapw, int maph, int col, int row){
 			mapwidth = mapw;
 			mapheight = maph;
 			columns = col;
@@ -29,12 +30,14 @@
 			hashTable = new std::list<T> [columns * rows];
 		}
 
-		HMBL::HMBL(){ //DEFAULT CONSTRUCTOR
-			HMBL(100, 100, 20, 20);
+		template <class T>
+		HMBL<T>::HMBL(){ //DEFAULT CONSTRUCTOR
+			HMBL<T>(100, 100, 20, 20);
 		}
 
 //DESTRUCTOR
-		HMBL::~HMBL(){
+		template <class T>
+		HMBL<T>::~HMBL(){
 			for(int i = 0; i < columns * rows; i++){
 				hashTable[i].clear();
 			}
@@ -43,7 +46,8 @@
 		}
 
 //GETTERS
-		std::list<T>* HMBL::getSocketLists(int loc){
+		template <class T>
+		std::list<T>* HMBL<T>::getSocketLists(int loc){
 			std::list<T>* retVal = new std::list<T>;
 
 			retVal->merge(hashTable[loc]);
@@ -55,7 +59,7 @@
 			if(loc < columns*(rows - 1)){
 				retVal->merge(hashTable[loc+columns]);
 				if(loc % columns != 0)
-					retVal->merge(hashTable[i+columns-1]);
+					retVal->merge(hashTable[loc+columns-1]);
 				if(loc % columns != columns-1)
 					retVal->merge(hashTable[loc+columns+1]);
 			}
@@ -69,31 +73,37 @@
 			return retVal;
 		}
 
-		std::list<T> HMBL::getIndex(int idx){
+		template <class T>
+		std::list<T> HMBL<T>::getIndex(int idx){
 			return hashTable[idx];
 		}
 
-		std::list<T>* HMBL::getSockets(){
+		template <class T>
+		std::list<T>* HMBL<T>::getSockets(){
 			return hashTable;
 		}
 
 //SETTERS
-		void HMBL::add(int loc, T value){
+		template <class T>
+		void HMBL<T>::add(int loc, T value){
 			if(hashTable[loc] == NULL)
 				hashTable[loc] = new std::list<T>; 
 			
 			hashTable[loc].push_back(value);
 		}
 
-		void HMBL::removeUserFromLocation(){
+		template <class T>
+		void HMBL<T>::removeUserFromLocation(){
 			//NOT SURE HOW TO EXACTLY TO DO THIS
 		}
 
 //OPERATORS - Would like to add [] based operators to allow people to get from the HashTable easier
-		std::list<T>& HMBL::operator[](int idx){
+		template <class T>
+		std::list<T>& HMBL<T>::operator[](int idx){
 			hashTable[idx];
 		}
 
-		const std::list<T>& HMBL::operator[](int idx) const{
+		template <class T>
+		const std::list<T>& HMBL<T>::operator[](int idx) const{
 			hashTable[idx];
 		}

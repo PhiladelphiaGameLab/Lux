@@ -24,11 +24,9 @@
 #include <stdlib.h>
 #include <list>
 #include "socket.h"
-#include "battleground.h"
-#include "Hashing.h"
+#include "../static/Hashing.h"
 
 template <class T>
-
 class HMBL{
 	private:
 		int mapwidth;
@@ -44,7 +42,7 @@ class HMBL{
 		HMBL();
 		~HMBL();
 
-		std::list<T>* getSocketLists(int x, int y);
+		std::list<T>* getSocketLists(int loc);
 		std::list<T> getIndex(int idx);
 		std::list<T>* getSockets();
 		void add(int loc, T value);

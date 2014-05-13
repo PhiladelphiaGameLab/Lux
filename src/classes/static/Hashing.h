@@ -21,13 +21,6 @@
  * - Mike Oak
  */
 
-class Hashes{
-	public:
-	//ADD HASH FUNCTIONS HERE
-		static int LBHM2Input(LBHMDS data);
-		static int LBHMFindBGT(LBHMDS data);
-};
-
 struct LBHMDataSet
 {
 	int val1;
@@ -35,5 +28,13 @@ struct LBHMDataSet
 	int maxR; 
 	int maxC;
 } typedef MapLocationDS;
+
+class Hashes{
+	public:
+	//ADD HASH FUNCTIONS HERE
+		static int LBHM2Input(MapLocationDS data);
+		static int LBHMFindBGT(MapLocationDS data);
+};
+
 
 #endif // LBHG_H_INCLUDED
