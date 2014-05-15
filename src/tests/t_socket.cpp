@@ -7,32 +7,39 @@
 #include <string.h>     /* String handling */
 #include <iostream>
 #include <cstdlib>
+#include <bsonobj.h>
 
 
-#include "../classes/instanceable/socket.h"
+#include "../classes/instanceable/socketB.h"
 
 void* socketSEND(void*){
 
     std::cout << "Send Started" << std::endl;
+    struct sockaddr_in* srv_addr;
+    /* STILL NEED TO SEND TO A SOCKET THAT I DON'T KNOW YET?!" */
+/*
+    Socket sendSocket;
 
-    // create a socket
-    // initialize the socket
-    // send messages to the first socket from the second
-
-    // read from a random dictionary file and send the message to the port
-
-    // print out the response message
+	int i;
+    for(i=0; i<10; i++){
+        sendSocket.send(srv_addr, "Test Message " << i);
+        std::cout << " Message : " << sendSocket.recieve(&srv_addr).toString() << std::endl;
+    }
+*/
 }
 
 void* socketRECIEVE(void*){
 
     std::cout << "Recieve Started" << std::endl;
-    // create a second socket
-    // initialize the second socket
-    // print out the messages recieved
+    struct sockaddr_in* cli_addr;
 
-    // recieve the message and send a response
+    Socket recieveSocket;
 
+    for(;;){
+        std::cout << " Message : " << recieveSocket.recieve(&cli_addr).toString() << std::endl;
+
+        recieveSocket.send(cli_addr, "Message Recieved");
+    }
 
 }
 
