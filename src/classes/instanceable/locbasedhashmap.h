@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <list>
 #include "socket.h"
-#include "../static/Hashing.h"
 
 template<class T>
 class LocData{
