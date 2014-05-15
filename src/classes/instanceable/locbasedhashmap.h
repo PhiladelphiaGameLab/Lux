@@ -26,6 +26,17 @@
 #include "socket.h"
 #include "../static/Hashing.h"
 
+template<class T>
+class LocData{
+	public:
+		int expire;
+		T data;
+		LocData(int exp, T data);
+		LocData(T data);
+		~LocData();
+};
+
+
 template <class T>
 class HMBL{
 	private:
@@ -33,21 +44,24 @@ class HMBL{
 		int mapheight;
 		int columns;
 		int rows;
-		std::list<T>* hashTable;
+		std::list<LocData<T> >* hashTable;
 
-		void removeUserFromLocation();
+		void copyIntoList(std::list<LocData<T> >* into, const std::list<LocData<T> > from);
 
 	public:
 		HMBL(int mapw, int maph, int col, int row);
 		HMBL();
 		~HMBL();
 
-		std::list<T>* getSocketLists(int loc);
-		std::list<T> getIndex(int idx);
-		std::list<T>* getSockets();
+		std::list<LocData<T> >* getSocketLists(int loc);
+		std::list<LocData<T> > getIndex(int idx);
+		std::list<LocData<T> >* getSockets();
+		
 		void add(int loc, T value);
-		std::list<T>& operator[](int idx);
-  		const std::list<T>& operator[](int idx) const;
+		void removeExpiredObjects();
+
+		std::list<LocData<T> >& operator[](int idx);
+  		const std::list<LocData<T> >& operator[](int idx) const;
 };
 
 #endif // LBHM_H_INCLUDED

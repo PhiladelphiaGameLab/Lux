@@ -1,6 +1,3 @@
-#ifndef LBHG_H_INCLUDED
-#define LBHG_H_INCLUDED
-
 /*
  * This code was orginally written and developed by the Lux Backend Team
  * at Philadelphia Game Lab:
@@ -21,20 +18,13 @@
  * - Mike Oak
  */
 
-struct LBHMDataSet
-{
-	int val1;
-	int val2;
-	int maxR; 
-	int maxC;
-} typedef MapLocationDS;
+#include "HashingUtil.h"
 
-class Hashes{
-	public:
-	//ADD HASH FUNCTIONS HERE
-		static int LBHM2Input(MapLocationDS data);
-		static int LBHMFindBGT(MapLocationDS data);
-};
+int HashUtil::LBHM2Input(MapLocationDS data){
+	return data.val1%data.maxC + (data.val2%data.maxR)*data.maxC;
+}
 
 
-#endif // LBHG_H_INCLUDED
+int HashUtil::LBHMFindBGT(MapLocationDS data){
+	return 1;  //TODO: FIGURE OUT HOW TO DO THIS HASHING
+}

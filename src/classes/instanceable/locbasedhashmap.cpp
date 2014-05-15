@@ -27,13 +27,26 @@
 			columns = col;
 			rows = row;
 			
-			hashTable = new std::list<T> [columns * rows];
+			hashTable = new std::list<LocData<T> > [columns * rows];
 		}
 
 		template <class T>
 		HMBL<T>::HMBL(){ //DEFAULT CONSTRUCTOR
 			HMBL<T>(100, 100, 20, 20);
 		}
+		
+
+		template <class T>
+		LocData<T>::LocData(int expire, T data){
+			this.expire = expire;
+			this.data = data;
+		}
+
+		template <class T>
+		LocData<T>::LocData(T data){
+			LocData<T>(5, data);
+		}
+		
 
 //DESTRUCTOR
 		template <class T>
@@ -45,41 +58,52 @@
 			delete[] hashTable;
 		}
 
+		template <class T>
+		LocData<T>::~LocData(){
+			delete data;
+		}
+
 //GETTERS
 		template <class T>
-		std::list<T>* HMBL<T>::getSocketLists(int loc){
-			std::list<T>* retVal = new std::list<T>;
+		std::list<LocData<T> >* HMBL<T>::getSocketLists(int loc){
+			if(idx >= columns*rows || idx < 0)
+				return NULL;
 
-			retVal->merge(hashTable[loc]);
+			std::list<LocData<T> >* retVal = new std::list<LocData<T> >;
+
+			copyIntoList(retVal, hashTable[loc]);
 			if(loc % columns != 0)
-				retVal->merge(hashTable[loc-1]);
+				copyIntoList(retVal, (hashTable[loc-1]);
 			if(loc % columns != columns-1)
-				retVal->merge(hashTable[loc+1]);
+				copyIntoList(retVal, (hashTable[loc+1]);
 
 			if(loc < columns*(rows - 1)){
-				retVal->merge(hashTable[loc+columns]);
+				copyIntoList(retVal, (hashTable[loc+columns]);
 				if(loc % columns != 0)
-					retVal->merge(hashTable[loc+columns-1]);
+					copyIntoList(retVal, (hashTable[loc+columns-1]);
 				if(loc % columns != columns-1)
-					retVal->merge(hashTable[loc+columns+1]);
+					copyIntoList(retVal, (hashTable[loc+columns+1]);
 			}
 			if(loc > columns){
-				retVal->merge(hashTable[loc-columns]);
+				copyIntoList(retVal, (hashTable[loc-columns]);
 				if(loc % columns != 0)
-					retVal->merge(hashTable[loc-columns-1]);
+					copyIntoList(retVal, (hashTable[loc-columns-1]);
 				if(loc % columns != columns-1)
-					retVal->merge(hashTable[loc-columns+1]);
+					copyIntoList(retVal, (hashTable[loc-columns+1]);
 			}
+
 			return retVal;
 		}
 
 		template <class T>
-		std::list<T> HMBL<T>::getIndex(int idx){
+		std::list<LocData<T> > HMBL<T>::getIndex(int idx){
+			if(idx >= columns*rows || idx < 0)
+				return NULL;
 			return hashTable[idx];
 		}
 
 		template <class T>
-		std::list<T>* HMBL<T>::getSockets(){
+		std::list<LocData<T> >* HMBL<T>::getSockets(){
 			return hashTable;
 		}
 
@@ -87,23 +111,63 @@
 		template <class T>
 		void HMBL<T>::add(int loc, T value){
 			if(hashTable[loc] == NULL)
-				hashTable[loc] = new std::list<T>; 
+				hashTable[loc] = new std::list<LocData<T> >;
+
+			LocData<T> tempVal = new LocData<T>(5, value);
 			
-			hashTable[loc].push_back(value);
+			hashTable[loc].push_back(tempVal);
 		}
 
 		template <class T>
-		void HMBL<T>::removeUserFromLocation(){
-			//NOT SURE HOW TO EXACTLY TO DO THIS
+		void HMBL<T>::removeExpiredObjects(){
+			for(int i = 0; i < columns*rows; i++){
+				typename std::list<LocData<T> >::iterator itB = hashTable[i]->begin();
+				typename std::list<LocData<T> >::iterator itE = hashTable[i]->end();
+				while(itB != itE){
+					if(*itB.expire == 0){
+						hashTable[i]->erase(itB);
+					}else{//check for duplicates if none, move to back of list and erase this one
+						*itB.expire--;
+						typename std::list<LocData<T> >::iterator itR = itE;
+						while(itR != itB){
+							if(*itR.data == *itB.data)
+								break;
+							itR--;
+						}
+
+						if(itR != itB){
+							hashTable[i]->erase(itB);
+						}else{
+							hashTable[i]->push_back(*itB);
+							hashTable[i]->erase(itB);
+						}
+					}
+					itB++;
+				}
+			}
+		}
+
+//HELPERS
+		void HMBL<T>::copyIntoList(std::list<LocData<T> >* into, const std::list<LocData<T> > from){
+			typename std::list<LocData<T> >::iterator itB = hashTable[i]->begin();
+			typename std::list<LocData<T> >::iterator itE = hashTable[i]->end();
+
+			for(; itB != itE; itB++){
+				into->emplace(into->begin(), itB.expire, itB.data);
+			}
 		}
 
 //OPERATORS - Would like to add [] based operators to allow people to get from the HashTable easier
 		template <class T>
-		std::list<T>& HMBL<T>::operator[](int idx){
-			hashTable[idx];
+		std::list<LocData<T> >& HMBL<T>::operator[](int idx){
+			if(idx >= columns*rows || idx < 0)
+				return NULL;
+			return hashTable[idx];
 		}
 
 		template <class T>
-		const std::list<T>& HMBL<T>::operator[](int idx) const{
-			hashTable[idx];
+		const std::list<LocData<T> >& HMBL<T>::operator[](int idx) const{
+			if(idx >= columns*rows || idx < 0)
+				return NULL;
+			return hashTable[idx];
 		}
