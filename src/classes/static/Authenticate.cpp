@@ -12,6 +12,12 @@ std::string Authenticate::authenticateJWT(std::string JWT, std::string Client_AP
     return "12013443"; // return unique ID
 }
 
+std::string Authenticate::createNewEUID(std::string JWT, std::string Client_API_KEY)
+{
+	//NEEDS TO BE DONE
+	return "new ID";
+
+}
 
 
 
