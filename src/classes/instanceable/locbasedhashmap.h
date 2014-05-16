@@ -18,54 +18,49 @@
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * - Mike
+ * - Mike Oak
  */
 
 #include <stdlib.h>
 #include <list>
 #include "socket.h"
 
+template<class T>
+class LocData{
+	public:
+		int expire;
+		T data;
+		LocData(int exp, T data);
+		LocData(T data);
+		~LocData();
+};
+
+
+template <class T>
 class HMBL{
 	private:
 		int mapwidth;
 		int mapheight;
 		int columns;
 		int rows;
-		std::list<struct sockaddr_in>* hashTable;
+		std::list<LocData<T> >* hashTable;
 
-		void removeUserFromLocation();
+		void copyIntoList(std::list<LocData<T> >* into, const std::list<LocData<T> > from);
 
 	public:
 		HMBL(int mapw, int maph, int col, int row);
 		HMBL();
 		~HMBL();
 
-		int hashFunction(int val1, int val2);
-		std::list<struct sockaddr_in>* getSocketLists(int x, int y);
-		std::list<struct sockaddr_in> getIndex(int idx);
-		std::list<struct sockaddr_in>* getSockets();
-		void updateLocation(int x, int y, struct sockaddr_in location);
-		// std::list<struct sockaddr_in>& operator[](int idx);
-  	// const std::list<struct sockaddr_in>& operator[](int idx) const;
-};
+		std::list<LocData<T> >* getSocketLists(int loc);
+		std::list<LocData<T> > getIndex(int idx);
+		std::list<LocData<T> >* getSockets();
+		
+		void add(int loc, T value);
+		void removeExpiredObjects();
 
-class BattleGroundHash{
-	private:
-		int gameType;
-		int maxOpenGames;
-		HMBL hashTable[];
-
-	public:
-		BattleGroundHash(int gt, int mog);
-		BattleGroundHash();
-		~BattleGroundHash();
-
-		int hashFunction(int val);
-		HMBL get(int x, int y);
-		HMBL getIndex(int idx);
-		void addBGT(int x, int y);
-		// LocationBasedHash& operator[](int idx);
-  	// const LocationBasedHash& operator[](int idx) const;
+		std::list<LocData<T> >& operator[](int idx);
+  		const std::list<LocData<T> >& operator[](int idx) const;
 };
 
 #endif // LBHM_H_INCLUDED
