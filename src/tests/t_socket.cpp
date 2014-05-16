@@ -16,8 +16,8 @@ void* socketSEND(void*){
 
     std::cout << "Send Started" << std::endl;
     struct sockaddr_in* srv_addr;
-    /* STILL NEED TO SEND TO A SOCKET THAT I DON'T KNOW YET?!" */
-/*
+
+
     Socket sendSocket;
 
 	int i;
@@ -25,8 +25,9 @@ void* socketSEND(void*){
         sendSocket.send(srv_addr, "Test Message " << i);
         std::cout << " Message : " << sendSocket.recieve(&srv_addr).toString() << std::endl;
     }
-*/
+
 }
+
 
 void* socketRECIEVE(void*){
 

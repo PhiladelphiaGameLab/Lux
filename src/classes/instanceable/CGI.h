@@ -28,6 +28,7 @@ class CGI{
         int ArgCnt;
         std::string Name[MAX_ARGS];
         std::string Value[MAX_ARGS];
+        BSONObj JSONin;
 };
 
 #endif // CGI_H

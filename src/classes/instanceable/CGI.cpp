@@ -1,4 +1,5 @@
 #include "CGI.h"
+#include "bsonobj.h"
 
 // done
 std::string CGI::decode_string(std::string str){
@@ -67,7 +68,10 @@ CGI::CGI(){
       for (int pos = 0; pos < query_length; pos++){
         query_string[pos] = fgetc(stdin);
       }
+      JSONin = mongo::fromjson(query_string, query_length);
    }
+
+
 
 //?test=fun%7B&name=Jake Ailor&team=true&EUID=12343&
 
@@ -103,14 +107,22 @@ CGI::CGI(){
 
 // done
 std::string CGI::get(std::string name){
+   std::string request_method = CGI::getEnvStr("REQUEST_METHOD");
+   std::string query_string = CGI::getEnvStr("QUERY_STRING");
+   std::string content_length = CGI::getEnvStr("CONTENT_LENGTH");
    // Lookup argument by name
-   int i;
-   for (i=0; i<ArgCnt; i++){
+
+    int i;
+    for (i=0; i<ArgCnt; i++){
       if (name.compare(Name[i]) == 0){
         return Value[i];
       }
     }
-   return "";
+
+    if(JSONin.hasElement(name.c_str())){
+        return JSONin[name].toString();
+    }
+    return "";
 }
 
 // done
