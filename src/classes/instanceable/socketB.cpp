@@ -421,17 +421,17 @@ void UDPSocket::disconnect() throw(SocketException) {
 	}
 }
 
-void UDPSocket::sendTo(const void *buffer, int bufferLen, struct sockaddr_in* cli_addr) throw(SocketException) {
+void UDPSocket::sendTo(const void *buffer, int bufferLen, struct sockaddr_in *cli_addr) throw(SocketException) {
 	// Write out the whole buffer as a single message.
-	if (sendto(sock, (raw_type *) buffer, bufferLen, 0, (sockaddr *) &cli_addr, sizeof(cli_addr)) != bufferLen) {
-		throw SocketException("Send failed (sendto())", true);
+	if (sendto(sock, (raw_type *) buffer, bufferLen, 0, (sockaddr *)cli_addr, sizeof(*cli_addr)) != bufferLen) {
+	    throw SocketException("Send failed (sendto())", true);
 	}
 }
 
-int UDPSocket::recvFrom(void *buffer, int bufferLen, struct sockaddr_in* cli_addr) throw(SocketException) {
+int UDPSocket::recvFrom(void *buffer, int bufferLen, struct sockaddr_in *cli_addr) throw(SocketException) {
 	socklen_t addrLen = sizeof(cli_addr);
 	int rtn;
-	if ((rtn = recvfrom(sock, (raw_type *) buffer, bufferLen, 0, (sockaddr *) &cli_addr, (socklen_t *) &addrLen)) < 0) {
+	if ((rtn = recvfrom(sock, (raw_type *) buffer, bufferLen, 0, (sockaddr *)cli_addr, (socklen_t *) &addrLen)) < 0) {
 		throw SocketException("Receive failed (recvfrom())", true);
 	}
 	return rtn;
