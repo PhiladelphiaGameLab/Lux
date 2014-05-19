@@ -1,32 +1,39 @@
 #DEFINE SERVER_SECRET "LUXisAwesome!"
+using namespace std;
 
-
-std::string Authenticate::createAccessToken(std::string EUID, std::string timeBucket){
+string Authenticate::createAccessToken(const string EUID, const string timeBucket){
     // NEEDS TO BE DONE
-    return "afalsdasda";
+    //MD5
+	
+	
+	return "afalsdasda";
 }
 
-std::string Authenticate::authenticateJWT(std::string JWT, std::string Client_API_KEY){
-
-    // NEEDS TO BE DONE
-    return "12013443"; // return unique ID
+string Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
+	string res = "";
+    BSONObj bjwt = mongo::fromjson(JWT);
+	if(bjwt != NULL) {
+		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim
+	}
+	return  res; // return unique ID
 }
 
-std::string Authenticate::createNewEUID(std::string JWT, std::string Client_API_KEY)
+string Authenticate::createNewEUID(const string uniqueID)
 {
 	//NEEDS TO BE DONE
+	//MD5
 	return "new ID";
 
 }
 
 
 
-std::string Authenticate::createAccessToken(std::string EUID){
+string Authenticate::createAccessToken(string EUID){
     return Authenticate::createAccessToken(EUID, Authenticate::getTimeBucket());
 }
 
-bool Authenticate::authenticateAccessToken(std::string AccessToken, std::string EUID){
-    std::string newAccessToken = Authenticate::createAccessToken(EUID);
+bool Authenticate::authenticateAccessToken(string AccessToken, string EUID){
+    string newAccessToken = Authenticate::createAccessToken(EUID);
     if(AccessToken.compare(newAccessToken)){
         return true;
     }else{
@@ -34,8 +41,8 @@ bool Authenticate::authenticateAccessToken(std::string AccessToken, std::string 
     }
 }
 
-std::string Authenticate::refreshAccessToken(std::string AccessToken, std::string EUID){
-    std::string newHash = Authenticate::createAccessToken(EUID, Authenticate::getTimeBucket());
+string Authenticate::refreshAccessToken(string AccessToken, string EUID){
+    string newHash = Authenticate::createAccessToken(EUID, Authenticate::getTimeBucket());
     if(AccessToken.compare(newHash)){
         return AccessToken;
     }else if(AccessToken.compare(Authenticate::createAccessToken(EUID, Authenticate::getPreviousTimeBucket()))){
@@ -45,7 +52,7 @@ std::string Authenticate::refreshAccessToken(std::string AccessToken, std::strin
     }
 }
 
-std::string Authenticate::getTimeBucket(){
+string Authenticate::getTimeBucket(){
         time_t timer;
         struct tm y2k;
         double seconds;
@@ -59,11 +66,11 @@ std::string Authenticate::getTimeBucket(){
 
         int timeBucket = (int)seconds/14336;
 
-    return std::to_string(timeBucket);
+    return to_string(timeBucket);
 }
 
-std::string Authenticate::getPreviousTimeBucket(){
-    return std::to_string(atoi(Authenticate::getTimeBucket())-1);
+string Authenticate::getPreviousTimeBucket(){
+    return to_string(atoi(Authenticate::getTimeBucket())-1);
 }
 
 

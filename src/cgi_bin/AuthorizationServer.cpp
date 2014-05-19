@@ -1,17 +1,17 @@
 #include "AuthorizationServer.h"
-
+using namespace std;
 int main(int argc, char *argv[]){
 
     CGI environment; // create instance of CGI Class
 
     string JWT = environment.get("JWT"); // get JWT
     string APIKey = environment.get("APIKey"); // Get client APIKey
-	string RefreshToken = environment.get("RefreshToken");
+	string RefreshToken = environment.get("RefreshToken");   //Get Refresh Token
 
     string uniqueID = Authenticate::authenticateJWT(JWT, APIKey); // create a unique ID with the Authenticate class
 
     if(uniqueID != ""){
-		//std::vector<mongo::BSONObj> bulk_data;
+		//vector<mongo::BSONObj> bulk_data;
         
 		try{
 		mongo::DBClientConnection c;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 		if(EUIDDoc == NULL)
 		{
 		//I know this is a new user
-		 string newEUID = Authenticate::createNewEUID(JWT, APIKey);
+		 string newEUID = Authenticate::createNewEUID(uniqueID);
 		 mongo::BSONObj newUser = BSON("_id"<<uniqueID<<"EUID"<<newEUID<<"APIKey"<<APIKey<<"RefreshToken"<<RefreshToken);   // save all the other data passed in from the Query String
 		 c.insert(DATABASE_NAME, newUser);     
 		} 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
 			// find the relevant documents in the mongo database
 			// find the EUID Document and print it out
 			//take out the EUID from the BSONObj
-			std::string EUID = EUIDDoc["EUID"].toString();
+			string EUID = EUIDDoc["EUID"].toString();
 		}
 
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
         string err = c.getLastError();
         return NULL;
     }
-}
+
 
         // get back EUID
         //string EUID = ; // access via uniqueID from JWT
