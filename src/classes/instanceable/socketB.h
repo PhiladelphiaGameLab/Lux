@@ -383,7 +383,7 @@ public:
 	*   @return true if send is successful
 	*   @exception SocketException thrown if unable to send datagram
 	*/
-	void sendTo(const void *buffer, int bufferLen, const string &foreignAddress, unsigned short foreignPort) throw(SocketException);
+	void sendTo(const void *buffer, int bufferLen, const sockaddr_in *cli_addr) throw(SocketException);
 
 	/**
 	*   Read read up to bufferLen bytes data from this socket.  The given buffer

@@ -12,30 +12,35 @@
 #include <stdio.h> // standard libraries
 #include <bsonobj.h>
 
+#include "socketB.h"
+
 
 #define MESSAGE_SIZE 256
 
 // instanciable class
 
 class Socket{
-    public:
-        /** Default constructor */
-        Socket(int port);
-        Socket();
-        void init();
-        void error(char* msg);
-        BSONObj recieve(struct sockaddr_in* cli_addr);
-        void send(struct sockaddr_in* cli_addr);
-        void send(struct sockaddr_in* cli_addr, BSONObj BSMessage);
-        void send(std::list<struct sockaddr_in> SocketList, BSONObj BSMessage);
-        void send(struct sockaddr_in* cli_addr, std::string message);
-        void Socket::send(struct sockaddr_in* cli_addr, char * message[]);
-        virtual ~Socket();
+    private:
         UDPSocket socket;
         unsigned short port;
         std::string address;
+    public:
+        /** Default constructor */
+        Socket();
+        Socket(const unsigned short port);
+        virtual ~Socket();
+
+        void Init();
+        void Error(const char* msg);
+        BSONObj Receive(const struct sockaddr_in *cli_addr);
+        void Send(const struct sockaddr_in *cli_addr);
+        void Send(const struct sockaddr_in* cli_addr, const char *message);
+        void Send(const struct sockaddr_in *cli_addr, std::string message);
+        void Send(const struct sockaddr_in *cli_addr, BSONObj BSMessage);
+        void Send(const std::list<struct sockaddr_in> socketList, 
+		  BSONObj BSMessage);
+	void InitSocketInfo();
     protected:
-    private:
 };
 
 #endif // SOCKET_H
