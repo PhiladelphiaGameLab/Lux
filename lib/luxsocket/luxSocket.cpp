@@ -31,11 +31,13 @@ void LuxSocket::initSocketInfo() {
 // needs to recieve the client address pointer
 BSONObj LuxSocket::receive(const struct sockaddr_in *cli_addr) {
     char buf[MESSAGE_SIZE]; // server reads input to this buffer
-    memset(buf, 0, sizeof(buf));
+    int n;
+
+    memset(buf, 0, MESSAGE_SIZE);
 
     socket.recvFrom(buf, MESSAGE_SIZE, cli_addr);
 
-    BSONObj received = mongo::fromjson(buf, MESSAGE_SIZE);
+    BSONObj received = mongo::fromjson(buf);
 
     if(!received) {
 	fprintf(stderr, "error: on line %d: %s\n", error.line, error.text);
@@ -49,10 +51,10 @@ void LuxSocket::send(const struct sockaddr_in *cli_addr) {
 }
 
 void LuxSocket::send(const struct sockaddr_in *cli_addr, const char *message) {
-    socket.sendTo(message, sizeof(message), (struct sockaddr *)cli_addr);
+    socket.sendTo(message, strlen(message), (struct sockaddr *)cli_addr);
 }
 
-void LuxSocket::send(const struct sockaddr_in *cli_addr, std::string message) {
+void LuxSocket::send(const struct sockaddr_in *cli_addr, std::string &message) {
     char *msgChar = new char[message.size() + 1];
     msgChar[message.size()] = '\0';
     memcpy(msgChar, message.c_str(), message.size());
@@ -60,12 +62,12 @@ void LuxSocket::send(const struct sockaddr_in *cli_addr, std::string message) {
     delete msgChar;
 }
 
-void LuxSocket::send(const struct sockaddr_in *cli_addr, BSONObj BSMessage) {
+void LuxSocket::send(const struct sockaddr_in *cli_addr, BSONObj &BSMessage) {
     send(cli_addr, BSMessage.jsonString());
- }
+}
 
-void LuxSocket::send(const std::list<struct sockaddr_in> socketList, 
-		  BSONObj BSMessage) {
+void LuxSocket::send(const std::list<struct sockaddr_in> &socketList, 
+		  BSONObj &BSMessage) {
     for (std::list<struct sockaddr_in>::iterator 
 	     cli_addr = broadcast->socketList.begin(); 
 	 cli_addr != broadcast->socketList.end(); cli_addr++) {

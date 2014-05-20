@@ -31,14 +31,14 @@ class LuxSocket{
         virtual ~LuxSocket();
 
         void init();
-        void error(const char* msg);
+        void error(const char *msg);
         BSONObj receive(const struct sockaddr_in *cli_addr);
         void send(const struct sockaddr_in *cli_addr);
         void send(const struct sockaddr_in* cli_addr, const char *message);
-        void send(const struct sockaddr_in *cli_addr, std::string message);
-        void send(const struct sockaddr_in *cli_addr, BSONObj BSMessage);
-        void send(const std::list<struct sockaddr_in> socketList, 
-		  BSONObj BSMessage);
+        void send(const struct sockaddr_in *cli_addr, std::string &message);
+        void send(const struct sockaddr_in *cli_addr, BSONObj &BSMessage);
+        void send(const std::list<struct sockaddr_in> &socketList, 
+		  BSONObj &BSMessage);
 	void initSocketInfo();
     protected:
 };
