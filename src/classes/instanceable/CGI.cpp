@@ -46,34 +46,25 @@ CGI::CGI(){
       return;
 
    // Handle GET requests
-   if (request_method.compare("GET") == 0){
-      if (query_string == "")
-         return;
-      if (content_length == "")
-         query_length = query_string.length();
-      else
-         query_length = atoi(content_length.c_str());
-   }
+      if (query_string != ""){
+          if (content_length == "")
+             query_length = query_string.length();
+          else
+             query_length = atoi(content_length.c_str());
+      }
 
 
    // Handle POST requests
-   if (request_method.compare("POST") == 0){
-      if (content_length == "")
-         return;
-      else
-         query_length = atoi(content_length.c_str());
-      query_string = (char *)malloc(query_length);
-      if (query_string == "")
-         return;
-      for (int pos = 0; pos < query_length; pos++){
-        query_string[pos] = fgetc(stdin);
-      }
-      JSONin = mongo::fromjson(query_string, query_length);
-   }
-
-
-
-//?test=fun%7B&name=Jake Ailor&team=true&EUID=12343&
+      if (content_length != ""){
+              post_length = atoi(content_length.c_str());
+              post_string = (char *)malloc(post_length);
+              if (post_string != "" /*NULL*/){
+                  for (int pos = 0; pos < post_length; pos++){
+                    post_string[pos] = fgetc(stdin);
+                  }
+                  JSONin = mongo::fromjson(post_string, post_length);
+              }
+        }
 
 
    // Separate query_string into arguments
@@ -99,19 +90,21 @@ CGI::CGI(){
       // Copy and decode value string
       std::string md = query_string.substr(start_value, end_value-start_value);
       Value[ArgCnt] = decode_string(md);
-      std::cout << Name[ArgCnt] << " : " << Value[ArgCnt] << " : " << start_name << "-" << end_name << "; " << query_length <<  std::endl;
+      //std::cout << Name[ArgCnt] << " : " << Value[ArgCnt] << " : " << start_name << "-" << end_name << "; " << query_length <<  std::endl;
       ArgCnt++;
    }
 
 }
 
 // done
-std::string CGI::get(std::string name){
-   std::string request_method = CGI::getEnvStr("REQUEST_METHOD");
-   std::string query_string = CGI::getEnvStr("QUERY_STRING");
-   std::string content_length = CGI::getEnvStr("CONTENT_LENGTH");
-   // Lookup argument by name
+BSONElement CGI::get(std::string name, bool bson=true){
+    if(JSONin.hasElement(name.c_str())){
+            return JSONin[name];
+    }
+    return "";
+}
 
+std::string CGI::get(std::string name){
     int i;
     for (i=0; i<ArgCnt; i++){
       if (name.compare(Name[i]) == 0){
