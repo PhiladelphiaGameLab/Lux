@@ -1,34 +1,34 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef LUXSOCKET_H
+#define LUXSOCKET_H
 
 #include <iostream>
-#include <sys/types.h> // definitions for system types
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h> // needed for internet domain routing
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h> // standard libraries
 #include <bsonobj.h>
 
-#include "socketB.h"
-
+#include "socket.h"
 
 #define MESSAGE_SIZE 256
 
+namespace socketlibrary {
 // instanciable class
 
-class Socket{
+class LuxSocket{
     private:
         UDPSocket socket;
         unsigned short port;
         std::string address;
     public:
         /** Default constructor */
-        Socket();
-        Socket(const unsigned short port);
-        virtual ~Socket();
+        LuxSocket();
+        LuxSocket(const unsigned short port);
+        virtual ~LuxSocket();
 
         void init();
         void error(const char* msg);
@@ -43,4 +43,6 @@ class Socket{
     protected:
 };
 
-#endif // SOCKET_H
+}
+
+#endif // LUXSOCKET_H
