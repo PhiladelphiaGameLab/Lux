@@ -30,16 +30,16 @@ class Socket{
         Socket(const unsigned short port);
         virtual ~Socket();
 
-        void Init();
-        void Error(const char* msg);
-        BSONObj Receive(const struct sockaddr_in *cli_addr);
-        void Send(const struct sockaddr_in *cli_addr);
-        void Send(const struct sockaddr_in* cli_addr, const char *message);
-        void Send(const struct sockaddr_in *cli_addr, std::string message);
-        void Send(const struct sockaddr_in *cli_addr, BSONObj BSMessage);
-        void Send(const std::list<struct sockaddr_in> socketList, 
+        void init();
+        void error(const char* msg);
+        BSONObj receive(const struct sockaddr_in *cli_addr);
+        void send(const struct sockaddr_in *cli_addr);
+        void send(const struct sockaddr_in* cli_addr, const char *message);
+        void send(const struct sockaddr_in *cli_addr, std::string message);
+        void send(const struct sockaddr_in *cli_addr, BSONObj BSMessage);
+        void send(const std::list<struct sockaddr_in> socketList, 
 		  BSONObj BSMessage);
-	void InitSocketInfo();
+	void initSocketInfo();
     protected:
 };
 
