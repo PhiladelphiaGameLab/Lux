@@ -1,20 +1,19 @@
-CFLAGS=-I/usr/local/lib/mongo-client-install/include/mongo/bson
-all: client server
+CC = g++
+OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
+CFLAGS = -std=c++11 -stdlib=libc++ -I../../../lib/luxsocket
+LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options
+
+all: client server socklib
 
 client: 
-	g++ client.cpp -o client.out
+	$(CC) client.cpp -o client.out
 
-server: socket.o luxSocket.o server.o
-	g++ $(CFLAGS) socket.o luxSocket.o server.o -o server.out
+server: socklib server.cpp
+	$(CC) $(CFLAGS) $(OBJ_FILES) server.cpp -o server.out $(LIB)
 
-server.o: server.cpp
-	g++ -c server.cpp
-
-socket.o: socket.cpp
-	g++ $(CFLAGS) -c socket.cpp
-
-luxSocekt.o: luxSocket.cpp 
-	g++ $(CFLAGS) -c luxSocket.cpp
+socklib:
+	(cd ../../../lib/luxsocket; make)
 
 clean:
-	rm -rf *o server.out client.out
+	rm -f *.o server.out client.out *~
+	(cd ../../../lib/luxsocket; make clean)
