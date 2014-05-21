@@ -1,29 +1,25 @@
 #DEFINE SERVER_SECRET "LUXisAwesome!"
+#include "MD5.h"
 using namespace std;
 
 string Authenticate::createAccessToken(const string EUID, const string timeBucket){
-    // NEEDS TO BE DONE
     //MD5
-	
-	
-	return "afalsdasda";
+	return MD5::md5(EUID+timeBucket+SERVER_SECRET);
 }
 
 string Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
 	string res = "";
     BSONObj bjwt = mongo::fromjson(JWT);
 	if(bjwt != NULL) {
-		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim
+		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be tested
 	}
 	return  res; // return unique ID
 }
 
 string Authenticate::createNewEUID(const string uniqueID)
 {
-	//NEEDS TO BE DONE
 	//MD5
-	return "new ID";
-
+	return MD5::md5(uniqueID+SERVER_SECRET);
 }
 
 
