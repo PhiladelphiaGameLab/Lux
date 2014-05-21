@@ -3,31 +3,20 @@
  *              uses LuxSocket to receive and send BSONObj.
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-
 #include "luxSocket.h"
 
 #define BUFSIZE 1024
 
 int main() {
+    using namespace mongo;
     unsigned short port = 3000;
     socketlibrary::LuxSocket *server = new socketlibrary::LuxSocket(port);
     struct sockaddr_in cli_addr;
-    mongo::BSONObj *bsonBuf;
     
-
     while (1) {      
-      bsonBuf = NULL;
-      server->receive(bsonBuf, &cli_addr);
-      //printf("server received %lu bytes: %s\n", strlen(buf),  buf);
-      server->send(bsonBuf, &cli_addr);
+      BSONObj bsonBuf = server->receive(&cli_addr);
+      std::string buf = bsonBuf.jsonString();
+      cout << "server received " << buf.size() << "bytes: " << buf << endl;
+      server->send(&bsonBuf, &cli_addr);
     }
 }

@@ -67,10 +67,10 @@ int main() {
     
     
     /* print the server's reply */
-    n = recvfrom(sockfd, buf, strlen(buf), 0, (struct sockaddr *)&server_addr, &serverlen);
+    n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *)&server_addr, &serverlen);
     if (n < 0) 
       error("ERROR in recvfrom");
-    printf("Echo from server: %s", buf);
+    printf("Echo from server: %s\n", buf);
     }
     return 0;
     
