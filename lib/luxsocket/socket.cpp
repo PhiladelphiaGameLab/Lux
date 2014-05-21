@@ -421,7 +421,7 @@ void UDPSocket::disconnect() throw(SocketException) {
 	}
 }
 
-void UDPSocket::sendTo(const void *buffer, int bufferLen, const struct sockaddr_in *cli_addr) throw(SocketException) {
+void UDPSocket::sendTo(const void *buffer, int bufferLen, struct sockaddr_in *cli_addr) throw(SocketException) {
 	// Write out the whole buffer as a single message.
 	if (sendto(sock, (raw_type *) buffer, bufferLen, 0, (sockaddr *)cli_addr, sizeof(*cli_addr)) != bufferLen) {
 	    throw SocketException("Send failed (sendto())", true);
