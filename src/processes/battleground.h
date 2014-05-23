@@ -30,7 +30,11 @@ typedef struct s_BGT{
     int port;
 };
 
-
+typedef struct s_SUTMessage
+{
+    BSONobj message;
+    std::list<struct sockaddr_in> SocketList;
+}
 class BattleGround{
     public:
         static void spawn(void *param);
