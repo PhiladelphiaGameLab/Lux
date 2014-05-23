@@ -1,3 +1,4 @@
+#include <mutex>
 
 template <class T>
 struct Node
@@ -6,6 +7,17 @@ struct Node
 	int lastBuck; //Position in arrMap of the last bucket to contain this node
 	struct Node *Next; //Pointer to the next node if this is in a linked list of nodes
 	struct Node *Prev; //Pointer to the previous noe if this is in a linked list of nodes
+	
+	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
+	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
+	pthread_mutex_t *Lock; 
+};
+
+// Added struct for bucket to be called from sendUpdate.cpp (Paul & Sibi)
+struct Bucket
+{
+	Node *Head;
+	Bucket *Next;
 };
 
 
@@ -25,3 +37,4 @@ class HMBL{
 		HMBL();
 		int findBucket(int x, int y)
 };
+
