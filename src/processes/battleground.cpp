@@ -34,13 +34,14 @@ void BattleGround::spawn(void *param_in){
         s_SUT param;
         param.pipeLocation = pipeLocation;
 
-        pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &param); // spawn sendUpdates thread
+       // pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &param); // spawn sendUpdates thread
 
     }
 
 
     // construct a HMBL
-    locbasedhashmap HMBL;
+    //locbasedhashmap HMBL;
+    locbasedhashmap HMBL(thredSizeX,threadSizeY,pipeLocation);
 
     Socket socket(param_in.port); // create a socket object
 	socket.init(); // initialize/open the socket
@@ -67,15 +68,28 @@ void BattleGround::spawn(void *param_in){
             int location[1] = atoi(message["object"]["location"["y"].String().c_str());
             int radius = atoi(message["sender"]["radius"].String().c_str());
 
+	    //Updte clients location in HMBL
+	    HMBL.update(cli_addr,EUID,location[0],location[1]);
+		
+		
             // query HMBL for socket list
-            std::list<struct sockaddr_in> SocketList = ;// need to pass in cli_addr, location, and radius
+            std::list<struct sockaddr_in> SocketList = HMBL.getClients(location[0],location[1],radius);// need to pass in cli_addr, location, and radius
 
             // pass message to undecided server logic class that client will fill in
             // sadly this might be unavoidable
             // :-(
 
+	    //Strip message header
+	    BSONobj strippedMessage = message["object"];
+
+
+	    //Create  structure
+	    s_SUTMessage pipeStruct;
+	    pipeStruct.message = strippedMessage;
+	    pipeStruct.SocketList = SocketList;
+	    
             // pipe updates to send updates thread
-            write(pipe, message, sizeof(message));
+            write(pipe, pipeStruct, sizeof(pipeStruct));
 
         }
 
