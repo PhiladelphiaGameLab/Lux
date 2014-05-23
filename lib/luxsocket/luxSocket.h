@@ -10,7 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include "mongo/bson/bsonobj.h"
+#include "mongo/client/dbclient.h"
+#include "mongo/bson/bson.h"
 #include "mongo/db/json.h"
 
 #include "socket.h"

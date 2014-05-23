@@ -10,8 +10,8 @@
 #include <string.h>
 #include <list>
 
-#include "mongo/bson/bsonobj.h"
-#include "mongo/bson/bsonelement.h"
+#include "mongo/client/dbclient.h"
+#include "mongo/bson/bson.h"
 #include "mongo/db/json.h"
 
 // instanciable class
@@ -67,7 +67,7 @@ class CGI{
         int argCnt;
         std::string names[MAX_ARGS];
         std::string values[MAX_ARGS];
-        mongo::BSONObj JSONin = mongo::fromjson("");
+        mongo::BSONObj JSONin;
 	std::string json;
 };
 
