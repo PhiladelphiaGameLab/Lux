@@ -9,5 +9,5 @@ test: cgi
 	g++ cgi_test.cpp ../../classes/instanceable/CGI.o -o test.out $(LIB)
 
 clean:
-	rm *.o test.out *~
-	(cd ../../classes/instanceable/; rm *.o)
+	(cd ../../classes/instanceable/; rm -f *.o)
+	rm -f *.o test.out *~
