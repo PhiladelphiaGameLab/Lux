@@ -1,13 +1,14 @@
 #ifndef SENDUPDATE_H
 #define SENDUPDATE_H
+
 typedef struct pipe{
     int pipe;
 };
 
-typedef struct sendUpdates{
-    SocketList
-    BSONObj message;
-};
+// typedef struct sendUpdates{
+//     SocketList
+//     BSONObj message;
+// };
 
 class SendUpdate
 {
