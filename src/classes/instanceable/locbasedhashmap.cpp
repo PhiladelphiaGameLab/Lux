@@ -18,156 +18,112 @@
  * - Mike Oak
  */
 
-#include "locbasedhashmap.h"
- 	//CONSTRUCTORS
-		template <class T>
-		HMBL<T>::HMBL(int mapw, int maph, int col, int row){
-			mapwidth = mapw;
-			mapheight = maph;
-			columns = col;
-			rows = row;
-			
-			hashTable = new std::list<LocData<T> > [columns * rows];
-		}
+#include "HMBL.h"
 
-		template <class T>
-		HMBL<T>::HMBL(){ //DEFAULT CONSTRUCTOR
-			HMBL<T>(100, 100, 20, 20);
-		}
+/**********  The Double Linked List Struct *********/
+template <class T>
+struct Node
+{
+	T sock;
+	int lastBuck = 0;
+	struct Node *next;
+	struct Node *prev;
+};
+/**************** End of Struct *******************/
+/**************************************************/
+
+//Constructor
+template <class T>
+HMBL<T>::HMBL(int mapw, int maph, int col, int row){
+		mapwidth = mapw;
+		mapheight = maph;
+		columns = col;
+		rows = row;
+		bucketTotal = row * col;
+	 
+		arrMap[bucketTotal]; //Array of Pointers representing each bucket
+		hashTable[bucketTotal/2]; //HashMap of Clients
 		
+		for(int i = 0; i < bucketTotal; i++){
+			*arrMap[i] = 0;
+			if(i < (bucketTotal/2))
+				hashTable[i]->sock = 0;
+				hashTable[i]->next = 0;
+				hashTable[i]->prev = 0;
+		}
+		//struct Node *head; not sure if necessary
+	}
 
-		template <class T>
-		LocData<T>::LocData(int expire, T data){
-			this.expire = expire;
-			this.data = data;
+//Default Constructor
+template <class T>
+HMBL<T>::HMBL(){ 
+		HMBL<T>(100, 100, 20, 20);
+	}
+
+//Adds Client location to hashTable
+template <class T>
+HMBL<T>::update(T nsock, int euid, int x, int y){
+	
+	int bucketNum = findBucket(x, y);
+	int hashKey = euid%(bucketTotal/2);
+
+	//Check to remove previous instance; this whole thing is questionable
+	if(hashTable[hashKey]->lastBuck != 0){ //Checks to see if there is an old instance in existence, if not this shouldn't occur
+		struct Node *walk;
+		walk = hashTable[hashKey];
+		while(walk->sock != nsock){ //Walks through attached nodes if there is more than one in a bucket 
+			walk = walk->next;
+		}
+		struct Node *temp;
+		//Time for some brute force if-else
+		if(walk->prev == 0 && walk->next != 0){
+			*arrMap[walk->lastBuck] = walk->next;
+		}
+		if(walk->prev != 0 && walk->next == 0){
+			walk->prev->next = 0;
+		}
+		if(walk->prev != 0 && walk->next !=0){
+			//Hard Case, need to fix.
+		}
+		else{ //Only occurs is prev and next of Node walk = 0
+			*arrMap[walk->lastBuck] = 0;
 		}
 
-		template <class T>
-		LocData<T>::LocData(T data){
-			LocData<T>(5, data);
-		}
-		
+	}
 
-//DESTRUCTOR
-		template <class T>
-		HMBL<T>::~HMBL(){
-			for(int i = 0; i < columns * rows; i++){
-				hashTable[i].clear();
-			}
 
-			delete[] hashTable;
-		}
 
-		template <class T>
-		LocData<T>::~LocData(){
-			delete data;
-		}
+	//Storing inside of the arrMap/hashTable
+	if(*arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
+		struct Node *tempMap;
+		tempMap = *arrMap[bucketNum]; // tempMap stores original client in the bucket. Don't know if arrMap should be pointer
+		*arrMap[bucketNum] = hashTable[hashKey]; 
+		hashTable[hashKey]->next = tempMap;
+		tempMap->prev = hashTable[hashKey];
+		hashTable[hashKey]->sock = nsock;
+		hashTable[hashKey]->lastBuck = bucketNum;
+	}
+	else{
+		*arrMap[bucketNum] = hashTable[hashKey];
+		hashTable[hashKey]->sock = nsock;
+		hashTable[hashKey]->lastBuck = bucketNum;
+	}
+}
 
-//GETTERS
-		template <class T>
-		std::list<LocData<T> >* HMBL<T>::getSocketLists(int loc){
-			if(idx >= columns*rows || idx < 0)
-				return NULL;
+//Finds which Bucket they are in (assume that the 0 bucket begins at (0,0))
+template <class T>
+int HMBL<T>::findBucket(int x, int y){
+	float bucket_dimensionX = mapwidth/col;
+	float bucket_dimensionY = mapheight/row;
+	int xBuckets = x/bucket_dimensionX;
+	int yBuckets = y/bucket_dimensionY;
 
-			std::list<LocData<T> >* retVal = new std::list<LocData<T> >;
+	int bucketNum = (xBuckets * row) - (row - yBuckets - 1);
+	return bucketNum; 
+}
 
-			copyIntoList(retVal, hashTable[loc]);
-			if(loc % columns != 0)
-				copyIntoList(retVal, (hashTable[loc-1]);
-			if(loc % columns != columns-1)
-				copyIntoList(retVal, (hashTable[loc+1]);
 
-			if(loc < columns*(rows - 1)){
-				copyIntoList(retVal, (hashTable[loc+columns]);
-				if(loc % columns != 0)
-					copyIntoList(retVal, (hashTable[loc+columns-1]);
-				if(loc % columns != columns-1)
-					copyIntoList(retVal, (hashTable[loc+columns+1]);
-			}
-			if(loc > columns){
-				copyIntoList(retVal, (hashTable[loc-columns]);
-				if(loc % columns != 0)
-					copyIntoList(retVal, (hashTable[loc-columns-1]);
-				if(loc % columns != columns-1)
-					copyIntoList(retVal, (hashTable[loc-columns+1]);
-			}
-
-			return retVal;
-		}
-
-		template <class T>
-		std::list<LocData<T> > HMBL<T>::getIndex(int idx){
-			if(idx >= columns*rows || idx < 0)
-				return NULL;
-			return hashTable[idx];
-		}
-
-		template <class T>
-		std::list<LocData<T> >* HMBL<T>::getSockets(){
-			return hashTable;
-		}
-
-//SETTERS
-		template <class T>
-		void HMBL<T>::add(int loc, T value){
-			if(hashTable[loc] == NULL)
-				hashTable[loc] = new std::list<LocData<T> >;
-
-			LocData<T> tempVal = new LocData<T>(5, value);
-			
-			hashTable[loc].push_back(tempVal);
-		}
-
-		template <class T>
-		void HMBL<T>::removeExpiredObjects(){
-			for(int i = 0; i < columns*rows; i++){
-				typename std::list<LocData<T> >::iterator itB = hashTable[i]->begin();
-				typename std::list<LocData<T> >::iterator itE = hashTable[i]->end();
-				while(itB != itE){
-					if(*itB.expire == 0){
-						hashTable[i]->erase(itB);
-					}else{//check for duplicates if none, move to back of list and erase this one
-						*itB.expire--;
-						typename std::list<LocData<T> >::iterator itR = itE;
-						while(itR != itB){
-							if(*itR.data == *itB.data)
-								break;
-							itR--;
-						}
-
-						if(itR != itB){
-							hashTable[i]->erase(itB);
-						}else{
-							hashTable[i]->push_back(*itB);
-							hashTable[i]->erase(itB);
-						}
-					}
-					itB++;
-				}
-			}
-		}
-
-//HELPERS
-		void HMBL<T>::copyIntoList(std::list<LocData<T> >* into, const std::list<LocData<T> > from){
-			typename std::list<LocData<T> >::iterator itB = hashTable[i]->begin();
-			typename std::list<LocData<T> >::iterator itE = hashTable[i]->end();
-
-			for(; itB != itE; itB++){
-				into->emplace(into->begin(), itB.expire, itB.data);
-			}
-		}
-
-//OPERATORS - Would like to add [] based operators to allow people to get from the HashTable easier
-		template <class T>
-		std::list<LocData<T> >& HMBL<T>::operator[](int idx){
-			if(idx >= columns*rows || idx < 0)
-				return NULL;
-			return hashTable[idx];
-		}
-
-		template <class T>
-		const std::list<LocData<T> >& HMBL<T>::operator[](int idx) const{
-			if(idx >= columns*rows || idx < 0)
-				return NULL;
-			return hashTable[idx];
-		}
+template <class T>
+template <class T>
+template <class T>
+template <class T>
