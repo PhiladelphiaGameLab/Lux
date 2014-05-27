@@ -53,7 +53,7 @@ void BattleGround::spawn(void *param_in){
 	while(1){
 	    sockaddr_in cli_addr;
 	    // accept clients, who will send in their update
-		BSONObj message = socket.recieve(&cli_addr);
+		BSONObj message = socket.receive(&cli_addr);
 
         // get accessToken from BSONObj message
         std::string accessToken = message["sender"]["accessToken"].String(); // this should be as easy as this- but might not be.
@@ -64,8 +64,8 @@ void BattleGround::spawn(void *param_in){
         // authenticate message
         if(Authenticate::authenticateAccessToken(accessToken, EUID)){
             // get location from message
-            int location[0] = atoi(message["object"]["location"["x"].String().c_str());
-            int location[1] = atoi(message["object"]["location"["y"].String().c_str());
+            int location[0] = atoi(message["object"]["location"]["x"].String().c_str());
+            int location[1] = atoi(message["object"]["location"]["y"].String().c_str());
             int radius = atoi(message["sender"]["radius"].String().c_str());
 
 	    //Updte clients location in HMBL
