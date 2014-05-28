@@ -7,7 +7,7 @@
 
 class MongoWrapper {
     public:
-    MongoWrapper(const std::string &hostname);
+    MongoWrapper(const std::string &hostname = "localhost");
     ~MongoWrapper() {};
 
     // Connect to database
