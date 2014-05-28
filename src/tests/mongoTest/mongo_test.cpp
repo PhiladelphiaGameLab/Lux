@@ -1,4 +1,4 @@
-#include "../../classes/instanceable/mongoWrapper.h"
+#include "../../mongodb/mongoWrapper.h"
 
 
 int main(int argc, char *argv[]){
