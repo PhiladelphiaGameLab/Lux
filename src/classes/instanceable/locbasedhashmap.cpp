@@ -18,7 +18,10 @@
 * - Mike Oak
 */
 
-#include "HMBL.h"
+#include "locbasedhashmap.h"
+#include <stdio.h>
+#include <iostream>
+#include <vector>
 
 /**********  The Double Linked List Struct (for reference) *********/
 //struct CNode
@@ -43,8 +46,8 @@ HMBL<T>::HMBL(int mapw, int maph, int col, int row){
 	rows = row;
 	bucketTotal = row * col;
 
-	arrMap[bucketTotal]; //Array of Pointers representing each bucket
-	hashTable[bucketTotal / 2]; //HashMap of Clients
+	arrMap = new Node*[bucketTotal]; //Array of Pointers representing each bucket
+	hashTable = new CNode*[bucketTotal / 2]; //HashMap of Clients
 
 	clearHMBL();
 }
@@ -52,12 +55,12 @@ HMBL<T>::HMBL(int mapw, int maph, int col, int row){
 //Default Constructor
 template <class T>
 HMBL<T>::HMBL(){
-	HMBL<T>(100, 100, 20, 20);
+	HMBL(100, 100, 20, 20);
 }
 
 //Adds Client location to hashTable
 template <class T>
-void HMBL<T>::update(T nsock, int euid, int x, int y){
+void HMBL<T>::update(int nsock, int euid, int x, int y){
 
 	int bucketNum = findBucket(x, y);
 	int hashKey = euid % (bucketTotal / 2);
@@ -69,13 +72,18 @@ void HMBL<T>::update(T nsock, int euid, int x, int y){
 		//Time for some brute force if-else
 		if (newNode->Prev == 0 && newNode->Next != 0){
 			arrMap[newNode->lastBuck] = newNode->Next;
+			newNode->Next->Prev = 0;
+			newNode->Next = 0;
 		}
-		if (newNode->Prev != 0 && newNode->Next == 0){
+		else if (newNode->Prev != 0 && newNode->Next == 0){
 			newNode->Prev->Next = 0;
+			newNode->Prev = 0;
 		}
-		if (newNode->Prev != 0 && newNode->Next != 0){
+		else if (newNode->Prev != 0 && newNode->Next != 0){
 			newNode->Prev->Next = newNode->Next;
 			newNode->Next->Prev = newNode->Prev;
+			newNode->Next = 0;
+			newNode->Prev = 0;
 		}
 		else{ //Only occurs is prev and next of Node walk = 0
 			arrMap[newNode->lastBuck] = 0;
@@ -84,8 +92,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y){
 
 	//Storing inside of the arrMap/hashTable
 	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
-		struct Node *tempMap;
-		
+		Node *tempMap;
 
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket. Don't know if arrMap should be pointer
 		arrMap[bucketNum] = newNode;
@@ -103,23 +110,17 @@ void HMBL<T>::update(T nsock, int euid, int x, int y){
 	}
 }
 
-
-//Finds which Bucket they are in (assume that the 0 bucket begins at (0,0))
+//Internal Function for finding the Bucket number: calls static method
 template <class T>
 int HMBL<T>::findBucket(int x, int y){
-	float bucket_dimensionX = mapwidth / columns;
-	float bucket_dimensionY = mapheight / rows;
-	int xBuckets = x / bucket_dimensionX;
-	int yBuckets = y / bucket_dimensionY;
-
-	int bucketNum = (xBuckets * rows) - (rows - yBuckets - 1);
-	return bucketNum;
+	return getBucket(x, y, mapwidth, mapheight, columns, rows);
 }
 
+//Checks for a collision in the hashMap and adds it to the CollisionNode if there is one
 template <class T>
-Node HMBL<T>::checkForCollision(int euid, int hashkey){//Checks for a collision in the hashMap and adds it to the CollisionNode if there is one
-	struct Node *newNode;
-	struct CNode *cwalk = hashTable[hashKey];
+Node* HMBL<T>::checkForCollision(int euid, int hashKey){
+	Node *newNode = new Node;
+	CNode *cwalk = hashTable[hashKey];
 	bool addCollInst = true;
 
 	if (hashTable[hashKey]->Base->euid == 0 || hashTable[hashKey]->Base->euid == euid){//this is the instance or there is no instance 
@@ -134,12 +135,12 @@ Node HMBL<T>::checkForCollision(int euid, int hashkey){//Checks for a collision 
 			}
 		}
 		if (addCollInst){//Not sure about this; definitely recheck
-			struct* CNode cnewNode
-		    cwalk->Next = cnewNode;
+			struct CNode* cnewNode = new CNode;
+			cwalk->Next = cnewNode;
 			cnewNode->Prev = cwalk;
 		}
 	}
-	
+
 	return newNode;
 }
 
@@ -148,13 +149,161 @@ void HMBL<T>::clearHMBL(){
 	for (int i = 0; i < bucketTotal; i++){
 		arrMap[i] = 0;
 		if (i < (bucketTotal / 2)){
+			hashTable[i] = new CNode;
+			hashTable[i]->Base = new Node;
 			hashTable[i]->Next = 0;
 			hashTable[i]->Prev = 0;
 			hashTable[i]->Base->sock = 0;
 			hashTable[i]->Base->euid = 0;
 			hashTable[i]->Base->Next = 0;
 			hashTable[i]->Base->Prev = 0;
+			hashTable[i]->Base->lastBuck = 0;
 			//Might need this, but probably not: hashTable[i]->Base = 0;
 		}
 	}
+}
+
+template <class T>
+void HMBL<T>::revealHMBL(){
+	for (int i = 0; i < bucketTotal; i++){
+		if (arrMap[i] != 0)
+			std::cout << " arrMap[" << i << "] contains " << arrMap[i] << " points to user " << arrMap[i]->euid << std::endl;
+		if (i < (bucketTotal / 2)){
+			if (hashTable[i]->Base->euid != 0){
+				std::cout << " hashTable[" << i << "] contains user " << hashTable[i]->Base->euid << std::endl;
+				std::cout << " " << hashTable[i]->Base->lastBuck << " " << hashTable[i]->Base->sock << " Prev:" << hashTable[i]->Base->Prev << " Next:" << hashTable[i]->Base->Next << std::endl;
+			}
+		}
+	}
+}
+
+template <class T>
+std::vector<Node*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
+	std::vector<Node*> clients; //will be returned by this function and contain pointers to affected clients
+	std::vector<int> proxBucks; //contains the list of buckets in the items proximity
+
+	proxBucks = surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
+
+	int thresh = proxBucks.size();
+	Node* walk;
+
+	for (int i = 0; i < thresh; i++){
+		walk = arrMap[proxBucks[i]];
+		while (walk != 0){
+			clients.push_back(walk);
+			walk = walk->Next;
+		}
+	}
+
+	return clients;
+}
+
+//-------------------------STATIC FUNCTIONS--------------------------------
+template <class T>
+int HMBL<T>::getBucket(int xloc, int yloc, int mapx, int mapy, int columns, int rows){
+	int bucket_dimensionX = mapx / columns;
+	int bucket_dimensionY = mapy / rows;
+	int xBuckets = xloc / bucket_dimensionX;
+	int yBuckets = yloc / bucket_dimensionY;
+	int bucketNum;
+	if (yBuckets > 0)
+		bucketNum = ((xBuckets * rows) - (rows % yBuckets));// - 1 is for indexing the array of buckets
+	else
+		bucketNum = (xBuckets * rows - 0);
+	return bucketNum;
+}
+
+template <class T>
+std::vector<int> HMBL<T>::surroundings(int xloc, int yloc, int rad, int mapx, int mapy, int columns, int rows){
+	std::vector<int> surroundings;
+
+	int currentBucket = getBucket(xloc, yloc, mapx, mapy, columns, rows);
+	std::cout << " Current Bucket: " << currentBucket << std::endl;
+
+	int x = currentBucket / rows;
+	int y = currentBucket % rows;
+	int xval;
+	int yval;
+
+	//Algorithm for finding the surrounding relative buckets while taking the edges of the map into account
+	for (int i = rad; i >= 0; i--){
+		for (int j = rad; j >= 0; j--){
+
+			xval = x - i;
+			yval = y - j;
+
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
+			{
+				surroundings.push_back(backToBuck(xval, yval, rows));
+			}
+		}
+		for (int j = 1; j <= rad; j++){
+
+			xval = x - i;
+			yval = y + j;
+
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
+			{
+				surroundings.push_back(backToBuck(xval, yval, rows));
+			}
+		}
+	}
+	for (int i = 1; i <= rad; i++){
+		for (int j = rad; j >= 0; j--){
+
+			xval = x + i;
+			yval = y - j;
+
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
+			{
+				surroundings.push_back(backToBuck(xval, yval, rows));
+			}
+		}
+		for (int j = 1; j <= rad; j++){
+
+			xval = x + i;
+			yval = y + j;
+
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
+			{
+				surroundings.push_back(backToBuck(xval, yval, rows));
+			}
+		}
+	}
+
+	int thresh = surroundings.size();
+	std::cout << " Size: " << surroundings.size() << std::endl;
+	for (int k = 0; k < thresh; k++){
+		std::cout << " [" << k << "] = " << surroundings[k] << std::endl;
+	}
+
+	return surroundings;
+}
+
+//Meant for use in the Surroudings function to re-convert coordinates to buckets
+template <class T>
+int HMBL<T>::backToBuck(int x, int y, int ys){
+	int cB = (x*ys) + y;
+	return cB;
+}
+
+int main(int argc, const char* argv[]) //Only used for testing
+{
+	/*printf("Begin Testing of HMBL\n\nRound One:\n");
+	HMBL* testHMBL = new HMBL(200, 200, 20, 20);
+	printf(" Dimensions: %d, %d\n", testHMBL->mapheight, testHMBL->mapwidth);
+	printf(" Bucket x = %d, y = %d\n\n", testHMBL->columns, testHMBL->rows);
+	printf(" Where are you at 72,36? Bucket #%d\n", testHMBL->findBucket(72, 36));
+	printf(" How about 200,200? Bucket #%d\n", testHMBL->findBucket(200, 200));
+	printf("\nRound Two:\n");
+	testHMBL->update(7200, 213, 72, 36);
+	testHMBL->update(7300, 12, 56, 150);
+	testHMBL->update(7400, 54, 56, 150);
+	testHMBL->update(8800, 72, 56, 150);
+	testHMBL->update(7400, 54, 100, 100);
+	testHMBL->revealHMBL();
+	printf("\nRound Three:\n");
+	testHMBL->surroundings(4, 4, 2, 100, 100, 20, 20);
+
+	getchar();*/
 }
