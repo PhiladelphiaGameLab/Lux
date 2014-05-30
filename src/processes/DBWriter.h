@@ -5,7 +5,7 @@
 class DBWriter
 {
     public:
-        static void spawn(struct pipe params_in)
+        static void spawn(struct pipe params_in);
     protected:
     private:
 };
