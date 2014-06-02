@@ -10,7 +10,7 @@
 
 typedef struct s_BGTInfo{
     int bgt_id;
-    std::list<int> buckets;
+    std::vector<int> buckets;
 };
 
 
