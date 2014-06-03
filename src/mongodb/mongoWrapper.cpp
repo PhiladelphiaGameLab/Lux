@@ -61,3 +61,13 @@ void MongoWrapper::remove(const std::string &ns, const mongo::BSONObj &q) {
 void MongoWrapper::remove(const std::string &ns, const std::string &q) {
     remove(ns, mongo::fromjson(q));
 }
+
+mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
+				     const mongo::BSONObj &q) {
+  return c.findOne(ns, q);    
+}
+
+mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
+				     const std::string &q) {
+  return findOne(ns, mongo::fromjson(q));
+}

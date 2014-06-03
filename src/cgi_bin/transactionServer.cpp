@@ -13,10 +13,15 @@
 #include "Authenticate.h"
 #include "mongoTransaction.h"
 #include "mongo/bson/bson.h"
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 
 using namespace std;
 using namespace mongo;
 
+// Transaction info
+// 
+// items id should be in the form {items : [xxx,xxx,xxx]}
 struct TransactionInfo
 {
     string id0; 
@@ -34,6 +39,9 @@ struct TransactionInfo
 
 // global varibales
 
+// get parameters from the HTTP Request
+CGI environment;    
+
 // connection to mongo db
 MongoWrapper conn("localhost"); 
 // the namespace of collection
@@ -42,29 +50,68 @@ const string db_ns("db.transaction");
 const string ACC_ID_FIELD("_id"); 
 // field name for subaccount, default is equal to account id
 const string SUB_ACC_ID_FIELD(ACC_ID_FIELD);
+// items array in sub account
+const string ITEM_ARRAY_FIELD("items");
+// sub account array in account
 const string SUB_ACC_ARRAY_FILED("sub_acc_array");
+// transaction history array in account
+const string TRANSACTION_HISTORY("completed_array");
+// flag indicates whether to log self transaction
+const bool LOG_SELF_TRANSACTION = false;
+
+// Transaction log object fields:
+// e.g.
+// {
+//   player0 : id0,
+//   player1 : id1,
+//   subacc0 : subid0,
+//   subacc1 : subid1,
+//   itemslist0 : items0,
+//   itemslist1 : items1
+// }
+const string PLAYER0("p0");
+const string PLAYER1("p1");
+const string SUBACC0("s0");
+const string SUBACC1("s1");
+const string ITEMLIST0("items0");
+const string ITEMLIST1("items1");
+
+// Field name of pending array
+const PENDING_ARRAY("pending");
+
+// Time to wait for matching pending transaction
+const int TOTAL_TIME = 10; // 10 seconds
+int time_cnt = 0;
 
 int handleRequest();
 bool findSubAcc(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1);
 bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc);
 bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items);
 bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1);
-void addPendingTransaction(const string &accID, const transactionInfo &info);
-bool matchRequest(const BSONElement &sending, 
-                const BSONElement &receiving);
-void executeTransaction(const transactionInfo &info); //instantiates a mongo transaction
-string findTransaction(const transactionInfo &info, int senderId);
+void addPendingTransaction(const string &accID, const TransactionInfo &info);
+void removePendingTransaction(const string &accID, const TransactionInfo &info);
+void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info);
+bool matchRequest(const TransactionInfo &sending, 
+		  const TransactionInfo &receiving);
+//instantiates a mongo transaction
+void executeTransaction(const TransactionInfo &info,
+			const BSONObj &subAcc0,
+			const BSONObj &subAcc1);
+string findTransaction(const TransactionInfo &info, int senderId);
 void removeTransaction(const string id);
-void addCompletedTransaction(const transactionInfo &info); //for both users if player to player
+void logTransaction(const TransactionInfo &info);
+//for both users if player to player
+void addCompletedTransaction(const TransactionInfo &info, int flag); 
+void reverseInfo(TransactionInfo &info);
 void cancelTimedOutPending(const string &id, 
-                    const string &subaccount);
+			   const string &subaccount);
 void cancelAllPending(const string &id, 
-                    const string &subaccount);
+		      const string &subaccount);
 bool isGlobalAccount(const string &id);
 void getAsset(CGI);
 void addAccount(const string &id);
 void addSubaccount(const string &id, 
-                    const string &subaccountId);
+		   const string &subaccountId);
 
 
 // Helper function to get rid of "" of a string
@@ -76,30 +123,20 @@ inline void getRidOfQuote(string &str) {
     }
 }
 
-int main(int argc, char **argv) {    
-    // get parameters from the HTTP Request
-    CGI environment;    
-    
+inline bool timedOut() {
+    return (time_cnt < TOTAL_TIME);
+}
+
+int main(int argc, char **argv) {        
     string EUID = environment.get("EUID");
     string accessToken = environment.get("accessToken");
 
-    if(!Authenticate::authenticateAccessToken(accessToken, EUID)) {
+    if (!Authenticate::authenticateAccessToken(accessToken, EUID)) {
     	return 1;
     }
 
-    // I think transaction server should be a program that runs as 
-    // one of the game servers. Now it seems it was designed as a
-    // CGI program which woule be ivoked by game server many times.
-    
-    // 
+    handleRequest();
 
-    While (1) {
-	// waiting for request
-	// start a new thread
-	// and call handleRequest()
-	handleRequest();
-     }
-    //
     return 0;
 }
 
@@ -119,23 +156,45 @@ int handleRequest() {
 	
 	findSubAcc(info, subAcc0, subAcc1);
 	
-        if (!checkItemIDs(subAcc0, fromjson(info.itemsId0))) {
+        if (!checkItemIDs(subAcc0, (fromjson(info.itemsId0)["items"]))) {
             //failed error
 	    return -1;
         }
-	if (!checkItemIDs(subacc1, fromjson(info.itemsId1))) {
+	if (!checkItemIDs(subacc1, (fromjson(info.itemsId1)["items"]))) {
 	    return -1;
 	}
 	
-	if (checkMatch(info, subAcc0, subAcc1)) {	    
-	    executeTransaction(info);
-	}
-	else {
-	    string accID = subAcc0[SUB_ACC_ID_FIELD].toString(false);
+	string subid0 = subAcc0[SUB_ACC_ID_FIELD].toString(false);
+	getRidOfQuote(subid0);
+	string subid1 = subAcc1[SUB_ACC_ID_FIELD].toString(false);
+	getRidOfQuote(subid1);
+	
+	if (subid0.compare(subid1) < 0) {
+	    // Always let the bigger one do check match stuff
+	    string accID = subid0;
 	    getRidOfQuote(accID);
 	    addPendingTransaction(accID, info);
+	    return 0;
 	}
-    } 
+	
+	// The bigger one will check matched pending transaction 
+	// several times untill time out
+	while (!timedOut()) {
+	    // Get the lastest subAcc1
+	    subAcc1 = conn.findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid1));
+
+	    if (checkMatch(info, subAcc0, subAcc1)) {
+		executeTransaction(info, subAcc0, subAcc1);
+		return 0;
+	    }
+
+	    time_cnt++;
+	    this_thread::sleep_for(chrono::seconds(1));
+	}
+	// Time out
+	// Send back error message
+	return 0;
+    }
     else if (method.compare("addAccount") == 0) {
         //addAccount
     } 
@@ -209,15 +268,32 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
 
 // Check if all items are in a subaccount.
 // Return flase if a least one is missing.
+//
+// Assuming item ids in sub account are stored in an array
+// e.g. {sub_acc_id : xxx, items : [xxx,xxx,xxx]}
 bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items) {
-    int i = 0;
-    BSONElement item;
-    string index = to_string(i);
-    while ((item = items[index]).ok()) {
-	string key = item.toString(false);
-	getRidOfQuote(key);
-	if (subaccount[key].ok() == 0) {
-	    return false;
+    int i = 0, j;
+    BSONElement item0;
+    BSONElement item1;
+    BSONElement items_array = subaccount[ITEM_ARRAY_FIELD];
+    string index0 = to_string(i);
+    while ((item0 = items[index0]).ok()) {
+	string value0 = item0.toString(false);
+	getRidOfQuote(value0);
+	j = 0;
+	string index1 = to_string(j);
+	bool find = false;
+	while ((item1 = items_array[index1]).ok()) {
+	  string value1 = item1.toString(false);
+	  if (value0.compare(value1) == 0) {
+	    find = true;
+	    break;
+	  }
+	  j++;
+	  index1 = to_string(j);
+	}
+	if (!find) {
+	  return false;
 	}
 	i++;
 	index = to_string(i);
@@ -235,18 +311,58 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
     if (isGlobalAccount(info.id1)) {
 	return true;
     }
-
-    // Transaction between two different players
-    // Check "pending" filed in two sub accounts' BSON Objects
-    //
-    // Need to discuss with Brad, in what form do we want to 
-    // store the pending transaction info.
-    //
-    // if (match)
-    //   return true;
-    //
+    
+    // Loop through subacc1's pending transaction
+    BSONElement array = subAcc1[PENDING_ARRAY];
+    BSONElement pending;
+    int i = 0;
+    string index = to_string(i);    
+    while ((pending = array[index]).ok()) {
+	BSONElement p1 = pending[PLAYER1];
+	if (p1.ok()) {
+	    TransactionInfo info1;
+	    makeInfoFromTransaction(pending, info1);
+	    if (matchRequest(info, info1)) {
+		// Remove pending
+		string accID = subAcc0[SUB_ACC_ID_FIELD].toString(false);
+		getRidOfQuote(accID);
+		removePendingTransaction(accID, info1);
+		return true;
+	    }
+	}
+    }        
+    
     return false;
 }
+
+void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info) {
+    info.id0 = pending[PLAYER0].toString(false);
+    getRidOfQuote(info.id0);
+    info.id1 = pending[PLAYER1].toString(false);
+    getRidOfQuote(info.id1);
+    info.subaccountId0 = pending[SUBACC0].toString(false);
+    getRidOfQuote(info.subaccountId0);
+    info.subaccountId1 = pending[SUBACC1].toString(false);
+    getRidOfQuote(info.subaccountId1);
+    info.itemsId0 = pending[ITEMLIST0].toString(false);
+    getRidOfQuote(info.itemsId0);
+    info.itemsId1 = pending[ITEMLIST1].toString(false);    
+    getRidOfQuote(info.itemsId1);
+}
+
+bool matchRequest(const TransactionInfo &sending, 
+		  const TransactionInfo &receiving) {
+    int result = 0;
+    result += sending.id0.compare(receiving.id1);
+    result += sending.id1.compare(receiving.id0);
+    result += sending.subaccountId0.compare(receiving.subaccountId1);
+    result += sending.subaccountId1.compare(receiving.subaccountId0);
+    result += sending.itemsId0.compare(receiving.itemsId1);
+    result += sending.itemsId1.compare(receiving.itemsId0);
+    
+    return (result == 0);
+}
+
 
 // Add pending transaction to a sub account
 // Here simply put all information in an json object
@@ -262,22 +378,138 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
 //                      { $push: { <field>: <value> } }
 //                     )
 void addPendingTransaction(const string &accID, const TransactionInfo &info) {
-
     BSONObjBuilder query;
     query.append(SUB_ACC_ID_FIELD, accID);
 
     BSONObjBuilder t;
-    t.append("p0", info.id0);
-    t.append("p1", info.id1);
-    t.append("s0", info.subaccountId0);
-    t.append("s1", info.subaccountId1);
-    t.append("items0", info.itemsId0);
-    t.append("items1", info.itemsId1);
+    t.append(PLAYER0, info.id0);
+    t.append(PLAYER1, info.id1);
+    t.append(SUBACC0, info.subaccountId0);
+    t.append(SUBACC1, info.subaccountId1);
+    t.append(ITEMLIST0, info.itemsId0);
+    t.append(ITEMLIST1, info.itemsId1);
     BSONObjBuilder p;
-    p.append("pending", t.obj());
+    p.append(PENDING_ARRAY, t.obj());
     BSONObjBuilder q;
     q.append("$push", p.obj());
     
     conn.update(db_ns, query.obj(), q.obj());
 }
 
+void removePendingTransaction(const string &accID, const TransactionInfo &info) {
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, accID);
+
+    BSONObjBuilder t;
+    t.append(PLAYER0, info.id0);
+    t.append(PLAYER1, info.id1);
+    t.append(SUBACC0, info.subaccountId0);
+    t.append(SUBACC1, info.subaccountId1);
+    t.append(ITEMLIST0, info.itemsId0);
+    t.append(ITEMLIST1, info.itemsId1);
+    BSONObjBuilder p;
+    p.append(PENDING_ARRAY, t.obj());
+    BSONObjBuilder q;
+    q.append("$pull", p.obj());
+    
+    conn.update(db_ns, query.obj(), q.obj());
+}
+
+// Log transaction
+// Add complete transaction into player's account if needed
+void logTransaction(const TransactionInfo &info) {
+    if (!LOG_SELF_TRANSACTION && info.id0.compare(info.id1) == 0) {
+	return;
+    }
+    if (info.id0.compare(info.id1) == 0) {
+	// Self transaction
+	addCompletedTransaction(info, 0);
+	return;
+    }
+    addCompletedTransaction(info, 0);
+    addCompletedTransaction(info, 1);
+}
+
+// Add completed transaction into the array under 
+// player acount (parent account of the sub account).
+//
+// $push
+// db.collection.update( <query>,
+//                      { $push: { <field>: <value> } }
+//                     )  
+//
+// @param flag indicates which id to use. flag = 0 or not 0.
+//
+void addCompletedTransaction(const TransactionInfo &info, int flag) {
+    if (flag != 0) {
+	if (isGlobalAccount(info.id1)) {
+	    // Do not log transaction for global account
+	    return;
+	}
+	reverseInfo(info);
+    }
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, info.id0);
+
+    BSONObjBuilder t;
+    t.append(PLAYER0, info.id0);
+    t.append(PLAYER1, info.id1);
+    t.append(SUBACC0, info.subaccountId0);
+    t.append(SUBACC1, info.subaccountId1);
+    t.append(ITEMLIST0, info.itemsId0);
+    t.append(ITEMLIST1, info.itemsId1);
+    BSONObjBuilder p;
+    p.append(TRANSACTION_HISTORY, t.obj());
+    BSONObjBuilder q;
+    q.append("$push", p.obj());
+    
+    conn.update(db_ns, query.obj(), q.obj());
+}
+
+// Reverse ids in info 
+void reverseInfo(TransactionInfo &info) {
+    string id = info.id0;
+    string subid = info.subaccountId0;
+    string items = info.itemsId0;
+    info.id0 = info.id1;
+    info.subaccountId0 = info.subaccountId1;
+    info.itemsId0 = info.itemsId1;
+    info.id1 = id;
+    info.subaccountId1 = subid;
+    info.itemsId1 = items;
+}
+
+
+void executeTransaction(const TransactionInfo &info,
+			const string &subAccId0,
+			const string &subAccId1) {
+    updateItemArray("$pullAll", subAccId0, info.itemsId0);
+    updateItemArray("$pullAll", subAccId1, info.itemsId1);
+    updateItemArray("$pushAll", subAccId0, info.itemsId1);
+    updateItemArray("$pushAll", subAccId1, info.itemsId0);
+    removePendingTransaction(subAccId1, info);
+}
+
+// Update items array
+//
+// Use $pullAll or $pushAll
+// 
+// db.collection.update( <query>,
+//                      { $pullAll: { <arrayField>: [ <value1>, <value2> ... ] } }
+//                    )
+// db.collection.update( <query>, 
+//                      { $pullAll: { <arrayField>: [ <value1>, <value2> ... ] } }
+//                   )
+//
+void updateItemArray(const string method, const string &accID, 
+		     const string &itemIDs) {
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, accID);
+    
+    BSONObj items = fromjson(itemIDs);
+    
+    BSONObjBuilder b;
+    b.append(method, items);
+        
+    conn.update(db_ns, query.obj(), b.obj());        
+}
