@@ -34,7 +34,12 @@ class MongoWrapper {
     // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
     void remove(const std::string &ns, const mongo::BSONObj &q);
     void remove(const std::string &ns, const std::string &q);
-        
+            
+    // Find a single document that satisfies the query criteria
+    mongo::BSONObj findOne(const std::string &ns, 
+			   const mongo::BSONObj &q);
+    mongo::BSONObj findOne(const std::string &ns,
+			   const std::string &q);
     private:
     mongo::DBClientConnection c;
     
