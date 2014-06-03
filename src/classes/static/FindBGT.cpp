@@ -22,7 +22,7 @@ s_BGTInfo FindBGT::find(BSONObj clientDocument, BSONObj BGTDocument) {
     int location[1] = atoi(clientDocument["object"]["location"]["y"].String().c_str());
     
     //assigns proper value to BGTInfo
-    BGTInfo.bgt_id = HMBL.findBucket(location[0], location[1]);
+    BGTInfo.bgt_id = HMBL::findBucket(location[0], location[1]);
     
     //pulls radius, mapX, mapY, columns, and rows from BGTDocument to use as parameters in HMBL.surroundings
     int radius = atoi(BGTDocument["object"]["radius"].String().c_str());
