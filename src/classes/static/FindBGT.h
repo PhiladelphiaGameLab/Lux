@@ -3,7 +3,8 @@
 
 class FindBGT{
     public:
-        s_BGTInfo find(BSONObj clientDocument, BSONObj BGTDocument);
+        s_BGTInfo find(BSONObj clientDocument);
+        std::vector<int> findSurroundings(BSONObj clientDocument, int bgt_id);
     protected:
     private:
 };
