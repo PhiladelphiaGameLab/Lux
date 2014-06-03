@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License along
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 *
-* - Mike Oak
+* - Jeff Ramspacher
 */
 
 #include "HMBL.h"
@@ -77,19 +77,16 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	int lastBuck = newNode->currBuck;
 
-	//Check to remove previous instance; this whole thing is questionable
-	if (newNode->currBuck != 0){ //Checks to see if there is an old instance in existence, if not this shouldn't occur
-		//Time for some brute force if-else
+	//Checks to see if there is an old instance in existence, if not this shouldn't occur
+	if (newNode->currBuck != 0){ 
 		if (newNode->Prev == 0 && newNode->Next != 0){
 			arrMap[newNode->currBuck] = newNode->Next;
 			newNode->Next->Prev = 0;
 			newNode->Next = 0;
-		}
-		else if (newNode->Prev != 0 && newNode->Next == 0){
+		}else if (newNode->Prev != 0 && newNode->Next == 0){
 			newNode->Prev->Next = 0;
 			newNode->Prev = 0;
-		}
-		else if (newNode->Prev != 0 && newNode->Next != 0){
+		}else if (newNode->Prev != 0 && newNode->Next != 0){
 			newNode->Prev->Next = newNode->Next;
 			newNode->Next->Prev = newNode->Prev;
 			newNode->Next = 0;
@@ -104,15 +101,14 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
 		Node *tempMap;
 
-		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket. Don't know if arrMap should be pointer
+		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
 		arrMap[bucketNum] = newNode;
 		newNode->Next = tempMap;
 		tempMap->Prev = newNode;
 		newNode->sock = nsock;
 		newNode->euid = euid;
 		newNode->currBuck = bucketNum;
-	}
-	else{
+	}else{
 		arrMap[bucketNum] = newNode;
 		newNode->sock = nsock;
 		newNode->euid = euid;
@@ -121,8 +117,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	if (lastBuck == bucketNum){ //for efficiency, so that it doesn't go through pipe process if client didn't move
 
-	}
-	else
+	}else
 		pipeInfo(x, y, rad, lastBuck);
 }
 
@@ -139,10 +134,9 @@ Node* HMBL<T>::checkForCollision(int euid, int hashKey){
 	CNode *cwalk = hashTable[hashKey];
 	bool addCollInst = true;
 
-	if (hashTable[hashKey]->Base->euid == 0 || hashTable[hashKey]->Base->euid == euid){//this is the instance or there is no instance 
+	if (hashTable[hashKey]->Base->euid == 0 || hashTable[hashKey]->Base->euid == euid){ //this checks if this is the instance or if there is no instance 
 		newNode = hashTable[hashKey]->Base;
-	}
-	else if (hashTable[hashKey]->Base->euid != euid){//Collision detected
+	}else if (hashTable[hashKey]->Base->euid != euid){ //Collision detected
 		while (cwalk->Next != 0){
 			cwalk = cwalk->Next;
 			if (cwalk->Base->euid == euid){
@@ -150,7 +144,7 @@ Node* HMBL<T>::checkForCollision(int euid, int hashKey){
 				newNode = cwalk->Base;
 			}
 		}
-		if (addCollInst){//Not sure about this; definitely recheck
+		if (addCollInst){  
 			struct CNode* cnewNode = new CNode;
 			cwalk->Next = cnewNode;
 			cnewNode->Prev = cwalk;
@@ -174,7 +168,6 @@ void HMBL<T>::clearHMBL(){
 			hashTable[i]->Base->Next = 0;
 			hashTable[i]->Base->Prev = 0;
 			hashTable[i]->Base->lastBuck = -1;
-			//Might need this, but probably not: hashTable[i]->Base = 0;
 		}
 	}
 }
@@ -218,10 +211,9 @@ template <class T>
 std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad, int mapx, int mapy, int columns, int rows){
 	std::vector<int> surroundings;
 
-	if (currentBucket == -1){ //Used to check to see if this update is the first one
+	if (currentBucket == -1){ //Used to ensure that this isn't the first update for the client
 
-	}
-	else{
+	}else{
 		int x = currentBucket / rows;
 		int y = currentBucket % rows;
 		int xval;
@@ -234,8 +226,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				xval = x - i;
 				yval = y - j;
 
-				if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-				{
+				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 					surroundings.push_back(backToBuck(xval, yval, rows));
 				}
 			}
@@ -244,8 +235,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				xval = x - i;
 				yval = y + j;
 
-				if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-				{
+				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 					surroundings.push_back(backToBuck(xval, yval, rows));
 				}
 			}
@@ -256,8 +246,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				xval = x + i;
 				yval = y - j;
 
-				if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-				{
+				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 					surroundings.push_back(backToBuck(xval, yval, rows));
 				}
 			}
@@ -266,14 +255,13 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				xval = x + i;
 				yval = y + j;
 
-				if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-				{
+				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 					surroundings.push_back(backToBuck(xval, yval, rows));
 				}
 			}
 		}
 
-		int thresh = surroundings.size(); //These are all for testing
+		int thresh = surroundings.size(); //The following statements are all for testing
 		std::cout << " Size: " << surroundings.size() << std::endl;
 		for (int k = 0; k < thresh; k++){
 			std::cout << " [" << k << "] = " << surroundings[k] << std::endl;
@@ -282,6 +270,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 	return surroundings;
 }
 
+//Method that pipes to the SNR thread
 template <class T>
 void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	std::vector<int> impSurr;
@@ -289,16 +278,13 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 
 	if (lastBuck == -1){
 		impSurr = newSurr;
-	}
-	else{
+	}else{
 		std::vector<int> oldSurr = surroundingsFromCurrBucket(lastBuck, rad, mapwidth, mapheight, columns, rows);
 
 		bool addOutstanding;
 
-		for (int i = 0; i < newSurr.size(); i++)
-		{
+		for (int i = 0; i < newSurr.size(); i++){
 			addOutstanding = true;
-
 			for (int j = 0; j < oldSurr.size(); j++){
 				if (newSurr[i] == oldSurr[j])
 					addOutstanding = false;
@@ -343,14 +329,14 @@ std::vector<int> HMBL<T>::surroundings(int xloc, int yloc, int rad, int mapx, in
 	int yval;
 
 	//Algorithm for finding the surrounding relative buckets while taking the edges of the map into account
+	//It converts the buckets into a basic coordinate system
 	for (int i = rad; i >= 0; i--){
 		for (int j = rad; j >= 0; j--){
 
 			xval = x - i;
 			yval = y - j;
 
-			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-			{
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 				surroundings.push_back(backToBuck(xval, yval, rows));
 			}
 		}
@@ -359,8 +345,7 @@ std::vector<int> HMBL<T>::surroundings(int xloc, int yloc, int rad, int mapx, in
 			xval = x - i;
 			yval = y + j;
 
-			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-			{
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 				surroundings.push_back(backToBuck(xval, yval, rows));
 			}
 		}
@@ -371,8 +356,7 @@ std::vector<int> HMBL<T>::surroundings(int xloc, int yloc, int rad, int mapx, in
 			xval = x + i;
 			yval = y - j;
 
-			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-			{
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 				surroundings.push_back(backToBuck(xval, yval, rows));
 			}
 		}
@@ -381,14 +365,13 @@ std::vector<int> HMBL<T>::surroundings(int xloc, int yloc, int rad, int mapx, in
 			xval = x + i;
 			yval = y + j;
 
-			if (xval < columns && xval >= 0 && yval < rows && yval >= 0)
-			{
+			if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
 				surroundings.push_back(backToBuck(xval, yval, rows));
 			}
 		}
 	}
 
-	int thresh = surroundings.size();
+	int thresh = surroundings.size(); //The following is for testing only
 	std::cout << " Size: " << surroundings.size() << std::endl;
 	for (int k = 0; k < thresh; k++){
 		std::cout << " [" << k << "] = " << surroundings[k] << std::endl;
