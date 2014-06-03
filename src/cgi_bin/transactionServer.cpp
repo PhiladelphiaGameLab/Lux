@@ -12,6 +12,7 @@
 
 #include "Authenticate.h"
 #include "mongoTransaction.h"
+#include "mongo/bson/bson.h"
 
 using namespace std;
 using namespace mongo;
@@ -45,10 +46,10 @@ const string SUB_ACC_ARRAY_FILED("sub_acc_array");
 
 int handleRequest();
 bool findSubAcc(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1);
-bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subacc);
+bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc);
 bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items);
 bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1);
-void addPendingTransaction(const transactionInfo &info);
+void addPendingTransaction(const string &accID, const transactionInfo &info);
 bool matchRequest(const BSONElement &sending, 
                 const BSONElement &receiving);
 void executeTransaction(const transactionInfo &info); //instantiates a mongo transaction
@@ -128,7 +129,12 @@ int handleRequest() {
 	
 	if (checkMatch(info, subAcc0, subAcc1)) {	    
 	    executeTransaction(info);
-	}        
+	}
+	else {
+	    string accID = subAcc0[SUB_ACC_ID_FIELD].toString(false);
+	    getRidOfQuote(accID);
+	    addPendingTransaction(accID, info);
+	}
     } 
     else if (method.compare("addAccount") == 0) {
         //addAccount
@@ -147,7 +153,7 @@ int handleRequest() {
 // Find two subaccounts in the two accounts
 bool findSubAcc(const TransactionInfo &info, 
 		BSONObj &subAcc0, BSONObj &subAcc1) {
-    BSONObj acc = fromjson(conn.query(db_ns, QUERY(ACC_ID_FIELD << info.id0))); 
+    BSONObj acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << info.id0));
     
     if (findSubAccInAcc(acc, info.subaccountId0, subAcc0) == false) {
 	return false;
@@ -169,7 +175,7 @@ bool findSubAcc(const TransactionInfo &info,
     }
     
     // Two accounts are different
-    acc = fromjson(conn.query(db_ns, QUERY(ACC_ID_FIELD << id1)));    
+    acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << id1));
     if (findSubAccInAcc(acc, info.subaccountId1, subAcc1) == false) {
 	return false;
     }
@@ -181,8 +187,8 @@ bool findSubAcc(const TransactionInfo &info,
 // Here I made the assumption that in an account object
 // subaccounts' ids are stored in an array.
 // e.g. Account: {"_id":xxxx, "sub_acc_array":[xxx,xxx,xxx,xxx]}.
-bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subacc) {
-    BSONElement subArray = acc0[SUB_ACC_ARRAY_FILED];
+bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
+    BSONElement subArray = acc[SUB_ACC_ARRAY_FILED];
     if (!subArray.ok()) {
 	// If account doesn't have sub accounts, return false
 	return false;
@@ -196,7 +202,7 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subacc) {
     string subid = id.toString(false);
     getRidOfQuote(subid);
     // use this sub id to find sub account in the db
-    subAcc0 = fromjson(conn.query(db_ns, QUERY(SUB_ACC_ID_FIELD << subid)));
+    subAcc = conn.findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid));
     
     return true;
 }
@@ -206,13 +212,15 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subacc) {
 bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items) {
     int i = 0;
     BSONElement item;
-    while ((item = items[i]).ok()) {
+    string index = to_string(i);
+    while ((item = items[index]).ok()) {
 	string key = item.toString(false);
 	getRidOfQuote(key);
 	if (subaccount[key].ok() == 0) {
 	    return false;
 	}
 	i++;
+	index = to_string(i);
     }
     return true;
 }
@@ -238,5 +246,38 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
     //   return true;
     //
     return false;
+}
+
+// Add pending transaction to a sub account
+// Here simply put all information in an json object
+// e.g. { p0 : id0,
+//        p1 : id1,
+//        s0 : subaccountId0,
+//        s1 : subaccountId1,
+//        items0 : itemsId0,
+//        items1 : itemsId1
+//      }
+// $push
+// db.collection.update( <query>,
+//                      { $push: { <field>: <value> } }
+//                     )
+void addPendingTransaction(const string &accID, const TransactionInfo &info) {
+
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, accID);
+
+    BSONObjBuilder t;
+    t.append("p0", info.id0);
+    t.append("p1", info.id1);
+    t.append("s0", info.subaccountId0);
+    t.append("s1", info.subaccountId1);
+    t.append("items0", info.itemsId0);
+    t.append("items1", info.itemsId1);
+    BSONObjBuilder p;
+    p.append("pending", t.obj());
+    BSONObjBuilder q;
+    q.append("$push", p.obj());
+    
+    conn.update(db_ns, query.obj(), q.obj());
 }
 
