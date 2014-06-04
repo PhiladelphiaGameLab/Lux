@@ -10,9 +10,11 @@
 //         -reply successful to both
 // else reply fail
 
-#include "Authenticate.h"
-#include "mongoTransaction.h"
+#include "../classes/static/Authenticate.h"
+#include "../classes/instanceable/CGI.h"
+#include "../mongodb/MongoWrapper.h"
 #include "mongo/bson/bson.h"
+#include <string>
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
@@ -35,6 +37,7 @@ struct TransactionInfo
                     string iti0, string iti1):
         id0(i0), id1(i1), subaccountId0(si0), subaccountId1(si1),
         itemsId0(iti0), itemsId1(iti1) {}
+    TransactionInfo(){};
 };
 
 // global varibales
@@ -67,7 +70,8 @@ const bool LOG_SELF_TRANSACTION = false;
 //   subacc0 : subid0,
 //   subacc1 : subid1,
 //   itemslist0 : items0,
-//   itemslist1 : items1
+//   itemslist1 : items1,
+//   cerateTime : time
 // }
 const string PLAYER0("p0");
 const string PLAYER1("p1");
@@ -75,9 +79,10 @@ const string SUBACC0("s0");
 const string SUBACC1("s1");
 const string ITEMLIST0("items0");
 const string ITEMLIST1("items1");
+const string CREATE_TIME("time");
 
 // Field name of pending array
-const PENDING_ARRAY("pending");
+const string PENDING_ARRAY("pending");
 
 // Time to wait for matching pending transaction
 const int TOTAL_TIME = 10; // 10 seconds
@@ -93,26 +98,22 @@ void removePendingTransaction(const string &accID, const TransactionInfo &info);
 void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info);
 bool matchRequest(const TransactionInfo &sending, 
 		  const TransactionInfo &receiving);
-//instantiates a mongo transaction
 void executeTransaction(const TransactionInfo &info,
 			const BSONObj &subAcc0,
 			const BSONObj &subAcc1);
+void updateItemArray(const string method, const string &accID, 
+		     const string &itemIDs);
 string findTransaction(const TransactionInfo &info, int senderId);
 void removeTransaction(const string id);
 void logTransaction(const TransactionInfo &info);
 //for both users if player to player
 void addCompletedTransaction(const TransactionInfo &info, int flag); 
 void reverseInfo(TransactionInfo &info);
-void cancelTimedOutPending(const string &id, 
-			   const string &subaccount);
-void cancelAllPending(const string &id, 
-		      const string &subaccount);
+
 bool isGlobalAccount(const string &id);
 void getAsset(CGI);
 void addAccount(const string &id);
-void addSubaccount(const string &id, 
-		   const string &subaccountId);
-
+void addSubaccount(const string &id, const string &subaccountId);
 
 // Helper function to get rid of "" of a string
 inline void getRidOfQuote(string &str) {
@@ -125,6 +126,15 @@ inline void getRidOfQuote(string &str) {
 
 inline bool timedOut() {
     return (time_cnt < TOTAL_TIME);
+}
+
+inline string getCurrentTime() {
+    time_t rawtime;
+    time(&rawtime);
+    // ctime convert time_t value to string
+    // Www Mmm dd hh:mm:ss yyyy
+    // e.g. Wed Jun  4 15:44:25 2014
+    return time_t_to_String(rawtime);
 }
 
 int main(int argc, char **argv) {        
@@ -160,7 +170,7 @@ int handleRequest() {
             //failed error
 	    return -1;
         }
-	if (!checkItemIDs(subacc1, (fromjson(info.itemsId1)["items"]))) {
+	if (!checkItemIDs(subAcc1, (fromjson(info.itemsId1)["items"]))) {
 	    return -1;
 	}
 	
@@ -174,6 +184,12 @@ int handleRequest() {
 	    string accID = subid0;
 	    getRidOfQuote(accID);
 	    addPendingTransaction(accID, info);
+	    // Sleep for some time and cancel pending this transaction
+	    this_thread::sleep_for(chrono::seconds(TOTAL_TIME * 2));
+	    // Remove pending transaction when time out
+	    // If this pending transaction is already been processed
+	    // this function will do nothing.
+	    removePendingTransaction(accID, info);
 	    return 0;
 	}
 	
@@ -201,12 +217,13 @@ int handleRequest() {
     else if (method.compare("addSubaccount") == 0) {
         //addSubaccount
     } 
-    else if (method.comapare("get") == 0) {
+    else if (method.compare("get") == 0) {
         //getAsset
     } 
     else {
         return 2;
     }
+    return 0;
 }
 
 // Find two subaccounts in the two accounts
@@ -234,7 +251,7 @@ bool findSubAcc(const TransactionInfo &info,
     }
     
     // Two accounts are different
-    acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << id1));
+    acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << info.id1));
     if (findSubAccInAcc(acc, info.subaccountId1, subAcc1) == false) {
 	return false;
     }
@@ -296,7 +313,7 @@ bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items) {
 	  return false;
 	}
 	i++;
-	index = to_string(i);
+	index0 = to_string(i);
     }
     return true;
 }
@@ -371,7 +388,8 @@ bool matchRequest(const TransactionInfo &sending,
 //        s0 : subaccountId0,
 //        s1 : subaccountId1,
 //        items0 : itemsId0,
-//        items1 : itemsId1
+//        items1 : itemsId1,
+//        createTime : time
 //      }
 // $push
 // db.collection.update( <query>,
@@ -388,6 +406,7 @@ void addPendingTransaction(const string &accID, const TransactionInfo &info) {
     t.append(SUBACC1, info.subaccountId1);
     t.append(ITEMLIST0, info.itemsId0);
     t.append(ITEMLIST1, info.itemsId1);
+    t.append(CREATE_TIME, getCurrentTime());
     BSONObjBuilder p;
     p.append(PENDING_ARRAY, t.obj());
     BSONObjBuilder q;
@@ -441,23 +460,25 @@ void logTransaction(const TransactionInfo &info) {
 // @param flag indicates which id to use. flag = 0 or not 0.
 //
 void addCompletedTransaction(const TransactionInfo &info, int flag) {
+    TransactionInfo tmp = info;
     if (flag != 0) {
 	if (isGlobalAccount(info.id1)) {
 	    // Do not log transaction for global account
 	    return;
 	}
-	reverseInfo(info);
+	reverseInfo(tmp);
     }
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, info.id0);
+    query.append(ACC_ID_FIELD, tmp.id0);
 
     BSONObjBuilder t;
-    t.append(PLAYER0, info.id0);
-    t.append(PLAYER1, info.id1);
-    t.append(SUBACC0, info.subaccountId0);
-    t.append(SUBACC1, info.subaccountId1);
-    t.append(ITEMLIST0, info.itemsId0);
-    t.append(ITEMLIST1, info.itemsId1);
+    t.append(PLAYER0, tmp.id0);
+    t.append(PLAYER1, tmp.id1);
+    t.append(SUBACC0, tmp.subaccountId0);
+    t.append(SUBACC1, tmp.subaccountId1);
+    t.append(ITEMLIST0, tmp.itemsId0);
+    t.append(ITEMLIST1, tmp.itemsId1);
+    t.append(CREATE_TIME, getCurrentTime());
     BSONObjBuilder p;
     p.append(TRANSACTION_HISTORY, t.obj());
     BSONObjBuilder q;
@@ -512,4 +533,10 @@ void updateItemArray(const string method, const string &accID,
     b.append(method, items);
         
     conn.update(db_ns, query.obj(), b.obj());        
+}
+
+// Check if id is global id
+bool isGlobalAccount(const string &id) {
+    // TODO check is id is global id
+    return false;
 }
