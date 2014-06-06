@@ -1,12 +1,12 @@
 #include "BGTSpawner.h"
 
-bool spawnNewBgt(){
+bool spawnNewBgt(int bgtID){
     //connect to the database
     mongo::DBClientConnection c;
     c.connect("localhost");
     
     //Create a BSON object
-    BSONobj object = BSON(GENOID<<"IP"<<IP<<"PORT"<<0);
+    BSONobj object = BSON(GENOID<<"IP"<<IP<<"PORT"<<0 << "BGT_ID" << bgtID);
     
     //Create a new document
     BSONObj bgtDoc = c.insert(DATABASE_NAME.COLLECTION_NAME,object);
@@ -67,7 +67,7 @@ int main(){
     bool spawnOne = false;
     while(true){
         if(!spawnOne){
-            spawnNewBgt();
+            spawnNewBgt(0);
             spawnOne = true;
         }
     }
