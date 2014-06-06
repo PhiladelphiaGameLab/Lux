@@ -1,6 +1,7 @@
 #include "DBWriter.h"
 
-void DBWriter::spawn(struct pipe params_in){ // dbWriter thread
+void DBWriter::spawn(struct s_dbWriter_params_in params_in){ // dbWriter thread
+
     mongo::DBClientConnection c;
     c.connect("localhost");
 
@@ -10,15 +11,8 @@ void DBWriter::spawn(struct pipe params_in){ // dbWriter thread
         // get message
         read(FIFO, msg, sizeof(BSONObj));
 
-        // c.update(DATABASE_NAME, QUERY(), BSON("$inc"<<BSON("a"<<2)), {upsert:true});
-        
-        db.c.update(
-            { /*leaving empty returns all documents in this collection*/ },
-            //{ $set:{'title':'New MongoDB Tutorial'} },
-            { msg },
-            { upsert:true }
-        );
-
+        // last parameter sets upsert to true
+        c.update(DATABASE_NAME, QUERY ("bgt_id" << BGTDoc.bgt_id), msg, true);
 
     }
     
