@@ -1,23 +1,6 @@
 #include "BGTSpawner.h"
 
-void BGTSpawner::spawn(struct pipe params_in){
-    // this class will find if BGTs need to be spawned or something
-
-    // Check enviorment variables to see what the game type is
-
-    // game types include:
-        // Battle Arena
-        // Static persistant world (in which case this should spawn them and then go into "Make sure they are still running Mode"
-        // Dynamic persistant world
-        // according to Alex there are like 50 ways to do this
-
-
-    // query Find BGT class to see the number of BGTs online
-
-    // check number of clients on each BGT
-
-    // decide if a new one needs to be spawned
-    
+bool spawnNewBgt(){
     //connect to the database
     mongo::DBClientConnection c;
     c.connect("localhost");
@@ -28,31 +11,65 @@ void BGTSpawner::spawn(struct pipe params_in){
     //Create a new document
     BSONObj bgtDoc = c.insert(DATABASE_NAME.COLLECTION_NAME,object);
     
+    s_bgt_params_in bgt_params_in;
+    
     // get the newly created _id
-    std::string bgtID = bgtDoc["_id"].string();
+    bgt_params_in.bgtID = bgtDoc["_id"].string();
     
-    string error = c.getLastError();
+    //string error = c.getLastError();
     
-    const char *pipeLocation = "/temp/pipe"; // bgt->sut
-    const char *pipeLocation = "/temp/pipe"; // sut->dbwriter
-    const char *pipeLocation = "/temp/pipe"; // HMBL->SNR
     
+    // these paths have to be unique names (just have to be unique)
+    const char *bgt_sut_pipeLocation = "/temp/pipe"; // bgt->sut
+    const char *sut_db_pipeLocation = "/temp/pipe"; // sut->dbwriter
+    const char *hmbl_snr_pipeLocation = "/temp/pipe"; // HMBL->SNR
+    
+    if(mkfifo(bgt_sut_pipeLocation, 0666) == 0){
+        bgt_params_in.pipe_w = bgt_sut_pipeLocation;
+    }
+    
+    if(mkfifo(hmbl_snr_pipeLocation, 0666) == 0){
+        bgt_params_in.pipe_hmbl = hmbl_snr_pipeLocation;
+    }
     
     //Spawn a BGT thread
-    pthread_create(&BGT_ID,NULL,(void *) &BattleGround:spawn, (void *) &s_bgt_params_in);
+    pthread_create(&BGT_ID,NULL,(void *) &BattleGround:spawn, (void *) &bgt_params_in);
+    
+    
+    s_sut_params_in sut_params_in;
+    sut_params_in.pipe_r = bgt_sut_pipeLocation;
+    
+    if(mkfifo(sut_db_pipeLocation, 0666) == 0){
+        sut_params_in.pipe_w = sut_db_pipeLocation;
+    }
     
     //Spawn a SUT thread
-    pthread_create(&SUT_ID,NULL,(void *) &SendUpdate:spawn, (void *) &s_sut_params_in);
+    pthread_create(&SUT_ID,NULL,(void *) &SendUpdate:spawn, (void *) &sut_params_in);
+    
+    s_dbWriter_params_in dbWriter_params_in;
+    dbWriter_params_in.pipe_r = sut_db_pipeLocation;
     
     //Spawn  DBWriter thread
-    pthread_create(&DBW_ID,NULL,(void *) &DBWriter:spawn, (void *) &s_dbWriter_params_in);
+    pthread_create(&DBW_ID,NULL,(void *) &DBWriter:spawn, (void *) &dbWriter_params_in);
     
+    
+    s_snr_params_in snr_params_in;
+    s_snr_params_in.pipe_r = hmbl_snr_pipeLocation;
     //Spawn a SNR thread
-    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &s_snr_params_in);
-        // spawn a new thread, and pass in what port it should be on
-        // save a new document to mongo with the port & basic info on the BGT
-        
-        // duplicate the respective base collection from mongo
-        // update the findBGT class to include this BGT
-            // will need to store in mongo so that it can be accessed staticly across multiple processes
+    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &s_snr_params_in);   
+    
+    return 1;
+}
+
+
+
+int main(){
+    bool spawnOne = false;
+    while(true){
+        if(!spawnOne){
+            spawnNewBgt();
+            spawnOne = true;
+        }
+    }
+    return EXIT_SUCCESS; 
 }
