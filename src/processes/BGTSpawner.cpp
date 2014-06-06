@@ -1,4 +1,8 @@
 #include "BGTSpawner.h"
+#include "BattleGround.h"
+#include "SendUpdate.h"
+#include "DBWriter.h"
+#include "SendNewRelevant.h"
 
 bool spawnNewBgt(int bgtID){
     //connect to the database
@@ -14,15 +18,15 @@ bool spawnNewBgt(int bgtID){
     s_bgt_params_in bgt_params_in;
     
     // get the newly created _id
-    bgt_params_in.bgtID = bgtDoc["_id"].string();
+    bgt_params_in.bgtID = bgtDoc["_id"].String();
     
     //string error = c.getLastError();
     
     
     // these paths have to be unique names (just have to be unique)
-    const char *bgt_sut_pipeLocation = "/temp/pipe"; // bgt->sut
-    const char *sut_db_pipeLocation = "/temp/pipe"; // sut->dbwriter
-    const char *hmbl_snr_pipeLocation = "/temp/pipe"; // HMBL->SNR
+    const char *bgt_sut_pipeLocation = "/temp/lux_pipe0"; // bgt->sut
+    const char *sut_db_pipeLocation = "/temp/lux_pipe1"; // sut->dbwriter
+    const char *hmbl_snr_pipeLocation = "/temp/lux_pipe2"; // HMBL->SNR
     
     if(mkfifo(bgt_sut_pipeLocation, 0666) == 0){
         bgt_params_in.pipe_w = bgt_sut_pipeLocation;
