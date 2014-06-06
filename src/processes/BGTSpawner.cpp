@@ -26,21 +26,29 @@ void BGTSpawner::spawn(struct pipe params_in){
     BSONobj object = BSON(GENOID<<"IP"<<IP<<"PORT"<<0);
     
     //Create a new document
-    c.insert(DATABASE_NAME.COLLECTION_NAME,object);
+    BSONObj bgtDoc = c.insert(DATABASE_NAME.COLLECTION_NAME,object);
+    
+    // get the newly created _id
+    std::string bgtID = bgtDoc["_id"].string();
     
     string error = c.getLastError();
     
+    const char *pipeLocation = "/temp/pipe"; // bgt->sut
+    const char *pipeLocation = "/temp/pipe"; // sut->dbwriter
+    const char *pipeLocation = "/temp/pipe"; // HMBL->SNR
+    
+    
     //Spawn a BGT thread
-    pthread_create(&BGT_ID,NULL,(void *) &BattleGround:spawn, (void *) &params_in);
+    pthread_create(&BGT_ID,NULL,(void *) &BattleGround:spawn, (void *) &s_bgt_params_in);
     
     //Spawn a SUT thread
-    pthread_create(&SUT_ID,NULL,(void *) &SendUpdate:spawn, (void *) &params_in);
+    pthread_create(&SUT_ID,NULL,(void *) &SendUpdate:spawn, (void *) &s_sut_params_in);
     
     //Spawn  DBWriter thread
-    pthread_create(&DBW_ID,NULL,(void *) &DBWriter:spawn, (void *) &params_in);
+    pthread_create(&DBW_ID,NULL,(void *) &DBWriter:spawn, (void *) &s_dbWriter_params_in);
     
     //Spawn a SNR thread
-    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &params_in);
+    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &s_snr_params_in);
         // spawn a new thread, and pass in what port it should be on
         // save a new document to mongo with the port & basic info on the BGT
         
