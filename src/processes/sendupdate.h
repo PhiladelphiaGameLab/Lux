@@ -1,7 +1,7 @@
 #ifndef SENDUPDATE_H
 #define SENDUPDATE_H
 
-typedef struct pipe{
+typedef struct pipe {
     int pipe;
 };
 
@@ -16,6 +16,11 @@ class SendUpdate
         static void SendUpdate::spawn(struct sendUpdateArgs params_in)
     protected:
     private:
+};
+
+struct s_sut_params_in {
+    char* pipe_r;
+    char* pipe_w;
 };
 
 #endif // SENDUPDATE_H
