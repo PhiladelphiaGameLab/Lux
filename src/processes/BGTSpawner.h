@@ -5,7 +5,7 @@
 class BGTSpawner
 {
     public:
-        static void spawn(struct pipe params_in);
+        bool spawnNewBgt(int);
     protected:
     private:
 };
