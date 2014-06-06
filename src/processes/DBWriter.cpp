@@ -8,7 +8,7 @@ void DBWriter::spawn(struct pipe params_in){ // dbWriter thread
 
     while(1){
         // get message
-        read(FIFO, msg, MAX_BUF);
+        read(FIFO, msg, sizeof(BSONObj));
 
         // c.update(DATABASE_NAME, QUERY(), BSON("$inc"<<BSON("a"<<2)), {upsert:true});
         
