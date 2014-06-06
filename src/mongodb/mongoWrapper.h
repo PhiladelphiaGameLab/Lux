@@ -27,17 +27,17 @@ class MongoWrapper {
     // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
     void update(const std::string &ns, const mongo::BSONObj &q,
 		const mongo::BSONObj &obj, bool upsert = false, 
-		bool multi = false, const WriteConcern* wc=NULL);
+		bool multi = false, const mongo::WriteConcern* wc=NULL);
     void update(const std::string &ns, const std::string &q,
 		const std::string &obj, bool upsert = false, 
-		bool multi = false, const WriteConcern* wc=NULL);
+		bool multi = false, const mongo::WriteConcern* wc=NULL);
 
     // Remove
     // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
     void remove(const std::string &ns, const mongo::BSONObj &q, 
-		bool justOne = 0, const WriteConcern* wc=NULL);
+		bool justOne = 0, const mongo::WriteConcern* wc=NULL);
     void remove(const std::string &ns, const std::string &q,
-		bool justOne = 0, const WriteConcern* wc=NULL);
+		bool justOne = 0, const mongo::WriteConcern* wc=NULL);
             
     // Find a single document that satisfies the query criteria
     mongo::BSONObj findOne(const std::string &ns, 

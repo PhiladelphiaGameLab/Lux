@@ -46,24 +46,24 @@ std::string MongoWrapper::query(const std::string &ns, const std::string &q) {
 
 void MongoWrapper::update(const std::string &ns, const mongo::BSONObj &q,
 			  const mongo::BSONObj &obj, bool upsert, 
-			  bool multi, const WriteConcern* wc) {
+			  bool multi, const mongo::WriteConcern* wc) {
     c.update(ns, q, obj, upsert, multi, wc);
 }
 
 void MongoWrapper::update(const std::string &ns, const std::string &q, 
 			  const std::string &obj, bool upsert, 
-			  bool multi, const WriteConcern* wc) {
+			  bool multi, const mongo::WriteConcern* wc) {
     update(ns, mongo::fromjson(q), mongo::fromjson(obj),
 	   upsert, multi, wc);
 }
 
 void MongoWrapper::remove(const std::string &ns, const mongo::BSONObj &q,
-			  bool justOne, const WriteConcern* wc) {
+			  bool justOne, const mongo::WriteConcern* wc) {
     c.remove(ns, q, justOne, wc);
 }
 
 void MongoWrapper::remove(const std::string &ns, const std::string &q,
-			  bool justOne, const WriteConcern* wc) {
+			  bool justOne, const mongo::WriteConcern* wc) {
     remove(ns, mongo::fromjson(q), justOne, wc);
 }
 
