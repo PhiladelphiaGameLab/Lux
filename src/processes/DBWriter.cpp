@@ -12,7 +12,8 @@ void DBWriter::spawn(struct s_dbWriter_params_in params_in){ // dbWriter thread
         read(FIFO, msg, sizeof(BSONObj));
 
         // last parameter sets upsert to true
-        c.update(DATABASE_NAME, QUERY ("bgt_id" << BGTDoc.bgt_id), msg, true);
+        c.update(DATABASE_NAME, QUERY(), msg, true);
+        // c.update(DATABASE_NAME, QUERY ("bgt_id" << BGTDoc.bgt_id), msg, true);
 
     }
     
