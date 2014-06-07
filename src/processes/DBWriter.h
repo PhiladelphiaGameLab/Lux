@@ -5,12 +5,12 @@
 class DBWriter
 {
     public:
-        static void spawn(struct s_dbWriter params_in);
+        static void spawn(struct s_dbWriter_params_in params_in);
     protected:
     private:
 };
 
-typedef struct s_dbWriter
+typedef struct s_dbWriter_params_in
 {
     char* pipe_r;
 };
