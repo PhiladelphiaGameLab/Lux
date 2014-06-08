@@ -7,11 +7,12 @@ string Authenticate::createAccessToken(const string EUID, const string timeBucke
 	return MD5::md5(EUID+timeBucket+SERVER_SECRET);
 }
 
+//This function never uses API_KEY, need to be double check
 string Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
 	string res = "";
     BSONObj bjwt = mongo::fromjson(JWT);
 	if(bjwt != NULL) {
-		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be tested
+		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be tested£¬ there are 6 fields we can use for creating unique ID, http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20
 	}
 	return  res; // return unique ID
 }
@@ -21,8 +22,6 @@ string Authenticate::createNewEUID(const string uniqueID)
 	//MD5
 	return MD5::md5(uniqueID+SERVER_SECRET);
 }
-
-
 
 string Authenticate::createAccessToken(string EUID){
     return Authenticate::createAccessToken(EUID, Authenticate::getTimeBucket());
