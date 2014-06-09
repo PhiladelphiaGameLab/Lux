@@ -1,4 +1,5 @@
 #include "FindBGT.h"
+#include "HMBL.h"
 
 s_BGTInfo FindBGT::find(BSONObj clientDocument) {
 
