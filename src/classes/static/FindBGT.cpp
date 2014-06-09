@@ -13,11 +13,14 @@ s_BGTInfo FindBGT::find(BSONObj clientDocument) {
   if (Authenticate::authenticateAccessToken(accessToken, EUID)) {
     
     // pull x-location and y-location from clientDocument
-    int location[0] = atoi(clientDocument["object"]["location"]["x"].String().c_str());
-    int location[1] = atoi(clientDocument["object"]["location"]["y"].String().c_str());
+    // int location[0] = atoi(clientDocument["object"]["location"]["x"].String().c_str());
+    // int location[1] = atoi(clientDocument["object"]["location"]["y"].String().c_str());
     
     // assign proper value to BGTInfo.bgt_id
-    BGTInfo.bgt_id = HMBL::findBucket(location[0], location[1]);
+    //BGTInfo.bgt_id = HMBL::findBucket(location[0], location[1]);
+    //BGTInfo.bgt_id = HMBL<T>::getBucket(int xloc, int yloc, int mapx, int mapy, int columns, int rows){
+    BGTInfo.bgt_id = 0;
+
     // assign proper value to BGTInfo.buckets
     BGTInfo.buckets = FindBGT::findSurroundings(clientDocument, BGTInfo.bgt_id);
     
