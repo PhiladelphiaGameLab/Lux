@@ -42,6 +42,7 @@ bool spawnNewBgt(int bgtID){
     
     s_sut_params_in sut_params_in;
     sut_params_in.pipe_r = bgt_sut_pipeLocation;
+    sut_params_in.bgt_id = BGT_ID;
     
     if(mkfifo(sut_db_pipeLocation, 0666) == 0){
         sut_params_in.pipe_w = sut_db_pipeLocation;
