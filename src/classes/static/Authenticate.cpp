@@ -1,5 +1,6 @@
 #DEFINE SERVER_SECRET "LUXisAwesome!"
-#include "MD5.h"
+#include "Authenticate.h"
+
 using namespace std;
 
 string Authenticate::createAccessToken(const string EUID, const string timeBucket){
@@ -12,7 +13,7 @@ string Authenticate::authenticateJWT(const string JWT, const string Client_API_K
 	string res = "";
     BSONObj bjwt = mongo::fromjson(JWT);
 	if(bjwt != NULL) {
-		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be tested£¬ there are 6 fields we can use for creating unique ID, http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20
+		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be testedï¿½ï¿½ there are 6 fields we can use for creating unique ID, http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20
 	}
 	return  res; // return unique ID
 }
