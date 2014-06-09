@@ -13,7 +13,7 @@ typedef struct pipe {
 class SendUpdate
 {
     public:
-        static void SendUpdate::spawn(struct sendUpdateArgs params_in)
+        static void SendUpdate::spawn(struct s_sut_params_in* params_in)
     protected:
     private:
 };
