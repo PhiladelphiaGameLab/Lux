@@ -24,8 +24,7 @@ using namespace mongo;
 // Transaction info
 // 
 // items id should be in the form {items : [xxx,xxx,xxx]}
-struct TransactionInfo
-{
+struct TransactionInfo {
     string id0; 
     string id1;
     string subaccountId0;
@@ -49,18 +48,54 @@ CGI environment;
 MongoWrapper conn("localhost"); 
 // the namespace of collection
 const string db_ns("db.transaction"); 
+
+// Account structure
+// e.g.
+// {
+//  "_id" : "xxx", (created by mongo)
+//  "name" : username,
+//  "group" : [],
+//  "sub_acc" : [],
+//  "trans_history" : []
+//  }
 // the field name for account id
 const string ACC_ID_FIELD("_id"); 
-// field name for subaccount, default is equal to account id
-const string SUB_ACC_ID_FIELD(ACC_ID_FIELD);
-// items array in sub account
-const string ITEM_ARRAY_FIELD("items");
+// filed name for username in account document
+const string USER_NAME_FIELD("name");
+// filed name for group account
+const string GROUP_ACC_FIELD("group");
 // sub account array in account
 const string SUB_ACC_ARRAY_FILED("sub_acc_array");
 // transaction history array in account
 const string TRANSACTION_HISTORY("completed_array");
+
+
+// Sub account structure
+// e.g.
+// {
+//  "_id" : "xxx", (created by mongo)
+//  "items" : [],
+//  "pending" : []
+// }
+// field name for subaccount, default is equal to account id
+const string SUB_ACC_ID_FIELD(ACC_ID_FIELD);
+// items array in sub account
+const string ITEM_ARRAY_FIELD("items");
+// Field name of pending array
+const string PENDING_ARRAY("pending");
+
 // flag indicates whether to log self transaction
 const bool LOG_SELF_TRANSACTION = false;
+
+// Group account structure
+// e.g.
+// {
+//  "_id" : "xxx", (created by mongo)
+//  "admin" : [], (userids)
+//  "member" : [] (userids)
+const string GROUP_ID("_id");
+const string ADMIN_ARRAY_FIELD("admin");
+const string MEMBER_ARRAY_FIELD("member");
 
 // Transaction log object fields:
 // e.g.
@@ -81,8 +116,8 @@ const string ITEMLIST0("items0");
 const string ITEMLIST1("items1");
 const string CREATE_TIME("time");
 
-// Field name of pending array
-const string PENDING_ARRAY("pending");
+
+
 
 // Time to wait for matching pending transaction
 const int TOTAL_TIME = 10; // 10 seconds
@@ -114,6 +149,16 @@ bool isGlobalAccount(const string &id);
 void getAsset(CGI);
 void addAccount(const string &id);
 void addSubaccount(const string &id, const string &subaccountId);
+void getAccountInfo(const string &id);
+void getSubAccountInfo(const string &id, const string &subaccountId);
+void getTransactionHistory(const string &id);
+void addAcount(const string &username);
+void addSubAccount(const string &id);
+void createGroup(const string &id);
+void addGroupMember(const string &gid, const string &id);
+void removeGroupMember(const string &gid, const string &id);
+void changePermission(const string &gid, const string &id, int permission);
+
 
 // Helper function to get rid of "" of a string
 inline void getRidOfQuote(string &str) {
@@ -519,7 +564,7 @@ void executeTransaction(const TransactionInfo &info,
 //                      { $pullAll: { <arrayField>: [ <value1>, <value2> ... ] } }
 //                    )
 // db.collection.update( <query>, 
-//                      { $pullAll: { <arrayField>: [ <value1>, <value2> ... ] } }
+//                      { $pushAll: { <arrayField>: [ <value1>, <value2> ... ] } }
 //                   )
 //
 void updateItemArray(const string method, const string &accID, 
@@ -527,10 +572,11 @@ void updateItemArray(const string method, const string &accID,
     BSONObjBuilder query;
     query.append(SUB_ACC_ID_FIELD, accID);
     
-    BSONObj items = fromjson(itemIDs);
-    
+    BSONObjBuilder a;
+    a.append(ITEM_ARRAY_FIELD, itemIDs);
+
     BSONObjBuilder b;
-    b.append(method, items);
+    b.append(method, a.obj());
         
     conn.update(db_ns, query.obj(), b.obj());        
 }
@@ -539,4 +585,193 @@ void updateItemArray(const string method, const string &accID,
 bool isGlobalAccount(const string &id) {
     // TODO check is id is global id
     return false;
+}
+
+void getAccountInfo(const string &id) {
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, id);
+    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    
+    // TODO: send accInfo back to client
+}
+
+void getSubAccountInfo(const string &id, const string &subaccountId) {
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, id);
+    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    
+    // TODO: send accInfo back to client  
+}
+
+void getTransactionHistory(const string &id) {
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, id);
+    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    
+    string history = accInfo[TRANSACTION_HISTORY].toString(false);
+    
+    getRidOfQuote(history);
+    
+    // TODO: send history back to client
+
+}
+
+
+// Create a new account
+void addAcount(const string &username) {
+    BSONObjBuilder acc;
+    acc.genOID();
+    acc.append(USER_NAME_FIELD, username);
+    acc.append(SUB_ACC_ARRAY_FILED, "[]");
+    acc.append(GROUP_ACC_FIELD, "[]");
+    acc.append(TRANSACTION_HISTORY, "[]");
+    BSONObj obj = acc.obj();
+    conn.insert(db_ns, obj);
+    // TODO
+    // send back information to client
+}
+
+// Create a new sub account
+void addSubAccount(const string &id) {
+    // Create a sub account
+    BSONObjBuilder sub;
+    sub.genOID();
+    sub.append(ITEM_ARRAY_FIELD, "[]");
+    sub.append(PENDING_ARRAY, "[]");
+    BSONObj obj = sub.obj();
+    conn.insert(db_ns, obj);
+    
+    string subid = obj["_id"].toString(false);
+    getRidOfQuote(subid);
+    
+    // Insert subid into sub acc array
+    // TODO: need to have a function to do array stuff in MongoWrapper
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, id);    
+    
+    BSONObjBuilder a;
+    a.append(SUB_ACC_ARRAY_FILED, subid);
+    
+    BSONObjBuilder b;
+    b.append("$push", a.obj());
+        
+    conn.update(db_ns, query.obj(), b.obj());        
+    
+    // TODO
+    // send back information to client
+}
+
+// Create a new group account, using user id as the first admin
+void createGroup(const string &id) {
+    BSONObjBuilder group;
+    group.genOID();
+    string admin("[");
+    admin += id;
+    admin += "]";
+    group.append(ADMIN_ARRAY_FIELD, admin);
+    group.append(MEMBER_ARRAY_FIELD, "[]");
+
+    BSONObj obj = group.obj();
+    conn.insert(db_ns, obj);
+
+    string gid = obj["_id"].toString(false);
+    getRidOfQuote(gid);
+    // Insert group id into group array
+    // TODO: need to have a function to do array stuff in MongoWrapper
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, id);    
+    
+    BSONObjBuilder a;
+    a.append(GROUP_ACC_FIELD, gid);
+    
+    BSONObjBuilder b;
+    b.append("$push", a.obj());
+        
+    conn.update(db_ns, query.obj(), b.obj());        
+        
+}
+
+// Add group member
+void addGroupMember(const string &gid, const string &id) {
+    // TODO: need to have a function to do array stuff in MongoWrapper
+    BSONObjBuilder query;
+    query.append(GROUP_ID, gid);
+    
+    BSONObjBuilder a;
+    a.append(MEMBER_ARRAY_FIELD, id);
+    
+    BSONObjBuilder b;
+    b.append("$push", a.obj());
+    
+    conn.update(db_ns, query.obj(), b.obj());    
+}
+
+void removeGroupMember(const string &gid, const string &id) {
+    // TODO: need to have a function to do array stuff in MongoWrapper
+    BSONObjBuilder query;
+    query.append(GROUP_ID, gid);
+    
+    BSONObjBuilder a;
+    a.append(MEMBER_ARRAY_FIELD, id);
+    
+    BSONObjBuilder b;
+    b.append("$pull", a.obj());
+    
+    conn.update(db_ns, query.obj(), b.obj());       
+    
+    BSONObjBuilder c;
+    c.append(ADMIN_ARRAY_FIELD, id);
+    BSONObjBuilder d;
+    d.append("$pull", c.obj());
+    
+    conn.update(db_ns, query.obj(), d.obj());
+}
+
+void changePermission(const string &gid, const string &id, int permission) {
+    switch(permission) {
+    case 1:
+      // TODO: need to have a function to do array stuff in MongoWrapper
+      {
+      BSONObjBuilder query;
+      query.append(GROUP_ID, gid);
+    
+      BSONObjBuilder a;
+      a.append(MEMBER_ARRAY_FIELD, id);
+    
+      BSONObjBuilder b;
+      b.append("$pull", a.obj());
+    
+      conn.update(db_ns, query.obj(), b.obj());       
+
+      BSONObjBuilder c;
+      c.append(ADMIN_ARRAY_FIELD, id);
+      BSONObjBuilder d;
+      d.append("$push", c.obj());
+    
+      conn.update(db_ns, query.obj(), c.obj());      
+      }
+      break;
+    case 0:
+    default:
+      {
+      BSONObjBuilder query;
+      query.append(GROUP_ID, gid);
+    
+      BSONObjBuilder a;
+      a.append(MEMBER_ARRAY_FIELD, id);
+    
+      BSONObjBuilder b;
+      b.append("$push", a.obj());
+    
+      conn.update(db_ns, query.obj(), b.obj());       
+
+      BSONObjBuilder c;
+      c.append(ADMIN_ARRAY_FIELD, id);
+      BSONObjBuilder d;
+      d.append("$pull", c.obj());
+    
+      conn.update(db_ns, query.obj(), c.obj());
+      }
+      break;
+    }
 }
