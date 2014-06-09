@@ -1,5 +1,11 @@
 #include "AuthorizationServer.h"
 using namespace std;
+
+void run(){
+		mongo::DBClientConnection c;
+		 c.connect("localhost");
+}
+
 int main(int argc, char *argv[]){
 
     CGI environment; // create instance of CGI Class
@@ -11,45 +17,36 @@ int main(int argc, char *argv[]){
     string uniqueID = Authenticate::authenticateJWT(JWT, APIKey); // create a unique ID with the Authenticate class
 
     if(uniqueID != ""){
-		//vector<mongo::BSONObj> bulk_data;
-        
 		try{
-		mongo::DBClientConnection c;
-		 c.connect("localhost");
+         run();
+		 std::cout << "connected ok" << std::endl;  //successfully connect
 		 // Handle new Users
 		//search inside DB if it doesn't match any existing keys, then create a new EUID
 		BSONObj EUIDDoc = c.findOne(DATABASE_NAME, Query("_id"<<uniqueID));
+		string EUID = "";
 		if(EUIDDoc == NULL)
 		{
 		//I know this is a new user
 		 string newEUID = Authenticate::createNewEUID(uniqueID);
+		 EUID = newEUID;
 		 mongo::BSONObj newUser = BSON("_id"<<uniqueID<<"EUID"<<newEUID<<"APIKey"<<APIKey<<"RefreshToken"<<RefreshToken);   // save all the other data passed in from the Query String
 		 c.insert(DATABASE_NAME, newUser);     
 		} 
-		else {// handle false
-		 
-        // query Key-Value store   access MongoDB
-		    
-			// find the relevant documents in the mongo database
-			// find the EUID Document and print it out
+		else {
+			// handle old Users
 			//take out the EUID from the BSONObj
-			string EUID = EUIDDoc["EUID"].toString();
+			EUID = EUIDDoc["EUID"].toString();
 		}
 
-
-    }catch{
-		
-        // then:
-        string err = c.getLastError();
-        return NULL;
+    }catch( const mongo::DBException &e ) {
+        std::cout << "caught " << e.what() << std::endl;
     }
 
-
-        // get back EUID
-        //string EUID = ; // access via uniqueID from JWT
-
-        // write to database with new access token
         string accessToken = Authenticate::createAccessToken(EUID);
+		// write to database with new access token, corresponding to the correct unique ID
+		BSONObj AccessDoc = c.findOne(DATABASE_NAME, Query("_id"<<uniqueID));
+		AccessDoc.put("AccessToken", accessToken);
+
         cout << '{\n"EUID":"' << EUID << '",\n"AccessToken":"'<< accessToken << '"}' << endl; // return the value to the user
 
     }else{
