@@ -1,58 +1,59 @@
 CC = g++
+Warnings = 
+#-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -std=c++11 -stdlib=libc++ -I../../../lib/luxsocket
+CFLAGS = -std=c++11 -c  $(Warnings) 
+INC = -std=c++11 -I../../../lib/luxsocket -I./output -I.cgi_bin $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 
 
-# ./src/cgi_bin/AuthorizationServer.cpp
-# ./src/cgi_bin/AuthorizationServer.h
-# ./src/cgi_bin/Initialize.cpp
-# ./src/cgi_bin/Initialize.h
-# ./src/classes/static/Authenticate.cpp
-# ./src/classes/static/Authenticate.h
-# ./src/classes/static/FindBGT.cpp
-# ./src/classes/static/FindBGT.h
-# ./src/classes/static/MD5.cpp
-# ./src/classes/static/MD5.h
-# ./src/classes/instanceable/CGI.cpp
-# ./src/classes/instanceable/CGI.h
-# ./src/classes/instanceable/HMBL.cpp
-# ./src/classes/instanceable/HMBL.h
-# ./src/classes/instanceable/socket.cpp
-# ./src/classes/instanceable/socket.h
-# ./src/classes/instanceable/socketB.cpp
-# ./src/classes/instanceable/socketB.h
-# ./src/processes/BGTSpawner.cpp
-# ./src/processes/BGTSpawner.h
-# ./src/processes/DBWriter.cpp
-# ./src/processes/DBWriter.h
-# ./src/processes/SendNewRelevant.cpp
-# ./src/processes/SendNewRelevant.h
-# ./src/processes/battleground.cpp
-# ./src/processes/battleground.h
-# ./src/processes/sendupdate.cpp
-# ./src/processes/sendupdate.h
-
-
-# ./cgi_bin/
-# ./output/
-
+Auth = ./src/cgi_bin/AuthorizationServer.cpp -o ./cgi_bin/Auth
+Init = ./src/cgi_bin/Initialize.cpp -o ./cgi_bin/Init
+Authen = ./src/classes/static/Authenticate.cpp -o ./output/Authen
+FindBGT = ./src/classes/static/FindBGT.cpp -o ./output/FindBGT
+MD5 = ./src/classes/static/MD5.cpp -o ./output/MD5
+CGI = ./src/classes/instanceable/CGI.cpp -o ./output/CGI
+HMBL= ./src/classes/instanceable/HMBL.cpp -o ./output/HMBL
+socket = ./src/classes/instanceable/socket.cpp -o ./output/socket
+socketB = ./src/classes/instanceable/socketB.cpp -o ./output/socketB
+BGTSpawner = ./src/processes/BGTSpawner.cpp -o ./output/BGTSpawner
+DBWriter = ./src/processes/DBWriter.cpp -o ./output/DBWriter
+SendNewRelevant =  ./src/processes/SendNewRelevant.cpp -o ./output/SendNewRelevant
+battleground = ./src/processes/battleground.cpp -o ./output/battleground
+sendupdate = ./src/processes/sendupdate.cpp -o ./output/sendupdate
 
 all: clean build run
 
 # tell apache where the cgi_bin is
 apache: 
 
-
+# Build All the Files!
 build:
-	$(CC) $(CFLAGS) $(OBJ_FILES)   $(LIB)
+	mkdir ./output
+	mkdir ./cgi_bin
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(MD5) $(LIB) 
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
+	$(CC) $(INC) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
 
 # spawn BGT
 run:
-
+	./output/BGTSpawner
 
 # deletes all of the ./cgi_bin/ & ./output/
 clean:
+	rm -rf ./output
+	rm -rf ./cgi_bin
 
 
 
