@@ -18,11 +18,11 @@
  *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <socket.h>
+#include <socketB.h>
 
 #ifndef WIN32
 	#include <sys/types.h>			// For data types
-	#include <sys/socket.h>			// For socket(), connect(), send(), and recv()
+	#include <sys/socketB.h>			// For socket(), connect(), send(), and recv()
 	#include <netdb.h>				// For gethostbyname()
 	#include <arpa/inet.h>			// For inet_addr()
 	#include <unistd.h>				// For close()
