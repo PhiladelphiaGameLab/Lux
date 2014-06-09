@@ -33,15 +33,15 @@ build:
 	mkdir ./cgi_bin
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(MD5) $(LIB) 
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
-	
-
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
+
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
+
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
