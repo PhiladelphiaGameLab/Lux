@@ -5,6 +5,8 @@
 #include "mongo/client/dbclient.h"
 #include "mongo/bson/bson.h"
 
+#define MONGO_DRIVER_26
+
 class MongoWrapper {
     public:
     MongoWrapper(const std::string &hostname = "localhost");
@@ -22,7 +24,21 @@ class MongoWrapper {
     // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
     std::string query(const std::string &ns, const mongo::BSONObj &q);    
     std::string query(const std::string &ns, const std::string &q);
+    
+    #ifdef MONGO_DRIVER_26 
+    // Update
+    // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
+    void update(const std::string &ns, const mongo::BSONObj &q,
+		const mongo::BSONObj &obj);
+    void update(const std::string &ns, const std::string &q,
+		const std::string &obj);
 
+    // Remove
+    // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
+    void remove(const std::string &ns, const mongo::BSONObj &q);
+    void remove(const std::string &ns, const std::string &q);
+
+    #else
     // Update
     // ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
     void update(const std::string &ns, const mongo::BSONObj &q,
@@ -37,7 +53,8 @@ class MongoWrapper {
     void remove(const std::string &ns, const mongo::BSONObj &q, 
 		bool justOne = 0, const WriteConcern* wc=NULL);
     void remove(const std::string &ns, const std::string &q,
-		bool justOne = 0, const WriteConcern* wc=NULL);
+		bool justOne = 0, const WriteConcern* wc=NULL);    
+    #endif
             
     // Find a single document that satisfies the query criteria
     mongo::BSONObj findOne(const std::string &ns, 

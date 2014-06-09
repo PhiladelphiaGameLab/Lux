@@ -44,6 +44,25 @@ std::string MongoWrapper::query(const std::string &ns, const std::string &q) {
     return query(ns, mongo::fromjson(q));
 }
 
+#ifdef MONGO_DRIVER_26
+void MongoWrapper::update(const std::string &ns, const mongo::BSONObj &q,
+			  const mongo::BSONObj &obj) {
+    c.update(ns, q, obj);
+}
+
+void MongoWrapper::update(const std::string &ns, const std::string &q, 
+			  const std::string &obj) {
+    update(ns, mongo::fromjson(q), mongo::fromjson(obj));
+}
+
+void MongoWrapper::remove(const std::string &ns, const mongo::BSONObj &q) {
+    c.remove(ns, q);
+}
+
+void MongoWrapper::remove(const std::string &ns, const std::string &q) {
+    remove(ns, mongo::fromjson(q));
+}
+#else
 void MongoWrapper::update(const std::string &ns, const mongo::BSONObj &q,
 			  const mongo::BSONObj &obj, bool upsert, 
 			  bool multi, const WriteConcern* wc) {
@@ -66,6 +85,7 @@ void MongoWrapper::remove(const std::string &ns, const std::string &q,
 			  bool justOne, const WriteConcern* wc) {
     remove(ns, mongo::fromjson(q), justOne, wc);
 }
+#endif
 
 mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
 				     const mongo::BSONObj &q) {
