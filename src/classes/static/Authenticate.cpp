@@ -2,7 +2,7 @@
 #include "Authenticate.h"
 
 using namespace std;
-
+using namespace mongo;
 string Authenticate::createAccessToken(const string EUID, const string timeBucket){
     //MD5
 	return MD5::md5(EUID+timeBucket+SERVER_SECRET);
