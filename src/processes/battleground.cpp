@@ -18,32 +18,33 @@ Authenticate EUID against Access Token
  */
 
 #include "battleground.h"
+#include "HMBL.h"
 
-void BattleGround::spawn(void *param_in){
+#include <ctime.h>
+
+void BattleGround::spawn(struct s_bgt_params_in  *param_in){
+
+
+ 	//connect to the database
+    	mongo::DBClientConnection c;
+    	c.connect("localhost");
 
     // this pipe stuff should be right:
 
     // create pipe to send updates on
-    const char *pipeLocation = "/temp/pipe"; // needs to be unique somehow
-    if(mkfifo(pipeLocation, 0666) == 0){ // creates the pipe in the file system
-        int pipe = open(pipeLocation, O_WRONLY); // open  the pipe for writing
 
-        // so should the idea of this pthread
+        int pipe = open(param_in.pipe_w, O_WRONLY); // open  the pipe for writing
 
         s_SUT param;
         param.pipeLocation = pipeLocation;
 
-       // pthread_create(&BGTID, NULL, (void *) &SendUpdate::createSUT, (void *) &param); // spawn sendUpdates thread
-
-    }
-
 
     // construct a HMBL
     //locbasedhashmap HMBL;
-    locbasedhashmap HMBL(thredSizeX,threadSizeY,pipeLocation);
+   HMBL Map(mapSizeX,mapSizeY,thredSizeX,threadSizeY);
 
-    Socket socket(param_in.port); // create a socket object
-	socket.init(); // initialize/open the socket
+    uint16_t portNo = getNewPort();
+     c.update((DATABASE_NAME.COLLECTION_NAME,QUERY(),BSON("port"<<portNo),true);
 
 
     // will need to pass the socket that was opened back to the
@@ -51,46 +52,112 @@ void BattleGround::spawn(void *param_in){
 
 	while(1){
 	    sockaddr_in cli_addr;
-	    // accept clients, who will send in their update
-		BSONObj message = socket.receive(&cli_addr);
+	 // accept clients, who will send in their update
+	BSONObj message = socket.receive(&cli_addr);
 
         // get accessToken from BSONObj message
         std::string accessToken = message["sender"]["accessToken"].String(); // this should be as easy as this- but might not be.
         // get EUID from BSONObj message
         std::string EUID = message["sender"]["EUID"].String();
 
-
+	
+		
+	
         // authenticate message
         if(Authenticate::authenticateAccessToken(accessToken, EUID)){
+        	
+        	
+            //timestamp (Current time of the system)
+	    time_t timestamp = time(NULL); 
+            char* t_stamp = ctime(&timestamp); 	
+        	
+            //Strip Access Token
+	    BSONobj strippedEUIDMessage = message["sender"]["EUID"];
+		
+	    //Strip message header
+	    BSONobj strippedObjectMessage = message["object"];
+	    
+	    mongo::BSONObjBuilder builder;
+	    builder.appendElements(strippedEUIDMessage);
+	    builder.appendElements(strippedObjectMessage);
+	    builder.append("time",t_stamp);
+	    BSONobj completeMessage = builder.obj();
+	
+	
+	   //get the id of the message
+	   BSONobj id = completeMessage["_id"];
+	   
+           //Check for id (Maybe cursor is needed)
+           if(!c.find(DATABASE_NAME.COLLECTION_NAME,QUERY("_id"<<id)))
+           {
+           	//insert into MongoDB
+           	c.insert(DATABASE_NAME.COLLECTION_NAME,completeMessage);
+           }
+        	
             // get location from message
             int location[0] = atoi(message["object"]["location"]["x"].String().c_str());
             int location[1] = atoi(message["object"]["location"]["y"].String().c_str());
             int radius = atoi(message["sender"]["radius"].String().c_str());
 
+	
+	    //Get the values of EU_DOC and cli_obj_doc
+	    std::bool EU_DOC	  = completeMessage["sender"]["EU_DOC"].String();
+	    std::bool cli_obj_doc = completeMessage["sender"]["cli_obj_doc"].String();
+
+	    if(EU_DOC || cli_obj_doc)
+	    {
 	    //Updte clients location in HMBL
-	    HMBL.update(cli_addr,EUID,location[0],location[1]);
-		
-		
+	    Map.update(cli_addr,EUID,location[0],location[1],radius);
+	    }
+	     	
+	     	
+	    //get bucket ID
+	    //int bgt_id = Map.getBucket(location[0],location[1],mapSizeX,mapSizeY,thredSizeX,threadSizeY);
+	    int bgt_id = 0;
+	    
+	    //Update bucket in the document
+	    c.update((DATABASE_NAME.COLLECTION_NAME,QUERY(),BSON("bgt_id"<<bgt_id),true);
+	    
             // query HMBL for socket list
-            std::list<struct sockaddr_in> SocketList = HMBL.getClients(location[0],location[1],radius);// need to pass in cli_addr, location, and radius
+            std::vector<Node *> SocketList = Map.get_Clients(location[0],location[1],radius);// need to pass in cli_addr, location, and radius
 
             // pass message to undecided server logic class that client will fill in
             // sadly this might be unavoidable
             // :-(
-
-	    //Strip message header
-	    BSONobj strippedMessage = message["object"];
-
+		
+	    
 
 	    //Create  structure
 	    s_SUTMessage pipeStruct;
-	    pipeStruct.message = strippedMessage;
+	    pipeStruct.message = completeMessage;
 	    pipeStruct.SocketList = SocketList;
 	    
             // pipe updates to send updates thread
             write(pipe, pipeStruct, sizeof(pipeStruct));
+            
+            
+            //No Use now just for analytics
+            mongo::BSONObjBuilder builder;
+	    builder.appendElements(CompleteMessage);
+	    builder.append("Socket",cli_addr);
+	    BSONobj AnalyticsMessage = builder.obj();
 
         }
 
 	}
+}
+
+uint16_t getNewPort()
+{
+  uint16_t portNo;
+  struct sockaddr_in sa;
+	
+   Socket socket(0); // create a socket object
+    socket.init(); // initialize/open the socket
+    
+    //get the dynamically generated port number
+    getsockname(sock,(struct sockaddr*) &sa, &channellen);
+    portNo = ntohs(sa.sin_port);	
+    
+    return portNo;
 }
