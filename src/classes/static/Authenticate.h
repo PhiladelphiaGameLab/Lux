@@ -10,11 +10,12 @@ using namespace std;
 class Authenticate{
     public:
         static string createAccessToken(string EUID);
-        static bool authenticateJWT(string JWT, string Client_API_KEY);
+        static bool authenticateJWT(const string JWT, const string Client_API_KEY);
         static bool authenticateAccessToken(string AccessToken, string EUID);
         static string refreshAccessToken(string AccessToken, string EUID);
     protected:
     private:
+	static string createNewEUID(const string uniqueID);
         static string createAccessToken(string EUID, string timeBucket);
         static string getTimeBucket();
         static string getPreviousTimeBucket();

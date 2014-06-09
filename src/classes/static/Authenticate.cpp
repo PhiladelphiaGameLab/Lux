@@ -1,4 +1,4 @@
-#DEFINE SERVER_SECRET "LUXisAwesome!"
+#define SERVER_SECRET "LUXisAwesome!"
 #include "Authenticate.h"
 
 using namespace std;
@@ -9,7 +9,7 @@ string Authenticate::createAccessToken(const string EUID, const string timeBucke
 }
 
 //This function never uses API_KEY, need to be double check
-string Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
+bool Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
 	string res = "";
     BSONObj bjwt = mongo::fromjson(JWT);
 	if(bjwt != NULL) {
@@ -66,7 +66,7 @@ string Authenticate::getTimeBucket(){
 }
 
 string Authenticate::getPreviousTimeBucket(){
-    return to_string(atoi(Authenticate::getTimeBucket())-1);
+    return to_string(atoi(Authenticate::getTimeBucket().c_str())-1);
 }
 
 
