@@ -20,6 +20,7 @@
 #ifndef BATTLEGROUND_H
 #define BATTLEGROUND_H
 
+
 // static class (thread)
 
 typedef struct s_SUT{
@@ -30,14 +31,20 @@ typedef struct s_BGT{
     int port;
 };
 
+typedef struct s_bgt_params_in
+{
+    char* pipe_w;
+}
+
 typedef struct s_SUTMessage
 {
     BSONobj message;
-    std::list<struct sockaddr_in> SocketList;
+    std::vector<Node *> SocketList;
 }
 class BattleGround{
     public:
         static void spawn(void *param);
+        uint16_t portNo = getNewPort();
     protected:
     private:
 };
