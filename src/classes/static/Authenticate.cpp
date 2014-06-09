@@ -5,14 +5,14 @@ using namespace std;
 using namespace mongo;
 string Authenticate::createAccessToken(const string EUID, const string timeBucket){
     //MD5
-	return MD5::md5(EUID+timeBucket+SERVER_SECRET);
+	return md5(EUID+timeBucket+SERVER_SECRET);
 }
 
 //This function never uses API_KEY, need to be double check
-bool Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
+string Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY){
 	string res = "";
     BSONObj bjwt = mongo::fromjson(JWT);
-	if(bjwt != NULL) {
+	if(bjwt.isEmpty()) {
 		res = bjwt.hasField("jti")? bjwt["jti"].toString() : bjwt["JTI"].toString();            //JWT ID Claim  need to be tested�� there are 6 fields we can use for creating unique ID, http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20
 	}
 	return  res; // return unique ID
@@ -21,7 +21,7 @@ bool Authenticate::authenticateJWT(const string JWT, const string Client_API_KEY
 string Authenticate::createNewEUID(const string uniqueID)
 {
 	//MD5
-	return MD5::md5(uniqueID+SERVER_SECRET);
+	return md5(uniqueID+SERVER_SECRET);
 }
 
 string Authenticate::createAccessToken(string EUID){

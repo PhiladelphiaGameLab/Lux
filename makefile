@@ -2,20 +2,19 @@ CC = g++
 Warnings = 
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -std=c++11 -c  $(Warnings) 
-INC = -std=c++11 -I./lib/luxsocket -I./output -I.cgi_bin $(Warnings) 
+CFLAGS = -std=c++11 -c -std=c++11 -I./lib/luxsocket -I./output -I.cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 
 
-Auth = ./src/cgi_bin/AuthorizationServer.cpp -o ./cgi_bin/Auth
-Init = ./src/cgi_bin/Initialize.cpp -o ./cgi_bin/Init
-Authen = ./output/MD5 ./src/classes/static/Authenticate.cpp -o ./output/Authen
+Auth = ./src/cgi_bin/AuthorizationServer.cpp -o ./cgi_bin/AuthorizationServer
+Init = ./src/cgi_bin/Initialize.cpp -o ./cgi_bin/Initialize
+Authen = ./src/classes/static/Authenticate.cpp -o ./output/Authenticate
 FindBGT = ./src/classes/static/FindBGT.cpp -o ./output/FindBGT
 MD5 = ./src/classes/static/MD5.cpp -o ./output/MD5
 CGI = ./src/classes/instanceable/CGI.cpp -o ./output/CGI
 HMBL= ./src/classes/instanceable/HMBL.cpp -o ./output/HMBL
 socket = ./lib/luxsocket/socket.cpp -o ./output/socket
-socketB = ./lib/luxsocket/luxSocket.cpp -o ./output/socketB
+socketB = ./lib/luxsocket/luxSocket.cpp -o ./output/luxSocket
 BGTSpawner = ./src/processes/BGTSpawner.cpp -o ./output/BGTSpawner
 DBWriter = ./src/processes/DBWriter.cpp -o ./output/DBWriter
 SendNewRelevant =  ./src/processes/SendNewRelevant.cpp -o ./output/SendNewRelevant

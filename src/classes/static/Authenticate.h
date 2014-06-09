@@ -14,7 +14,7 @@ using namespace mongo;
 class Authenticate{
     public:
         static string createAccessToken(string EUID);
-        static bool authenticateJWT(const string JWT, const string Client_API_KEY);
+        static string authenticateJWT(const string JWT, const string Client_API_KEY);
         static bool authenticateAccessToken(string AccessToken, string EUID);
         static string refreshAccessToken(string AccessToken, string EUID);
     protected:

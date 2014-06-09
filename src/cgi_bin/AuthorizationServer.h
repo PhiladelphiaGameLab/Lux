@@ -7,7 +7,12 @@
 #include "CGI.h"
 #include <iostream>
 
-using namespace std;
+#include "mongo/client/dbclient.h"
+#include "mongo/bson/bson.h"
+#include "mongo/db/json.h"
 
+
+
+using namespace std;
 
 #endif // AUTHORIZATIONSERVER_H
