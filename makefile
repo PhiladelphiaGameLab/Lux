@@ -3,7 +3,7 @@ Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
 CFLAGS = -std=c++11 -c  $(Warnings) 
-INC = -std=c++11 -I../../../lib/luxsocket -I./output -I.cgi_bin $(Warnings) 
+INC = -std=c++11 -I./lib/luxsocket -I./output -I.cgi_bin $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 
 
@@ -44,11 +44,11 @@ build:
 	
 # Jeff
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
+
 # Jake	
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
 	
 # Paul/Sibi
-
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
