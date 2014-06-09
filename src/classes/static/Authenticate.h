@@ -1,6 +1,8 @@
 #ifndef AUTHENTICATE_H
 #define AUTHENTICATE_H
 
+#include "MD5.h"
+
 using namespace std;
 // Static class
 // allows for basic authentication stuff
