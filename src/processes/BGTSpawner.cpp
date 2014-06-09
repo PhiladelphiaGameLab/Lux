@@ -42,7 +42,6 @@ bool spawnNewBgt(int bgtID){
     
     s_sut_params_in sut_params_in;
     sut_params_in.pipe_r = bgt_sut_pipeLocation;
-    sut_params_in.bgt_id = BGT_ID;
     
     if(mkfifo(sut_db_pipeLocation, 0666) == 0){
         sut_params_in.pipe_w = sut_db_pipeLocation;
@@ -59,9 +58,9 @@ bool spawnNewBgt(int bgtID){
     
     
     s_snr_params_in snr_params_in;
-    s_snr_params_in.pipe_r = hmbl_snr_pipeLocation;
+    snr_params_in.pipe_r = hmbl_snr_pipeLocation;
     //Spawn a SNR thread
-    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &s_snr_params_in);   
+    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant:spawn, (void *) &snr_params_in);   
     
     return 1;
 }
