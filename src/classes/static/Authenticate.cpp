@@ -1,4 +1,4 @@
-#DEFINE SERVER_SECRET "LUXisAwesome!"
+#define SERVER_SECRET "LUXisAwesome!"
 #include "Authenticate.h"
 
 using namespace std;

@@ -9,7 +9,7 @@ LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -l
 
 Auth = ./src/cgi_bin/AuthorizationServer.cpp -o ./cgi_bin/Auth
 Init = ./src/cgi_bin/Initialize.cpp -o ./cgi_bin/Init
-Authen = ./src/classes/static/Authenticate.cpp -o ./output/Authen
+Authen = ./output/MD5 ./src/classes/static/Authenticate.cpp -o ./output/Authen
 FindBGT = ./src/classes/static/FindBGT.cpp -o ./output/FindBGT
 MD5 = ./src/classes/static/MD5.cpp -o ./output/MD5
 CGI = ./src/classes/instanceable/CGI.cpp -o ./output/CGI
