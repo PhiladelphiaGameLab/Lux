@@ -23,24 +23,19 @@
 
 // static class (thread)
 
-typedef struct s_SUT{
+struct s_SUT{
     const char *pipeLocation;
 };
 
-typedef struct s_BGT{
+struct s_BGT{
     int port;
 };
 
-typedef struct s_bgt_params_in
+struct s_bgt_params_in
 {
     char* pipe_w;
-}
+};
 
-typedef struct s_SUTMessage
-{
-    BSONobj message;
-    std::vector<Node *> SocketList;
-}
 class BattleGround{
     public:
         static void spawn(void *param);
