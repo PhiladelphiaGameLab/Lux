@@ -1,3 +1,6 @@
+#ifndef HMBL_H
+#define HMBL_H
+
 #include <mutex>
 #include <vector>
 #include <sys/stat.h>
@@ -5,6 +8,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+
+#include "SendNewRelevant.h"
 
 template <class T>
 struct Node
@@ -37,17 +42,6 @@ struct Bucket
 {
 	struct Node<T> *Head;
 	Bucket<T> *Next;
-};
-
-//Struct for pipe to SNR Thread
-struct s_SNR
-{
-	const char *pipeLocation;
-};
-
-struct s_SNRMessage
-{
-	std::vector<int> newBuckList;
 };
 
 
@@ -89,4 +83,4 @@ public:
 	static int backToBuck(int x, int y, int ys);
 
 };
-
+#endif
