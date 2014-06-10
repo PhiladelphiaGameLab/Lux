@@ -149,6 +149,7 @@ bool isGlobalAccount(const string &id);
 void getAsset(CGI);
 void addAccount(const string &id);
 void addSubaccount(const string &id, const string &subaccountId);
+void removeGroupMember(const string &gid, const string &id);
 void getAccountInfo(const string &id);
 void getSubAccountInfo(const string &id, const string &subaccountId);
 void getTransactionHistory(const string &id);
@@ -653,6 +654,17 @@ void addSubAccount(const string &id) {
     // send back information to client        
 }
 
+// Remove a sub account from account
+void removeSubAccount(const string &subid, const string &id) {
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, subid);
+    
+    // remove sub account from database
+    conn.remove(db_ns, query.obj());   
+    // remove from user's group array
+    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subid);    
+}
+
 // Create a new group account, using user id as the first admin
 void createGroup(const string &id) {
     BSONObjBuilder group;
@@ -678,7 +690,6 @@ void createGroup(const string &id) {
 
 // Add group member
 void addGroupMember(const string &gid, const string &id) {
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
@@ -686,12 +697,14 @@ void addGroupMember(const string &gid, const string &id) {
 }
 
 void removeGroupMember(const string &gid, const string &id) {
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
     conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
     conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
+   
+    // remove from user's group array
+    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
 }
 
 void changePermission(const string &gid, const string &id, int permission) {
