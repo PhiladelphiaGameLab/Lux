@@ -36,9 +36,9 @@ build:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
 
 # Jing
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
 	
 # Jeff
