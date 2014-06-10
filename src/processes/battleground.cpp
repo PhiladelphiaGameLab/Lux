@@ -39,7 +39,8 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 
      // construct a HMBL
      //locbasedhashmap HMBL;
-     HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
+     //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
+     HMBL<sockaddr_in> Map(100,100,5,5, param_in.pipe_hmbl);
 
 
      //These 2 lines have to be uncommented to update the port in MongoDB
@@ -89,7 +90,7 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 	   id = completeMessage["_id"];
 	   
            //Check for id (Maybe cursor is needed)
-           if(!c.findone(DATABASE_NAME,QUERY("_id"<<id)))
+           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)))
            {
            	//insert into MongoDB
            	c.insert(DATABASE_NAME,completeMessage);
