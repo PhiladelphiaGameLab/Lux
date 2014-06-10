@@ -38,13 +38,11 @@ build:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
-	
-# Jeff
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
-
-# Paul/Sibi
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
+
+# Paul/Sibi
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
 	$(CC) $(INC) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
