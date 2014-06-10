@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 		 std::cout << "connected ok" << std::endl;  //successfully connect
 		 // Handle new Users
 		//search inside DB if it doesn't match any existing keys, then create a new EUID
-		BSONObj EUIDDoc = c.findOne(DATABASE_NAME, Query("_id"<<uniqueID));
+		BSONObj EUIDDoc = c.findOne(DATABASE_NAME, Query("_id"<<uniqueID.c_str()));
 		string EUID = "";
 		if(EUIDDoc == NULL)
 		{
