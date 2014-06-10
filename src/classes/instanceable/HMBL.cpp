@@ -39,31 +39,25 @@
 
 //Constructor
 template <class T>
-HMBL<T>::HMBL(int mapw, int maph, int col, int row){
+HMBL<T>::HMBL(int mapw, int maph, int col, int row, std::string pipeLocation){
 	mapwidth = mapw;
 	mapheight = maph;
 	columns = col;
 	rows = row;
 	bucketTotal = row * col;
 
-	arrMap = new Node*[bucketTotal]; //Array of Pointers representing each bucket
-	hashTable = new CNode*[bucketTotal / 2]; //HashMap of Clients
+	arrMap = new Node<T>*[bucketTotal]; //Array of Pointers representing each bucket
+	hashTable = new CNode<T>*[bucketTotal / 2]; //HashMap of Clients
 
 	clearHMBL();
-
-	const char *pipeLocation = "/temp/pipe"; //Needs to be made unique at some point
-	if (mkfifo(pipeLocation, 0666) == 0){ //Ask about params
-		int pipe = open(pipeLocation, O_WRONLY); //Open pipe for writing only
-	}
-
-	s_SNR SNRpipe;
-	SNRpipe.pipeLocation = pipeLocation;
+	
+	pipeFD = open(pipeLocation.c_str(), O_WRONLY);
 }
 
 //Default Constructor
 template <class T>
 HMBL<T>::HMBL(){
-	HMBL(100, 100, 20, 20);
+	HMBL(100, 100, 1, 1, "temp/pipes/shitfuckmotherfuckerthisbetterwork");
 }
 
 //Adds Client location to hashTable
@@ -73,7 +67,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	int bucketNum = findBucket(x, y);
 	int hashKey = euid % (bucketTotal / 2);
 
-	Node *newNode = checkForCollision(euid, hashKey);
+	Node<T> *newNode = checkForCollision(euid, hashKey);
 
 	int lastBuck = newNode->currBuck;
 
@@ -99,7 +93,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	//Storing inside of the arrMap/hashTable
 	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
-		Node *tempMap;
+		Node<T> *tempMap;
 
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
 		arrMap[bucketNum] = newNode;
@@ -129,9 +123,9 @@ int HMBL<T>::findBucket(int x, int y){
 
 //Checks for a collision in the hashMap and adds it to the CollisionNode if there is one
 template <class T>
-Node* HMBL<T>::checkForCollision(int euid, int hashKey){
-	Node *newNode = new Node;
-	CNode *cwalk = hashTable[hashKey];
+Node<T>* HMBL<T>::checkForCollision(int euid, int hashKey){
+	Node<T> *newNode = new Node<T>;
+	CNode<T> *cwalk = hashTable[hashKey];
 	bool addCollInst = true;
 
 	if (hashTable[hashKey]->Base->euid == 0 || hashTable[hashKey]->Base->euid == euid){ //this checks if this is the instance or if there is no instance 
@@ -145,7 +139,7 @@ Node* HMBL<T>::checkForCollision(int euid, int hashKey){
 			}
 		}
 		if (addCollInst){  
-			struct CNode* cnewNode = new CNode;
+			struct CNode<T>* cnewNode = new CNode<T>;
 			cwalk->Next = cnewNode;
 			cnewNode->Prev = cwalk;
 		}
@@ -159,8 +153,8 @@ void HMBL<T>::clearHMBL(){
 	for (int i = 0; i < bucketTotal; i++){
 		arrMap[i] = 0;
 		if (i < (bucketTotal / 2)){
-			hashTable[i] = new CNode;
-			hashTable[i]->Base = new Node;
+			hashTable[i] = new CNode<T>;
+			hashTable[i]->Base = new Node<T>;
 			hashTable[i]->Next = 0;
 			hashTable[i]->Prev = 0;
 			hashTable[i]->Base->sock = 0;
@@ -187,14 +181,14 @@ void HMBL<T>::revealHMBL(){
 }
 
 template <class T>
-std::vector<Node*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
-	std::vector<Node*> clients; //will be returned by this function and contain pointers to affected clients
+std::vector<Node<T>*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
+	std::vector<Node<T>*> clients; //will be returned by this function and contain pointers to affected clients
 	std::vector<int> proxBucks; //contains the list of buckets in the items proximity
 
 	proxBucks = surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
 
 	int thresh = proxBucks.size();
-	Node* walk;
+	Node<T>* walk;
 
 	for (int i = 0; i < thresh; i++){
 		walk = arrMap[proxBucks[i]];
@@ -295,9 +289,9 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	}
 
 	s_SNRMessage *newSurrBuck = new s_SNRMessage;
-	newSurrBuck.newBuckList = impSurr;
+	newSurrBuck->newBuckList = impSurr;
 
-	write(SNRpipe, newSurrBuck, sizeof(newSurrBuck));
+	write(pipeFD, newSurrBuck, sizeof(newSurrBuck));
 
 }
 

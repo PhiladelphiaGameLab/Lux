@@ -1,6 +1,10 @@
 #ifndef AUTHENTICATE_H
 #define AUTHENTICATE_H
 
+#include <string>
+#include <cstdlib>
+#include <iostream>
+
 #include "MD5.h"
 #include "mongo/client/dbclient.h"
 #include "mongo/bson/bson.h"
@@ -17,9 +21,9 @@ class Authenticate{
         static string authenticateJWT(const string JWT, const string Client_API_KEY);
         static bool authenticateAccessToken(string AccessToken, string EUID);
         static string refreshAccessToken(string AccessToken, string EUID);
+	static string createNewEUID(const string uniqueID);
     protected:
     private:
-	static string createNewEUID(const string uniqueID);
         static string createAccessToken(string EUID, string timeBucket);
         static string getTimeBucket();
         static string getPreviousTimeBucket();
