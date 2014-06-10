@@ -641,24 +641,16 @@ void addSubAccount(const string &id) {
     BSONObj obj = sub.obj();
     conn.insert(db_ns, obj);
     
+    // Insert subid into sub acc array
     string subid = obj["_id"].toString(false);
     getRidOfQuote(subid);
-    
-    // Insert subid into sub acc array
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);    
-    
-    BSONObjBuilder a;
-    a.append(SUB_ACC_ARRAY_FILED, subid);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-        
-    conn.update(db_ns, query.obj(), b.obj());        
-    
+    query.append(ACC_ID_FIELD, id); 
+
+    conn.arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
+
     // TODO
-    // send back information to client
+    // send back information to client        
 }
 
 // Create a new group account, using user id as the first admin
@@ -674,21 +666,14 @@ void createGroup(const string &id) {
     BSONObj obj = group.obj();
     conn.insert(db_ns, obj);
 
+    // Insert group id into group array
     string gid = obj["_id"].toString(false);
     getRidOfQuote(gid);
-    // Insert group id into group array
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);    
-    
-    BSONObjBuilder a;
-    a.append(GROUP_ACC_FIELD, gid);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-        
-    conn.update(db_ns, query.obj(), b.obj());        
-        
+    query.append(ACC_ID_FIELD, id);
+    conn.arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
+    // TODO
+    // send back information to client
 }
 
 // Add group member
@@ -697,13 +682,7 @@ void addGroupMember(const string &gid, const string &id) {
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    BSONObjBuilder a;
-    a.append(MEMBER_ARRAY_FIELD, id);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-    
-    conn.update(db_ns, query.obj(), b.obj());    
+    conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
 }
 
 void removeGroupMember(const string &gid, const string &id) {
@@ -711,67 +690,23 @@ void removeGroupMember(const string &gid, const string &id) {
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    BSONObjBuilder a;
-    a.append(MEMBER_ARRAY_FIELD, id);
-    
-    BSONObjBuilder b;
-    b.append("$pull", a.obj());
-    
-    conn.update(db_ns, query.obj(), b.obj());       
-    
-    BSONObjBuilder c;
-    c.append(ADMIN_ARRAY_FIELD, id);
-    BSONObjBuilder d;
-    d.append("$pull", c.obj());
-    
-    conn.update(db_ns, query.obj(), d.obj());
+    conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+    conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
 }
 
 void changePermission(const string &gid, const string &id, int permission) {
+    BSONObjBuilder query;
+    query.append(GROUP_ID, gid);
+
     switch(permission) {
     case 1:
-      // TODO: need to have a function to do array stuff in MongoWrapper
-      {
-      BSONObjBuilder query;
-      query.append(GROUP_ID, gid);
-    
-      BSONObjBuilder a;
-      a.append(MEMBER_ARRAY_FIELD, id);
-    
-      BSONObjBuilder b;
-      b.append("$pull", a.obj());
-    
-      conn.update(db_ns, query.obj(), b.obj());       
-
-      BSONObjBuilder c;
-      c.append(ADMIN_ARRAY_FIELD, id);
-      BSONObjBuilder d;
-      d.append("$push", c.obj());
-    
-      conn.update(db_ns, query.obj(), c.obj());      
-      }
+	conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn.arrayPush(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
       break;
     case 0:
     default:
-      {
-      BSONObjBuilder query;
-      query.append(GROUP_ID, gid);
-    
-      BSONObjBuilder a;
-      a.append(MEMBER_ARRAY_FIELD, id);
-    
-      BSONObjBuilder b;
-      b.append("$push", a.obj());
-    
-      conn.update(db_ns, query.obj(), b.obj());       
-
-      BSONObjBuilder c;
-      c.append(ADMIN_ARRAY_FIELD, id);
-      BSONObjBuilder d;
-      d.append("$pull", c.obj());
-    
-      conn.update(db_ns, query.obj(), c.obj());
-      }
+	conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
       break;
     }
 }
