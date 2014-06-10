@@ -12,7 +12,7 @@ struct Node
 
 	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
 	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
-	//pthread_mutex_t *Lock;
+	pthread_mutex_t *Lock;
 
 };
 
