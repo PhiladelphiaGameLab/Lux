@@ -61,10 +61,38 @@ class MongoWrapper {
 			   const mongo::BSONObj &q);
     mongo::BSONObj findOne(const std::string &ns,
 			   const std::string &q);
+
+    // Insert elements into an array of a document
+    void arrayPush(const std::string &ns, const mongo::BSONObj &q,
+		   const std::string &array_field_name,
+		   const std::string &elements,
+		   bool pushAll = false);
+
+    void arrayPush(const std::string &ns, const std::string &q,
+		   const std::string &array_field_name,
+		   const std::string &elements,
+		   bool pushAll = false);
+
+    // Delete elements from an array of a document
+    void arrayPull(const std::string &ns, const mongo::BSONObj &q,
+		   const std::string &array_field_name,
+		   const std::string &elements,
+		   bool pullAll = false);
+
+    void arrayPull(const std::string &ns, const std::string &q,
+		   const std::string &array_field_name,
+		   const std::string &elements,
+		   bool pullAll = false);
+
+    
     private:
     mongo::DBClientConnection c;
     
     // Print error message
     void error(const std::string &msg);
     
+    void arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
+		     const std::string &array_field_name,
+		     const std::string &element,
+		     const std::string &method);
 };

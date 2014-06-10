@@ -96,3 +96,52 @@ mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
 				     const std::string &q) {
   return findOne(ns, mongo::fromjson(q));
 }
+
+void MongoWrapper::arrayPush(const std::string &ns, const mongo::BSONObj &q,
+			     const std::string &array_field_name,
+			     const std::string &elements,
+			     bool pushAll) {
+    std::string method("$push");
+    if (pushAll) {
+	method = "$pushAll";
+    }
+    arrayUpdate(ns, q, array_field_name, elements, method);
+}
+    
+void MongoWrapper::arrayPush(const std::string &ns, const std::string &q,
+			     const std::string &array_field_name,
+			     const std::string &elements,
+			     bool pushAll) {
+    arrayPush(ns, mongo::fromjson(q), array_field_name, elements, pushAll);
+}
+
+void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
+	       const std::string &array_field_name,
+	       const std::string &elements,
+	       bool pullAll) {
+    std::string method("pull");
+    if (pullAll) {
+	method = "$pushAll";
+    }
+    arrayUpdate(ns, q, array_field_name, elements, method);
+}
+
+void MongoWrapper::arrayPull(const std::string &ns, const std::string &q,
+	       const std::string &array_field_name,
+	       const std::string &elements,
+	       bool pullAll) {
+    arrayPull(ns, mongo::fromjson(q), array_field_name, elements, pullAll);
+}
+
+
+void MongoWrapper::arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
+			       const std::string &array_field_name,
+			       const std::string &elements,
+			       const std::string &method) {
+    mongo::BSONObjBuilder a;
+    a.append(array_field_name, elements);
+    mongo::BSONObjBuilder b;
+    b.append(method, a.obj());
+    update(ns, q, b.obj());
+}
+
