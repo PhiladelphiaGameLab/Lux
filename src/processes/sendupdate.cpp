@@ -2,18 +2,18 @@
 
 void SendUpdate::spawn(struct s_sut_params_in* params_in) {
 
-	int FIFO = open(params_in.pipe_r, O_RDONLY);
+	int FIFO = open(params_in->pipe_r, O_RDONLY);
 
-	struct s_SUTMessage piped;
+	s_SUTMessage piped;
 	
 	// read parameters from BGTDoc
 	// have BGTSpawner pass in the BGT_id -- add to s_sut_params_in struct
-	std::vector<Node<sockaddr_in>*> clients = HMBL<sockaddr_in>::get_clients(int xloc, int yloc, int rad);
+	//std::vector<Node<sockaddr_in>*> clients = HMBL<sockaddr_in>::get_clients(int xloc, int yloc, int rad);
 	
 	while(true) {
 		
 		read(FIFO, piped, MAX_BUF);
-		
+		std::vector<Node<sockaddr_in>*> clients = piped.SocketList;
 		for (std::vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin(); clientVector != clients.end(); clientVector++) {
 			pthread_mutex_lock(*clientVector.Lock);
 			sockaddr_in cli_addr = *clientVector.socket;

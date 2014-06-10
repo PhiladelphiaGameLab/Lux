@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <netinet/in.h>
+
 #include "mongo/client/dbclient.h"
 #include "mongo/bson/bson.h"
 #include "mongo/db/json.h"
@@ -32,7 +34,7 @@ struct pipe {
 class SendUpdate
 {
     public:
-        static void SendUpdate::spawn(struct s_sut_params_in* params_in)
+        static void spawn(struct s_sut_params_in* params_in);
     protected:
     private:
 };
@@ -41,5 +43,11 @@ struct s_sut_params_in {
     char* pipe_r;
     char* pipe_w;
 };
+
+typedef struct s_SUTMessage
+{
+    BSONObj message;
+    std::vector<Node *> SocketList;
+}
 
 #endif // SENDUPDATE_H
