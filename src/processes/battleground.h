@@ -38,7 +38,7 @@ struct s_bgt_params_in
 
 class BattleGround{
     public:
-        static void spawn(void *param);
+        static void spawn(struct s_bgt_params_in);
         uint16_t portNo = getNewPort();
     protected:
     private:
