@@ -1,5 +1,6 @@
 #include "FindBGT.h"
-#include "HMBL.h"
+using namespace mongo;
+using namespace std;
 
 s_BGTInfo FindBGT::find(BSONObj clientDocument) {
 
@@ -37,23 +38,23 @@ std::vector<int> FindBGT::findSurroundings(BSONObj clientDocument, int bgt_id) {
   
     // connect to the database
     mongo::DBClientConnection c;
-    c.connect("localhost")
+    c.connect("localhost");
     
     // find the BGT Document
-    BSONObj BGTDoc = c.findOne(DATABASE_NAME, Query("Type" << "BGT" << "BGT_ID" << bgt_id));
-       
+    BSONObj BGTDoc = c.findOne(DATABASE_NAME, QUERY("Type" << "BGT" << "BGT_ID" << bgt_id));
+    int location[2];   
     // pull x-location and y-location from clientDocument
-    int location[0] = atoi(clientDocument["object"]["location"]["x"].String().c_str());
-    int location[1] = atoi(clientDocument["object"]["location"]["y"].String().c_str());
+    location[0] = atoi(clientDocument["object"]["location"]["x"].String().c_str());
+    location[1] = atoi(clientDocument["object"]["location"]["y"].String().c_str());
     
     // pull radius, mapX, mapY, columns, and rows from BGTDocument to use as parameters in HMBL::surroundings
     int radius = atoi(BGTDoc["object"]["radius"].String().c_str());
     int mapX = atoi(BGTDoc["object"]["mapX"].String().c_str());
     int mapY = atoi(BGTDoc["object"]["mapY"].String().c_str());
     int columns = atoi(BGTDoc["object"]["columns"].String().c_str());
-    int rows = atoi(BGTDoc["object"]["rows"].String().c_str())
+    int rows = atoi(BGTDoc["object"]["rows"].String().c_str());
     
-    return HMBL::surroundings(location[0], location[1], radius, mapX, mapY, columns, rows);
+    return HMBL<int>::surroundings(location[0], location[1], radius, mapX, mapY, columns, rows);
 
 }
 

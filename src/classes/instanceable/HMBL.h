@@ -40,12 +40,12 @@ struct Bucket
 };
 
 //Struct for pipe to SNR Thread
-typedef struct s_SNR
+struct s_SNR
 {
 	const char *pipeLocation;
 };
 
-typedef struct s_SNRMessage
+struct s_SNRMessage
 {
 	std::vector<int> newBuckList;
 };
