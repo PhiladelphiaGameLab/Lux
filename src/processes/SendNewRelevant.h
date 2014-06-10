@@ -10,7 +10,11 @@ class SendNewRelevant{
 };
 
 typedef struct newConnectionInfo{
-    std::list<int> BucketList;
+    std::vector<int> BucketList;
 };
 
+typedef  struct s_snr_params_in
+{
+    char* pipe_r;
+}
 #endif // SENDNEWRELEVANT_H
