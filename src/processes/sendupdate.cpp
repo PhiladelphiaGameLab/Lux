@@ -1,8 +1,13 @@
 #include "sendupdate.h"
 
+using namespace mongo;
+using namespace std;
+
 void SendUpdate::spawn(struct s_sut_params_in* params_in) {
 
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
+
+	LuxSocket socket;
 
 	s_SUTMessage piped;
 	
@@ -12,13 +17,13 @@ void SendUpdate::spawn(struct s_sut_params_in* params_in) {
 	
 	while(true) {
 		
-		read(FIFO, piped, MAX_BUF);
-		std::vector<Node<sockaddr_in>*> clients = piped.SocketList;
-		for (std::vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin(); clientVector != clients.end(); clientVector++) {
-			pthread_mutex_lock(*clientVector.Lock);
-			sockaddr_in cli_addr = *clientVector.socket;
-			Socket::send(&cli_addr, piped.message);
-    			pthread_mutex_unlock(*clientVector.Lock);
+		read(FIFO, &piped, sizeof(s_SUTMessage));
+		vector<Node<sockaddr_in>*> clients = piped.SocketList;
+		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin(); clientVector != clients.end(); clientVector++) {
+			pthread_mutex_lock(*clientVector->Lock);
+			sockaddr_in cli_addr = *clientVector->socket;
+			socket.send(&cli_addr, piped.message);
+    			pthread_mutex_unlock(*clientVector->Lock);
 		}
 	}
-}
+

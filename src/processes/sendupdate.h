@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <mutex>
+
 #include <netinet/in.h>
 
 #include "mongo/client/dbclient.h"
@@ -17,6 +19,8 @@
 #include "mongo/db/json.h"
 
 #include "HMBL.h"
+#include "luxSocket.h"
+
 
 using namespace std;
 using namespace mongo;
@@ -25,11 +29,6 @@ using namespace mongo;
 struct pipe {
     int pipe;
 };
-
-// typedef struct sendUpdates{
-//     SocketList
-//     BSONObj message;
-// };
 
 class SendUpdate
 {
@@ -44,10 +43,10 @@ struct s_sut_params_in {
     char* pipe_w;
 };
 
-typedef struct s_SUTMessage
+struct s_SUTMessage
 {
     BSONObj message;
-    std::vector<Node *> SocketList;
-}
+    vector<Node<sockaddr_in> *> SocketList;
+};
 
 #endif // SENDUPDATE_H
