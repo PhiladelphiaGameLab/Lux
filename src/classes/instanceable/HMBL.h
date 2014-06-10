@@ -17,7 +17,7 @@ struct Node
 
 	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
 	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
-	//pthread_mutex_t *Lock;
+	pthread_mutex_t *Lock;
 
 };
 
@@ -40,12 +40,12 @@ struct Bucket
 };
 
 //Struct for pipe to SNR Thread
-typedef struct s_SNR
+struct s_SNR
 {
 	const char *pipeLocation;
 };
 
-typedef struct s_SNRMessage
+struct s_SNRMessage
 {
 	std::vector<int> newBuckList;
 };
