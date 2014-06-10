@@ -24,7 +24,7 @@
 
 using namespace std;
 using namespace mongo;
-
+using namespace socketlibrary;
 
 struct pipe {
     int pipe;

@@ -2,6 +2,7 @@
 
 using namespace mongo;
 using namespace std;
+using namespace socketlibrary;
 
 void SendUpdate::spawn(struct s_sut_params_in* params_in) {
 
@@ -19,11 +20,11 @@ void SendUpdate::spawn(struct s_sut_params_in* params_in) {
 		
 		read(FIFO, &piped, sizeof(s_SUTMessage));
 		vector<Node<sockaddr_in>*> clients = piped.SocketList;
-		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin(); clientVector != clients.end(); clientVector++) {
-			pthread_mutex_lock(*clientVector->Lock);
-			sockaddr_in cli_addr = *clientVector->socket;
-			socket.send(&cli_addr, piped.message);
-    			pthread_mutex_unlock(*clientVector->Lock);
-		}
+		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin();clientVector != clients.end(); clientVector++) {
+			pthread_mutex_lock((*clientVector)->Lock);
+			sockaddr_in cli_addr = (*clientVector)->sock;
+			socket.send(&piped.message, &cli_addr);
+    			pthread_mutex_unlock((*clientVector)->Lock);
+		}}
 	}
 

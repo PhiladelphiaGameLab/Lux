@@ -20,6 +20,9 @@
 #ifndef BATTLEGROUND_H
 #define BATTLEGROUND_H
 
+using namespace std;
+using namespace mongo;
+
 // static class (thread)
 
 struct s_SUT{
