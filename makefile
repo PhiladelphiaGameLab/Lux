@@ -2,7 +2,7 @@ CC = g++
 Warnings = 
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -std=c++11 -c -std=c++11 -I./lib/luxsocket -I./output -I.cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
+CFLAGS = -std=c++11 -c -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 
 
@@ -37,23 +37,22 @@ build:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
-
-# Jing
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
 	
 # Jeff
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
 
-# Jake	
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
-	
 # Paul/Sibi
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
 	$(CC) $(INC) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
+
+# Jake	
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
+
 
 # spawn BGT
 run:
