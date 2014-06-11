@@ -22,10 +22,10 @@ class Initialize{
 
     public:
         static BSONObj getClientDoc(string EUID);
-        static void relevantDocuments(s_BGTInfo bgtInfo){
+        static void relevantDocuments(s_BGTInfo bgtInfo);
     protected:
     private:
 
-}
+};
 
 #endif // INITIALIZE_H
