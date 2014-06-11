@@ -43,9 +43,9 @@ build:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
 
 # Paul/Sibi
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 
 # Jake	
