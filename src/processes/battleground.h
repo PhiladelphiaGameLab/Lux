@@ -63,13 +63,14 @@ struct s_BGT{
 
 struct s_bgt_params_in
 {
+    string bgtID;
     char* pipe_w;
     char* pipe_hmbl;
 };
 
 class BattleGround{
     public:
-        static void spawn(s_bgt_params_in params_in);
+        static void *spawn(s_bgt_params_in params_in);
         static uint16_t getNewPort();
     protected:
     private:

@@ -23,8 +23,9 @@ using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
-void BattleGround::spawn(s_bgt_params_in  param_in){
-
+void *BattleGround::spawn(s_bgt_params_in  param){
+	struct s_bgt_params_in *param_in;
+	param_in = (struct s_bgt_params_in)param;
 
  	//connect to the database
     	DBClientConnection c;
@@ -68,11 +69,17 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
         if(Authenticate::authenticateAccessToken(accessToken, EUID)){
         	
         	
-            //timestamp (Current time of the system)
-	    time_t timestamp; 
-            char* t_stamp = time(&timestamp); 	
-        	
-            //Strip Access Token
+            //timestamp (Current time of the system
+	    
+//	    char timestamp[20];
+//	    time_t now = time(0);
+	    const long double sysTime = time(0);
+	    const long double timestamp = sysTime*1000;
+            
+	    string currentTime= to_string(timestamp);
+	    
+
+	    //Strip Access Token
 	    BSONElement strippedEUIDMessage = message["sender"]["EUID"];
 		
 	    //Strip message header
@@ -81,7 +88,7 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 	    BSONObjBuilder builder;
 	    builder.append(strippedEUIDMessage);
 	    builder.append(strippedObjectMessage);
-	    builder.append("time",t_stamp);
+	    builder.append("time",currentTime);
 	    BSONObj completeMessage = builder.obj();
 	
 	
@@ -90,7 +97,7 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 	   id = completeMessage["_id"];
 	   
            //Check for id (Maybe cursor is needed)
-           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)))
+           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty())
            {
            	//insert into MongoDB
            	c.insert(DATABASE_NAME,completeMessage);
@@ -111,10 +118,10 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 	    string cli_obj_doc;
 	    cli_obj_doc  = completeMessage["sender"]["cli_obj_doc"].String();
 
-	    if((strcmp(EU_DOC,"true")==0) || (strcmp(cli_obj_doc,"true")==0))
+	    if((EU_DOC.compare("true")==0) || (cli_obj_doc.compare("true")==0))
 	    {
 	    //Updte clients location in HMBL
-	    Map.update(cli_addr,EUID,locationX,locationY,radius);
+	    Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
 	    }
 	     	
 	     	
@@ -140,7 +147,7 @@ void BattleGround::spawn(s_bgt_params_in  param_in){
 	    pipeStruct.SocketList = SocketList;
 	    
             // pipe updates to send updates thread
-            write(pipe, pipeStruct, sizeof(pipeStruct));
+            write(pipe, &pipeStruct, sizeof(pipeStruct));
             
             
             //No Use now just for analytics
