@@ -33,7 +33,7 @@ struct pipe {
 class SendUpdate
 {
     public:
-        static void spawn(struct s_sut_params_in* params_in);
+        static void *spawn(void*  params_in);
     protected:
     private:
 };
@@ -46,7 +46,7 @@ struct s_sut_params_in {
 struct s_SUTMessage
 {
     BSONObj message;
-    vector<Node<sockaddr_in> *> SocketList;
+    vector<Node<sockaddr_in>*> SocketList;
 };
 
 #endif // SENDUPDATE_H

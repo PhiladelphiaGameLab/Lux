@@ -4,12 +4,15 @@ using namespace mongo;
 using namespace std;
 
 
-void DBWriter::spawn(struct s_dbWriter_params_in params_in){ // dbWriter thread
+void *DBWriter::spawn(void* param_in){ // dbWriter thread
+
+    struct s_dbWriter_params_in *params_in;
+    params_in = (struct s_dbWriter_params_in*)param_in;
 
     DBClientConnection c;
     c.connect("localhost");
 
-    int FIFO = open(params_in.pipe_r, O_RDONLY);
+    int FIFO = open(params_in->pipe_r, O_RDONLY);
 
     BSONObj msg;
 

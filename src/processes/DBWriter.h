@@ -24,7 +24,7 @@ using namespace std;
 class DBWriter
 {
     public:
-        static void spawn(struct s_dbWriter_params_in params_in);
+        static void *spawn(void* params_in);
     protected:
     private:
 };

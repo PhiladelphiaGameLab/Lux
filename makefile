@@ -41,11 +41,11 @@ build:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
-
-# Paul/Sibi
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
-	$(CC) $(INC) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
+
+# Paul/Sibi
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 
 # Jake	
