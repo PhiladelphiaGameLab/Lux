@@ -33,7 +33,7 @@ struct pipe {
 class SendUpdate
 {
     public:
-        static void spawn(void*  params_in);
+        static void *spawn(void*  params_in);
     protected:
     private:
 };

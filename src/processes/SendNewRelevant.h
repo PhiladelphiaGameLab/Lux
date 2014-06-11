@@ -33,15 +33,16 @@ using namespace socketlibrary;
 
 class SendNewRelevant{
     public:
-        static void spawn(void*  params_in);
+        static void *spawn(void*  params_in);
     protected:
     private:
 };
-
+/*
 struct newConnectionInfo{
     std::vector<int> BucketList;
+    sockaddr_in socket;
 };
-
+*/
 struct s_snr_params_in
 {
     char* pipe_r;
@@ -53,8 +54,9 @@ struct s_SNR
         const char *pipeLocation;
 };
 
-        struct s_SNRMessage
-        {
-                std::vector<int> newBuckList;
-        };
+struct s_SNRMessage
+{
+	std::vector<int> newBuckList;
+	sockaddr_in socket;
+};
 #endif // SENDNEWRELEVANT_H

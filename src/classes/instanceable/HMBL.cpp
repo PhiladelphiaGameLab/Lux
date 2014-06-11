@@ -290,7 +290,7 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 
 	s_SNRMessage *newSurrBuck = new s_SNRMessage;
 	newSurrBuck->newBuckList = impSurr;
-
+	//newSurrBuck->socket = ;
 	write(pipeFD, newSurrBuck, sizeof(newSurrBuck));
 
 }

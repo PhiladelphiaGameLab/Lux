@@ -4,7 +4,7 @@ using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
-void SendUpdate::spawn(void*  param_in) {
+void *SendUpdate::spawn(void*  param_in) {
 
 	struct s_sut_params_in *params_in;
 	params_in = (struct s_sut_params_in*)param_in;

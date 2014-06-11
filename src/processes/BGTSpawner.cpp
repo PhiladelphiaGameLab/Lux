@@ -12,12 +12,13 @@ bool spawnNewBgt(int bgtID){
     BSONObj object = BSON(GENOID<<"IP"<<IP<<"PORT"<<0 << "BGT_ID" << bgtID);
     
     //Create a new document
-    BSONObj bgtDoc = c.insert(DATABASE_NAME,object);
-    
+    c.insert(DATABASE_NAME,object);
+    BSONObj bgt_doc = c.findOne(DATABASE_NAME,QUERY("BGT_ID"<<bgtID));
+
     s_bgt_params_in *bgt_params_in;
     
     // get the newly created _id
-    bgt_params_in->bgtID = bgtDoc["_id"].String();
+    bgt_params_in->bgtID = bgt_doc["_id"].String();
     
     //string error = c.getLastError();
    
@@ -43,25 +44,25 @@ bool spawnNewBgt(int bgtID){
     pthread_create(&BGT_ID,NULL,BattleGround::spawn, bgt_params_in);
     
     
-    s_sut_params_in sut_params_in;
-    sut_params_in.pipe_r = bgt_sut_pipeLocation;
+    s_sut_params_in *sut_params_in;
+    sut_params_in->pipe_r = bgt_sut_pipeLocation;
     
     if(mkfifo(sut_db_pipeLocation, 0666) == 0){
-        sut_params_in.pipe_w = sut_db_pipeLocation;
+        sut_params_in->pipe_w = sut_db_pipeLocation;
     }
     
     //Spawn a SUT thread
     pthread_create(&SUT_ID,NULL,SendUpdate::spawn, sut_params_in);
     
-    s_dbWriter_params_in dbWriter_params_in;
-    dbWriter_params_in.pipe_r = sut_db_pipeLocation;
+    s_dbWriter_params_in *dbWriter_params_in;
+    dbWriter_params_in->pipe_r = sut_db_pipeLocation;
     
     //Spawn  DBWriter thread
     pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
     
     
-    s_snr_params_in snr_params_in;
-    snr_params_in.pipe_r = hmbl_snr_pipeLocation;
+    s_snr_params_in *snr_params_in;
+    snr_params_in->pipe_r = hmbl_snr_pipeLocation;
     //Spawn a SNR thread
     pthread_create(&SNR_ID,NULL,SendNewRelevant::spawn, snr_params_in);   
     

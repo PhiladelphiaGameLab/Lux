@@ -1,35 +1,32 @@
 #include "SendNewRelevant.h"
 
-
-
-void SendNewRelevant::spawn(void*  param_in){
+void *SendNewRelevant::spawn(void*  param_in){
 
     mongo::DBClientConnection c;
     c.connect("localhost");
 
      struct s_snr_params_in *params_in;
-     params_in = (stuct s_snr_params_in*)param_in;
+     params_in = (struct s_snr_params_in*)param_in;
 
 
-    Socket sendSocket;
-	sendSocket.init();
+        LuxSocket sendSocket;
 
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
-	struct newConnectionInfo piped;
+	struct s_SNRMessage piped;
 
     while(1){
         // read socket
-        read(FIFO, piped, MAX_BUF);
+        read(FIFO, &piped, sizeof(s_SNRMessage));
         // read documents from mongo
-        for (std::list<int>::iterator bucket = piped.BucketList.begin(); bucket != piped.BucketList.end(); bucket++){
+        for (vector<int>::iterator bucket = piped.newBucketList.begin(); bucket != piped.newBucketList.end(); bucket++){
             // query the database
-            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << bucket) ));
+            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << (*bucket)));
             // iterate elements from the buckets
             while (cursor->more()){
                 // strip sender access token & such
 
                 // send both client and message to the socket Class
-                sendSocket.send(piped.socket, cursor->next().jsonString());
+                sendSocket.send(cursor->next().jsonString(),piped.socket);
             }
         }
     }

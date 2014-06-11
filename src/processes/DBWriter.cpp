@@ -4,7 +4,7 @@ using namespace mongo;
 using namespace std;
 
 
-void DBWriter::spawn(void* param_in){ // dbWriter thread
+void *DBWriter::spawn(void* param_in){ // dbWriter thread
 
     struct s_dbWriter_params_in *params_in;
     params_in = (struct s_dbWriter_params_in*)param_in;
