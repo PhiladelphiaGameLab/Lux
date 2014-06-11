@@ -23,32 +23,58 @@ sendupdate = ./src/processes/sendupdate.cpp -o ./output/sendupdate
 
 all: clean build run
 
+mkdir:
+	mkdir ./output
+	mkdir ./cgi_bin
+
 # tell apache where the cgi_bin is
 apache: 
 
 # Build All the Files!
-build:
-	mkdir ./output
-	mkdir ./cgi_bin
+build: mkdir MD5 CGI socketB socket Authen Auth HMBL FindBGT DBWriter sendupdate battleground BGTSpawner SendNewRelevant Init
 
 # Working:
+MD5:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(MD5) $(LIB) 
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
 
-# Paul/Sibi
+CGI:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
+
+socketB:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(socketB) $(LIB)
+
+socket:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(socket) $(LIB)
+
+Authen:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Authen) $(LIB)
+
+Auth:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Auth) $(LIB)
+
+HMBL:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(HMBL) $(LIB)
+
+FindBGT:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
+
+DBWriter:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
+
+sendupdate:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
+
+battleground:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
+	
+BGTSpawner:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
+	
+SendNewRelevant:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 
 # Jake	
+Init:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
 
 
