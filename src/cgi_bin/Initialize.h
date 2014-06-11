@@ -1,6 +1,6 @@
 #ifndef INITIALIZE_H
 #define INITIALIZE_H
-#define DATABASE_NAME "dev.objects"
+#define DATABASE_NAME "Gameplay_DB"
 
 #include "Authenticate.h"
 #include "CGI.h"
@@ -10,27 +10,19 @@
 #include "mongo/client/dbclient.h"
 #include "mongo/bson/bson.h"
 #include "mongo/db/json.h"
+#include "FindBGT.h"
 
 using namespace mongo;
 using namespace std;
 
-#include "findBGT.h"
-
 
 // Stand Alone CGI script
-
-
-typedef struct s_BGTInfo{
-    int bgt_id;
-    std::vector<int> buckets;
-};
-
 
 class Initialize{
 
     public:
-        static BSONObj getClientDoc(EUID);
-        static void relevantDocuments(BGTInfo bgtInfo){
+        static BSONObj getClientDoc(string EUID);
+        static void relevantDocuments(s_BGTInfo bgtInfo){
     protected:
     private:
 

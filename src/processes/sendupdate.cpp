@@ -26,7 +26,7 @@ void *SendUpdate::spawn(void*  param_in) {
 		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin();clientVector != clients.end(); clientVector++) {
 			pthread_mutex_lock((*clientVector)->Lock);
 			sockaddr_in cli_addr = (*clientVector)->sock;
-			socket.send(&piped.message, &cli_addr);
+			socket.send(piped.message, &cli_addr);
     			pthread_mutex_unlock((*clientVector)->Lock);
 		}}
 	}

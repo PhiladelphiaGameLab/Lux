@@ -64,8 +64,8 @@ struct s_BGT{
 struct s_bgt_params_in
 {
     string bgtID;
-    char* pipe_w;
-    char* pipe_hmbl;
+    const char* pipe_w;
+    const char* pipe_hmbl;
 };
 
 class BattleGround{

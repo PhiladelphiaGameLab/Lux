@@ -28,9 +28,9 @@ bool spawnNewBgt(int bgtID){
     pthread_t DBW_ID;
     
     // these paths have to be unique names (just have to be unique)
-    char *bgt_sut_pipeLocation = "/temp/lux_pipe0"; // bgt->sut
-    char *sut_db_pipeLocation = "/temp/lux_pipe1"; // sut->dbwriter
-    char *hmbl_snr_pipeLocation = "/temp/lux_pipe2"; // HMBL->SNR
+    const char *bgt_sut_pipeLocation = "/temp/lux_pipe0"; // bgt->sut
+    const char *sut_db_pipeLocation = "/temp/lux_pipe1"; // sut->dbwriter
+    const char *hmbl_snr_pipeLocation = "/temp/lux_pipe2"; // HMBL->SNR
     
     if(mkfifo(bgt_sut_pipeLocation, 0666) == 0){
         bgt_params_in->pipe_w = bgt_sut_pipeLocation;
