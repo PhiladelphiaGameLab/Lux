@@ -30,7 +30,7 @@ class DBWriter
 };
 
 struct s_dbWriter_params_in{
-    char* pipe_r;
+    const char* pipe_r;
 };
 
 #endif // DBWRITER_H

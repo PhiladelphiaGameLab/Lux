@@ -45,7 +45,7 @@ struct newConnectionInfo{
 */
 struct s_snr_params_in
 {
-    char* pipe_r;
+    const char* pipe_r;
 };
 
 //Struct for pipe to SNR Thread

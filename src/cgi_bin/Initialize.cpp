@@ -2,7 +2,7 @@
 using namespace mongo;
 using namespace std;
 
-void Initialize::relevantDocuments(BGTInfo bgtInfo){
+void Initialize::relevantDocuments(s_BGTInfo bgtInfo){
 
     try{
         // find the relevant documents in the mongo database
@@ -14,12 +14,12 @@ void Initialize::relevantDocuments(BGTInfo bgtInfo){
 
         CGI environment;
         // find the BGT Document and print it out
-        BSONObj BGTDoc = c.findOne(DATABASE_NAME, Query("Type" << "BGT" << "BGT_ID" << bgtInfo.bgt_id));
+        BSONObj BGTDoc = c.findOne(DATABASE_NAME, QUERY("Type" << "BGT" << "BGT_ID" << bgtInfo.bgt_id));
         environment.add(BGTDoc.toString(Strict,1));
         
 	for (vector<int>::iterator bucket = bgtInfo.buckets.begin(); bucket != bgtInfo.buckets.end(); bucket++){
             // query the database
-            auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << (*bucket)));
+            auto_ptr<DBClientCursor> cursor = c.findOne(DATABASE_NAME, QUERY("bucketID" << (*bucket)));
             // iterate elements from the buckets
             while (cursor->more()){
                 // strip sender access token & such
@@ -34,14 +34,14 @@ void Initialize::relevantDocuments(BGTInfo bgtInfo){
     }
 }
 
-BSONObj Initialize::getClientDoc(EUID){
+BSONObj Initialize::getClientDoc(string EUID){
 
     try{
         mongo::DBClientConnection c;
         c.connect("localhost");
 
         // get the# clients document from Mongo
-        BSONObj clientDoc = c.findOne(DATABASE_NAME, Query("EUID" << EUID));
+        BSONObj clientDoc = c.findOne(DATABASE_NAME, QUERY("EUID" << EUID));
         if(clientDoc.isEmpty()){
             // create new blank document if one does not exist.
             c.insert(DATABASE_NAME, BSON(GENOID << "EUID" <<EUID << "location" << "x" << "10" << "y" << "10"));

@@ -24,9 +24,9 @@ void *SendNewRelevant::spawn(void*  param_in){
             // iterate elements from the buckets
             while (cursor->more()){
                 // strip sender access token & such
-
+		BSONObj obj = cursor->next();
                 // send both client and message to the socket Class
-                socket.send(cursor->next(),&piped.socket);
+                socket.send(obj,&piped.socket);
             }
         }
     }
