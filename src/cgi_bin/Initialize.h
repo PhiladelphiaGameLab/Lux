@@ -1,9 +1,21 @@
 #ifndef INITIALIZE_H
 #define INITIALIZE_H
+#define DATABASE_NAME "dev.objects"
+
+#include "Authenticate.h"
+#include "CGI.h"
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include "mongo/client/dbclient.h"
+#include "mongo/bson/bson.h"
+#include "mongo/db/json.h"
+
+using namespace mongo;
+using namespace std;
 
 #include "findBGT.h"
 
-#DEFINE DATABASE_NAME "dev.objects"
 
 // Stand Alone CGI script
 

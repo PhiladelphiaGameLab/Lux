@@ -180,8 +180,11 @@ void CGI::clearJSON() {
 }
 
 int CGI::addJSON(const std::string &key, const std::string &val) {
-    if (val.compare("") == 0) {
+    if (val.compare("") == 0 || key.compare("") == 0) {
 	return -1;
+    }
+    if (json.size() > 0) {
+	json += ",\n";
     }
     std::string tmp("");
     tmp += "\"";
@@ -189,11 +192,26 @@ int CGI::addJSON(const std::string &key, const std::string &val) {
     tmp += "\"";
     tmp += " : ";
     tmp += val;
+    json += tmp;
+    return 0;
+}
+
+int CGI::addJSON(const std::string &object) {
+    if (object.compare("") == 0) {
+	return -1;
+    }
+    if(object.find("{\"") < 2){
+	return -1;
+    }
     if (json.size() > 0) {
 	json += ",\n";
     }
+    std::string tmp("");
+    tmp += object;    
     json += tmp;
     return 0;
+
+
 }
 
 void CGI::printJSON() {
