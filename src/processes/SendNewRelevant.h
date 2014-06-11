@@ -56,7 +56,7 @@ struct s_SNR
 
 struct s_SNRMessage
 {
-	std::vector<int> newBuckList;
+	std::vector<int> newBucketList;
 	sockaddr_in socket;
 };
 #endif // SENDNEWRELEVANT_H

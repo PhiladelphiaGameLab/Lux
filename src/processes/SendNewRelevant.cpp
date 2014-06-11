@@ -9,7 +9,7 @@ void *SendNewRelevant::spawn(void*  param_in){
      params_in = (struct s_snr_params_in*)param_in;
 
 
-        LuxSocket sendSocket;
+        LuxSocket socket;
 
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
 	struct s_SNRMessage piped;
@@ -26,7 +26,7 @@ void *SendNewRelevant::spawn(void*  param_in){
                 // strip sender access token & such
 
                 // send both client and message to the socket Class
-                sendSocket.send(cursor->next().jsonString(),piped.socket);
+                socket.send(cursor->next(),&piped.socket);
             }
         }
     }
