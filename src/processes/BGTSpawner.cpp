@@ -40,7 +40,7 @@ bool spawnNewBgt(int bgtID){
     }
     
     //Spawn a BGT thread
-    pthread_create(&BGT_ID,NULL,&BattleGround::spawn, bgt_params_in);
+    pthread_create(&BGT_ID,NULL,BattleGround::spawn, bgt_params_in);
     
     
     s_sut_params_in sut_params_in;
@@ -51,19 +51,19 @@ bool spawnNewBgt(int bgtID){
     }
     
     //Spawn a SUT thread
-    pthread_create(&SUT_ID,NULL,(void *) &SendUpdate::spawn, (void *) &sut_params_in);
+    pthread_create(&SUT_ID,NULL,SendUpdate::spawn, sut_params_in);
     
     s_dbWriter_params_in dbWriter_params_in;
     dbWriter_params_in.pipe_r = sut_db_pipeLocation;
     
     //Spawn  DBWriter thread
-    pthread_create(&DBW_ID,NULL,(void *) &DBWriter::spawn, (void *) &dbWriter_params_in);
+    pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
     
     
     s_snr_params_in snr_params_in;
     snr_params_in.pipe_r = hmbl_snr_pipeLocation;
     //Spawn a SNR thread
-    pthread_create(&SNR_ID,NULL,(void *) &SendNewRelevant::spawn, (void *) &snr_params_in);   
+    pthread_create(&SNR_ID,NULL,SendNewRelevant::spawn, snr_params_in);   
     
     return 1;
 }

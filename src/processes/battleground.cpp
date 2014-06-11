@@ -23,9 +23,9 @@ using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
-void *BattleGround::spawn(s_bgt_params_in  param){
+void *BattleGround::spawn(void* param){
 	struct s_bgt_params_in *param_in;
-	param_in = (struct s_bgt_params_in)param;
+	param_in = (struct s_bgt_params_in*)param;
 
  	//connect to the database
     	DBClientConnection c;
@@ -35,13 +35,13 @@ void *BattleGround::spawn(s_bgt_params_in  param){
 
     // create pipe to send updates on
 	LuxSocket socket(0);
-        int pipe = open(param_in.pipe_w, O_WRONLY); // open  the pipe for writing
+        int pipe = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
 
 
      // construct a HMBL
      //locbasedhashmap HMBL;
      //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
-     HMBL<sockaddr_in> Map(100,100,5,5, param_in.pipe_hmbl);
+     HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
 
 
      //These 2 lines have to be uncommented to update the port in MongoDB

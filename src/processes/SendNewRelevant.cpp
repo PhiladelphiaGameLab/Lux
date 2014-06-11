@@ -2,15 +2,19 @@
 
 
 
-void SendNewRelevant::spawn(struct pipe params_in){
+void SendNewRelevant::spawn(void*  param_in){
 
     mongo::DBClientConnection c;
     c.connect("localhost");
 
+     struct s_snr_params_in *params_in;
+     params_in = (stuct s_snr_params_in*)param_in;
+
+
     Socket sendSocket;
 	sendSocket.init();
 
-	int FIFO = open(params_in.pipe, O_RDONLY);
+	int FIFO = open(params_in->pipe_r, O_RDONLY);
 	struct newConnectionInfo piped;
 
     while(1){

@@ -70,7 +70,7 @@ struct s_bgt_params_in
 
 class BattleGround{
     public:
-        static void *spawn(s_bgt_params_in params_in);
+        static void *spawn(void* params_in);
         static uint16_t getNewPort();
     protected:
     private:

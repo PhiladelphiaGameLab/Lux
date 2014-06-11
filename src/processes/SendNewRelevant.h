@@ -33,7 +33,7 @@ using namespace socketlibrary;
 
 class SendNewRelevant{
     public:
-        static void spawn(struct pipe params_in);
+        static void spawn(void*  params_in);
     protected:
     private:
 };
