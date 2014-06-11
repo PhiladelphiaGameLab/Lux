@@ -38,8 +38,8 @@ class LuxSocket{
         void send(struct sockaddr_in *cli_addr);
         void send(const char *message, struct sockaddr_in* cli_addr);
         void send(const std::string &message, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj *BSMessage, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj *BSMessage,
+        void send(mongo::BSONObj &BSMessage, struct sockaddr_in *cli_addr);
+        void send(mongo::BSONObj &BSMessage,
 		  std::list<struct sockaddr_in> &socketList);
 	void initSocketInfo();
     protected:
