@@ -53,7 +53,11 @@ class CGI{
         // Returns -1 if val is empty
         int addJSON(const std::string &key, const std::string &val);
 
-        // Print json string to stdout
+        // Add a preformated json string to json string.
+        // Returns -1 if val is empty
+        int addJSON(const std::string &object);
+        
+	// Print json string to stdout
         void printJSON();
 
 	// Make a new JSON object from the query list
