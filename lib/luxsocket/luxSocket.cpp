@@ -63,12 +63,12 @@ namespace socketlibrary {
   }
 
   // Send a BSON object to client
-  void LuxSocket::send(mongo::BSONObj *BSMessage, struct sockaddr_in *cli_addr) {
-    send(BSMessage->jsonString(), cli_addr);
+  void LuxSocket::send(mongo::BSONObj &BSMessage, struct sockaddr_in *cli_addr) {
+    send(BSMessage.jsonString(), cli_addr);
   }
 
   // Broadcast a BSON object to all clients in list
-  void LuxSocket::send(mongo::BSONObj *BSMessage, 
+  void LuxSocket::send(mongo::BSONObj &BSMessage, 
 		     std::list<struct sockaddr_in> &socketList) {
     for (std::list<struct sockaddr_in>::iterator cli_addr = socketList.begin(); 
 	 cli_addr != socketList.end(); cli_addr++) {

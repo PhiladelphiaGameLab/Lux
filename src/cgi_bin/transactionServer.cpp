@@ -149,6 +149,7 @@ bool isGlobalAccount(const string &id);
 void getAsset(CGI);
 void addAccount(const string &id);
 void addSubaccount(const string &id, const string &subaccountId);
+void removeGroupMember(const string &gid, const string &id);
 void getAccountInfo(const string &id);
 void getSubAccountInfo(const string &id, const string &subaccountId);
 void getTransactionHistory(const string &id);
@@ -641,24 +642,27 @@ void addSubAccount(const string &id) {
     BSONObj obj = sub.obj();
     conn.insert(db_ns, obj);
     
+    // Insert subid into sub acc array
     string subid = obj["_id"].toString(false);
     getRidOfQuote(subid);
-    
-    // Insert subid into sub acc array
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);    
-    
-    BSONObjBuilder a;
-    a.append(SUB_ACC_ARRAY_FILED, subid);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-        
-    conn.update(db_ns, query.obj(), b.obj());        
-    
+    query.append(ACC_ID_FIELD, id); 
+
+    conn.arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
+
     // TODO
-    // send back information to client
+    // send back information to client        
+}
+
+// Remove a sub account from account
+void removeSubAccount(const string &subid, const string &id) {
+    BSONObjBuilder query;
+    query.append(SUB_ACC_ID_FIELD, subid);
+    
+    // remove sub account from database
+    conn.remove(db_ns, query.obj());   
+    // remove from user's group array
+    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subid);    
 }
 
 // Create a new group account, using user id as the first admin
@@ -674,104 +678,48 @@ void createGroup(const string &id) {
     BSONObj obj = group.obj();
     conn.insert(db_ns, obj);
 
+    // Insert group id into group array
     string gid = obj["_id"].toString(false);
     getRidOfQuote(gid);
-    // Insert group id into group array
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);    
-    
-    BSONObjBuilder a;
-    a.append(GROUP_ACC_FIELD, gid);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-        
-    conn.update(db_ns, query.obj(), b.obj());        
-        
+    query.append(ACC_ID_FIELD, id);
+    conn.arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
+    // TODO
+    // send back information to client
 }
 
 // Add group member
 void addGroupMember(const string &gid, const string &id) {
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    BSONObjBuilder a;
-    a.append(MEMBER_ARRAY_FIELD, id);
-    
-    BSONObjBuilder b;
-    b.append("$push", a.obj());
-    
-    conn.update(db_ns, query.obj(), b.obj());    
+    conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
 }
 
 void removeGroupMember(const string &gid, const string &id) {
-    // TODO: need to have a function to do array stuff in MongoWrapper
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    BSONObjBuilder a;
-    a.append(MEMBER_ARRAY_FIELD, id);
-    
-    BSONObjBuilder b;
-    b.append("$pull", a.obj());
-    
-    conn.update(db_ns, query.obj(), b.obj());       
-    
-    BSONObjBuilder c;
-    c.append(ADMIN_ARRAY_FIELD, id);
-    BSONObjBuilder d;
-    d.append("$pull", c.obj());
-    
-    conn.update(db_ns, query.obj(), d.obj());
+    conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+    conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
+   
+    // remove from user's group array
+    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
 }
 
 void changePermission(const string &gid, const string &id, int permission) {
+    BSONObjBuilder query;
+    query.append(GROUP_ID, gid);
+
     switch(permission) {
     case 1:
-      // TODO: need to have a function to do array stuff in MongoWrapper
-      {
-      BSONObjBuilder query;
-      query.append(GROUP_ID, gid);
-    
-      BSONObjBuilder a;
-      a.append(MEMBER_ARRAY_FIELD, id);
-    
-      BSONObjBuilder b;
-      b.append("$pull", a.obj());
-    
-      conn.update(db_ns, query.obj(), b.obj());       
-
-      BSONObjBuilder c;
-      c.append(ADMIN_ARRAY_FIELD, id);
-      BSONObjBuilder d;
-      d.append("$push", c.obj());
-    
-      conn.update(db_ns, query.obj(), c.obj());      
-      }
+	conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn.arrayPush(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
       break;
     case 0:
     default:
-      {
-      BSONObjBuilder query;
-      query.append(GROUP_ID, gid);
-    
-      BSONObjBuilder a;
-      a.append(MEMBER_ARRAY_FIELD, id);
-    
-      BSONObjBuilder b;
-      b.append("$push", a.obj());
-    
-      conn.update(db_ns, query.obj(), b.obj());       
-
-      BSONObjBuilder c;
-      c.append(ADMIN_ARRAY_FIELD, id);
-      BSONObjBuilder d;
-      d.append("$pull", c.obj());
-    
-      conn.update(db_ns, query.obj(), c.obj());
-      }
+	conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
       break;
     }
 }
