@@ -54,7 +54,7 @@ std::vector<int> FindBGT::findSurroundings(BSONObj clientDocument, int bgt_id) {
     int columns = atoi(BGTDoc["object"]["columns"].String().c_str());
     int rows = atoi(BGTDoc["object"]["rows"].String().c_str());
     
-    return HMBL<int>::surroundings(location[0], location[1], radius, mapX, mapY, columns, rows);
+    return HMBL_HELPER::surroundings(location[0], location[1], radius, mapX, mapY, columns, rows);
 
 }
 

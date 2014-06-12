@@ -1,6 +1,6 @@
 #ifndef INITIALIZE_H
 #define INITIALIZE_H
-#define DATABASE_NAME "Gameplay_DB"
+#define DATABASE_NAME "Luxdb.gameplay"
 
 #include "Authenticate.h"
 #include "CGI.h"

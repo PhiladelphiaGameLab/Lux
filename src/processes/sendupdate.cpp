@@ -5,7 +5,7 @@ using namespace std;
 using namespace socketlibrary;
 
 void *SendUpdate::spawn(void*  param_in) {
-
+	std::cout << "HELP! SendUpdate : 1 " << std::endl;
 	struct s_sut_params_in *params_in;
 	params_in = (struct s_sut_params_in*)param_in;
 
@@ -21,7 +21,8 @@ void *SendUpdate::spawn(void*  param_in) {
 	
 	while(true) {
 		
-		read(FIFO, &piped, sizeof(s_SUTMessage));
+	std::cout << "HELP! Send update : 2 " << std::endl;
+	read(FIFO, &piped, sizeof(s_SUTMessage));
 		vector<Node<sockaddr_in>*> clients = piped.SocketList;
 		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin();clientVector != clients.end(); clientVector++) {
 			pthread_mutex_lock((*clientVector)->Lock);
