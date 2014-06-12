@@ -1,6 +1,6 @@
 #ifndef AUTHORIZATIONSERVER_H
 #define AUTHORIZATIONSERVER_H
-#define DATABASE_NAME "db.auth"
+#define DATABASE_NAME "Luxdb.luxAuth"
 
 // Stand Alone CGI script
 
