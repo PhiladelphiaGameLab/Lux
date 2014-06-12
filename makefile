@@ -2,7 +2,7 @@ CC = g++
 Warnings = 
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -std=c++11 -c -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
+CFLAGS = -m64 -std=c++11 -c -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 
 
@@ -80,6 +80,8 @@ Init:
 
 # spawn BGT
 run:
+	chmod -R 777 ./output
+	chmod -R 777 ./cgi_bin
 	./output/BGTSpawner
 
 # deletes all of the ./cgi_bin/ & ./output/

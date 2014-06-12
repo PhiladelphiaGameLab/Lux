@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
                 // write to database with new access token, corresponding to the correct unique ID
                 //BSONObj AccessDoc = c.findOne(DATABASE_NAME, QUERY("_id"<<uniqueID));
                 //AccessDoc.put("AccessToken", accessToken);
-      		enviorment.addJSON("EUID", EUID);
+      		environment.addJSON("EUID", EUID);
 		environment.addJSON("AccessToken", accessToken);
                 
 	}catch( const mongo::DBException &e ) {
