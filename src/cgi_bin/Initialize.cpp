@@ -45,9 +45,11 @@ BSONObj Initialize::getClientDoc(string EUID){
         BSONObj clientDoc = c.findOne(DATABASE_NAME, QUERY("EUID" << EUID));
         if(clientDoc.isEmpty()){
             // create new blank document if one does not exist.
-            c.insert(DATABASE_NAME, BSON(GENOID << "EUID" <<EUID));
-            
 
+	BSONObj loc = BSON( "x" << 50 << "y" << 50);
+	BSONObj obj = BSON("location"<< loc << "radius" << 2 << "EU_DOC" << true);
+	BSONObj sender = BSON("accessToken" << "#edr4jbfjsdbfj" << "EUID" << 123);
+	c.insert(DATABASE_NAME, BSON(GENOID << "object" << obj << "sender" << sender));
 
 	    return getClientDoc(EUID);
         }else{

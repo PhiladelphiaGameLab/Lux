@@ -109,19 +109,16 @@ void *BattleGround::spawn(void* param){
             int locationY;
 	    locationY  = atoi(message["object"]["location"]["y"].String().c_str());
             int radius;
-	    radius  = atoi(message["sender"]["radius"].String().c_str());
+	    radius  = atoi(message["object"]["radius"].String().c_str());
 
 	
 	    //Get the values of EU_DOC and cli_obj_doc
 	    string EU_DOC;
-	    EU_DOC	  = completeMessage["sender"]["EU_DOC"].String();
-	    string cli_obj_doc;
-	    cli_obj_doc  = completeMessage["sender"]["cli_obj_doc"].String();
+	    EU_DOC = completeMessage["object"]["EU_DOC"].String();
 
-	    if((EU_DOC.compare("true")==0) || (cli_obj_doc.compare("true")==0))
-	    {
-	    //Updte clients location in HMBL
-	    Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
+	    if(EU_DOC.compare("") != 0 && EU_DOC.compare("true")==0){
+	        //Updte clients location in HMBL
+	        Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
 	    }
 	     	
 	     	
