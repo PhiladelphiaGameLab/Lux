@@ -1,6 +1,6 @@
 #ifndef DBWRITER_H
 #define DBWRITER_H
-#define DATABASE_NAME "db.gameplay"
+#define DATABASE_NAME "Luxdb.gameplay"
 
 
 #include <string>
