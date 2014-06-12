@@ -1,7 +1,7 @@
 #include "SendNewRelevant.h"
 
 void *SendNewRelevant::spawn(void*  param_in){
-
+    std::cout << "HELP! SNR : 1 " << std::endl;
     mongo::DBClientConnection c;
     c.connect("localhost");
 
@@ -15,6 +15,7 @@ void *SendNewRelevant::spawn(void*  param_in){
 	struct s_SNRMessage piped;
 
     while(1){
+	 std::cout << "HELP! SNR : 2 " << std::endl;
         // read socket
         read(FIFO, &piped, sizeof(s_SNRMessage));
         // read documents from mongo
