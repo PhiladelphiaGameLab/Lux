@@ -174,15 +174,20 @@ Node* HMBL<T>::checkForCollision(int euid, int hashKey){
 			}
 		}
 		if (addCollInst){  
-			struct CNode* cnewNode = new CNode;
+			CNode* cnewNode = new CNode;
 			cwalk->Next = cnewNode;
 			cnewNode->Prev = cwalk;
-			cwalk->Base = newNode;
+			cnewNode->Base = newNode;
+			newNode->Prev = 0;
+			newNode->Next = 0;
+			newNode->sock = 0;
+			newNode->euid = 0;
+			newNode->lastBuck = -1;
 		}
 	}
 
 	pthread_mutex_t newLock; //This should create a lock for each Node
-	pthread_mutex_init(&newLuck, NULL);
+	pthread_mutex_init(&newLock, NULL);
 	newNode->Lock = newLock;
 
 	return newNode;
