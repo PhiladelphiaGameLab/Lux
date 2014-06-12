@@ -1,6 +1,6 @@
 #ifndef DBWRITER_H
 #define DBWRITER_H
-#define DATABASE_NAME "Gameplay_DB"
+#define DATABASE_NAME "db.gameplay"
 
 
 #include <string>
