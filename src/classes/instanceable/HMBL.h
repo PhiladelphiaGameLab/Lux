@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <iostream>
 
 
 #include "SendNewRelevant.h"
@@ -15,7 +16,7 @@ template <class T>
 struct Node
 {
 	T sock; //Client Socket
-	int lastBuck; //Position in arrMap of the last bucket to contain this node
+	int currBuck; //Position in arrMap of the last bucket to contain this node
 	int euid; //End user ID
 	struct Node<T> *Next; //Pointer to the next node if this is in a linked list of nodes
 	struct Node<T> *Prev; //Pointer to the previous noe if this is in a linked list of nodes
@@ -73,7 +74,7 @@ public:
 	void update(T nsock, int euid, int x, int y, int rad);
 	void clearHMBL();
 	void revealHMBL();
-	void pipeInfo(int x, int y, int rad, int lastBuck);
+	void pipeInfo(int x, int y, int rad, int currBuck);
 	Node<T>* checkForCollision(int euid, int hashKey);
 	std::vector<Node<T>*> get_clients(int xloc, int yloc, int rad);
 	std::vector<int> surroundingsFromCurrBucket(int currBuck, int rad, int mapx, int mapy, int xbuck, int ybuck);
@@ -94,7 +95,7 @@ public:
 //{struct Node
 //{
 //	T sock;
-//	int lastBuck = 0;
+//	int currBuck = 0;
 //	struct Node *Next;
 //	struct Node *Prev;
 //};}
@@ -184,7 +185,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 //Internal Function for finding the Bucket number: calls static method
 template <class T>
 int HMBL<T>::findBucket(int x, int y){
-	return getBucket(x, y, mapwidth, mapheight, columns, rows);
+	return HMBL_HELPER::getBucket(x, y, mapwidth, mapheight, columns, rows);
 }
 
 //Checks for a collision in the hashMap and adds it to the CollisionNode if there is one
@@ -223,11 +224,11 @@ void HMBL<T>::clearHMBL(){
 			hashTable[i]->Base = new Node<T>;
 			hashTable[i]->Next = 0;
 			hashTable[i]->Prev = 0;
-			hashTable[i]->Base->sock = 0;
+			//hashTable[i]->Base->sock = 0;
 			hashTable[i]->Base->euid = 0;
 			hashTable[i]->Base->Next = 0;
 			hashTable[i]->Base->Prev = 0;
-			hashTable[i]->Base->lastBuck = -1;
+			hashTable[i]->Base->currBuck = -1;
 		}
 	}
 }
@@ -239,8 +240,8 @@ void HMBL<T>::revealHMBL(){
 			std::cout << " arrMap[" << i << "] contains " << arrMap[i] << " points to user " << arrMap[i]->euid << std::endl;
 		if (i < (bucketTotal / 2)){
 			if (hashTable[i]->Base->euid != 0){
-				std::cout << " hashTable[" << i << "] contains user " << hashTable[i]->Base->euid << std::endl;
-				std::cout << " " << hashTable[i]->Base->lastBuck << " " << hashTable[i]->Base->sock << " Prev:" << hashTable[i]->Base->Prev << " Next:" << hashTable[i]->Base->Next << std::endl;
+				//std::cout << " hashTable[" << i << "] contains user " << hashTable[i]->Base->euid << std::endl;
+				//std::cout << " " << hashTable[i]->Base->currBuck << " " << hashTable[i]->Base->sock << " Prev:" << hashTable[i]->Base->Prev << " Next:" << hashTable[i]->Base->Next << std::endl;
 			}
 		}
 	}
@@ -251,7 +252,7 @@ std::vector<Node<T>*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
 	std::vector<Node<T>*> clients; //will be returned by this function and contain pointers to affected clients
 	std::vector<int> proxBucks; //contains the list of buckets in the items proximity
 
-	proxBucks = surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
+	proxBucks = HMBL_HELPER::surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
 
 	int thresh = proxBucks.size();
 	Node<T>* walk;
@@ -287,7 +288,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				yval = y - j;
 
 				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
-					surroundings.push_back(backToBuck(xval, yval, rows));
+					surroundings.push_back(HMBL_HELPER::backToBuck(xval, yval, rows));
 				}
 			}
 			for (int j = 1; j <= rad; j++){
@@ -296,7 +297,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				yval = y + j;
 
 				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
-					surroundings.push_back(backToBuck(xval, yval, rows));
+					surroundings.push_back(HMBL_HELPER::backToBuck(xval, yval, rows));
 				}
 			}
 		}
@@ -307,7 +308,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				yval = y - j;
 
 				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
-					surroundings.push_back(backToBuck(xval, yval, rows));
+					surroundings.push_back(HMBL_HELPER::backToBuck(xval, yval, rows));
 				}
 			}
 			for (int j = 1; j <= rad; j++){
@@ -316,7 +317,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 				yval = y + j;
 
 				if (xval < columns && xval >= 0 && yval < rows && yval >= 0){
-					surroundings.push_back(backToBuck(xval, yval, rows));
+					surroundings.push_back(HMBL_HELPER::backToBuck(xval, yval, rows));
 				}
 			}
 		}
@@ -334,7 +335,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 template <class T>
 void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	std::vector<int> impSurr;
-	std::vector<int> newSurr = surroundings(x, y, rad, mapwidth, mapheight, columns, rows);
+	std::vector<int> newSurr = HMBL_HELPER::surroundings(x, y, rad, mapwidth, mapheight, columns, rows);
 
 	if (lastBuck == -1){
 		impSurr = newSurr;
