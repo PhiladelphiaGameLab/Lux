@@ -68,33 +68,57 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	int hashKey = euid % (bucketTotal / 2);
 
 	Node<T> *newNode = checkForCollision(euid, hashKey);
-
 	int lastBuck = newNode->currBuck;
+
+	pthread_mutex_lock(newNode->Lock); //Lock the new node
+	
+	Node<T> *sameNode = 0;
+	Node<T> *prevNode = 0;
+	Node<T> *nextNode = 0;
+	
+	if(arrMap[bucketNum] != 0){
+		sameNode = arrMap[bucketNum];
+		pthread_mutex_lock(sameNode->Lock); //Lock the node in the target bucket
+	}
+	if(newNode->Prev != 0){
+		prevNode = newNode->Prev;
+		pthread_mutex_lock(prevNode->Lock); //Lock the node previous to the new one
+	}
+	if(newNode->Prev != 0){
+		nextNode = newNode->Next;
+		pthread_mutex_lock(nextNode->Lock); //Lock the node next to the new one
+	}
 
 	//Checks to see if there is an old instance in existence, if not this shouldn't occur
 	if (newNode->currBuck != 0){ 
 		if (newNode->Prev == 0 && newNode->Next != 0){
-			arrMap[newNode->currBuck] = newNode->Next;
+			arrMap[lastBucke] = newNode->Next;
 			newNode->Next->Prev = 0;
 			newNode->Next = 0;
+			pthread_mutex_unlock(nextNode->Lock);
+			//release lock for nextNode
 		}else if (newNode->Prev != 0 && newNode->Next == 0){
 			newNode->Prev->Next = 0;
 			newNode->Prev = 0;
+			pthread_mutex_unlock(prevNode->Lock);
+			//release lock fo prevNode
 		}else if (newNode->Prev != 0 && newNode->Next != 0){
 			newNode->Prev->Next = newNode->Next;
 			newNode->Next->Prev = newNode->Prev;
 			newNode->Next = 0;
 			newNode->Prev = 0;
+			pthread_mutex_unlock(nextNode->Lock);
+			pthread_mutex_unlock(prevNode->Lock);
+			//release locks for nextNode & prevNode
 		}
 		else{ //Only occurs is prev and next of Node walk = 0
-			arrMap[newNode->currBuck] = 0;
+			arrMap[lastBuck] = 0;
 		}
 	}
 
 	//Storing inside of the arrMap/hashTable
 	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
 		Node<T> *tempMap;
-
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
 		arrMap[bucketNum] = newNode;
 		newNode->Next = tempMap;
@@ -102,6 +126,8 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		newNode->sock = nsock;
 		newNode->euid = euid;
 		newNode->currBuck = bucketNum;
+		pthread_mutex_unlock(sameNode->Lock);
+		//release the sameNode lock
 	}else{
 		arrMap[bucketNum] = newNode;
 		newNode->sock = nsock;
@@ -109,6 +135,9 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		newNode->currBuck = bucketNum;
 	}
 
+	pthread_mutex_unlock(newNode->Lock);
+	//relase the newNode lock
+	
 	if (lastBuck == bucketNum){ //for efficiency, so that it doesn't go through pipe process if client didn't move
 
 	}else
@@ -125,6 +154,7 @@ int HMBL<T>::findBucket(int x, int y){
 template <class T>
 Node<T>* HMBL<T>::checkForCollision(int euid, int hashKey){
 	Node<T> *newNode = new Node<T>;
+	
 	CNode<T> *cwalk = hashTable[hashKey];
 	bool addCollInst = true;
 
@@ -142,8 +172,19 @@ Node<T>* HMBL<T>::checkForCollision(int euid, int hashKey){
 			struct CNode<T>* cnewNode = new CNode<T>;
 			cwalk->Next = cnewNode;
 			cnewNode->Prev = cwalk;
+			cnewNode->Base = newNode;
+			cnewNode->Next = 0;
+			newNode->Prev = 0;
+			newNode->Next = 0;
+			newNode->sock = 0;
+			newNode->euid = 0;
+			newNode->lastBuck = -1;
 		}
 	}
+	
+	pthread_mutex_t newLock; //This creates a lock for each Node
+	pthread_mutex_init(&newLock, NULL);
+	newNode->Lock = newLock;
 
 	return newNode;
 }
