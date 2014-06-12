@@ -1,6 +1,6 @@
 #ifndef SENDNEWRELEVANT_H
 #define SENDNEWRELEVANT_H
-#define DATABASE_NAME "db.gameplay"
+#define DATABASE_NAME "Luxdb.gameplay"
 
 #include <sys/stat.h>
 #include <unistd.h>
