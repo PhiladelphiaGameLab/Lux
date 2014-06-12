@@ -1,6 +1,6 @@
 #ifndef AUTHORIZATIONSERVER_H
 #define AUTHORIZATIONSERVER_H
-#define DATABASE_NAME "Auth_DB"
+#define DATABASE_NAME "db.auth"
 
 // Stand Alone CGI script
 
