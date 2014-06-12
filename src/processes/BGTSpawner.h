@@ -1,7 +1,7 @@
 #ifndef BGTSPAWNER_H
 #define BGTSPAWNER_H
 #ifndef DATABASE_NAME
-#define DATABASE_NAME "db.gameplay"
+#define DATABASE_NAME "Luxdb.gameplay"
 #endif
 #include "battleground.h"
 #include "sendupdate.h"
