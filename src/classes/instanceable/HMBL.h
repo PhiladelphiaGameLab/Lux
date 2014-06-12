@@ -77,10 +77,17 @@ public:
 	Node<T>* checkForCollision(int euid, int hashKey);
 	std::vector<Node<T>*> get_clients(int xloc, int yloc, int rad);
 	std::vector<int> surroundingsFromCurrBucket(int currBuck, int rad, int mapx, int mapy, int xbuck, int ybuck);
+};
 
+
+class HMBL_HELPER {
+
+public:
 	static int getBucket(int xloc, int yloc, int mapx, int mapy, int columns, int rows);
 	static std::vector<int> surroundings(int xloc, int yloc, int rad, int mapx, int mapy, int xbuck, int ybuck);
 	static int backToBuck(int x, int y, int ys);
-
 };
+
+
+
 #endif

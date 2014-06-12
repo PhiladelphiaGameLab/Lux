@@ -23,6 +23,8 @@ using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
+template class HMBL<sockaddr_in>;
+
 void *BattleGround::spawn(void* param){
 	struct s_bgt_params_in *param_in;
 	param_in = (struct s_bgt_params_in*)param;

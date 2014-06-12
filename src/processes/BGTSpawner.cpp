@@ -1,6 +1,6 @@
 #include "BGTSpawner.h"
 
-bool spawnNewBgt(int bgtID){
+bool spawnNewBgt(int bgtID) {
     //connect to the database
     mongo::DBClientConnection c;
     c.connect("localhost");
@@ -66,7 +66,7 @@ bool spawnNewBgt(int bgtID){
     //Spawn a SNR thread
     pthread_create(&SNR_ID,NULL,SendNewRelevant::spawn, snr_params_in);   
     
-    return 1;
+    return true;
 }
 
 
