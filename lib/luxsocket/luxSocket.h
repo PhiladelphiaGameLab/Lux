@@ -22,26 +22,27 @@ namespace socketlibrary {
 
 class LuxSocket{
     private:
-        UDPSocket *socket;
-        unsigned short port;
-        std::string address;
+        UDPSocket *_socket;
+        unsigned short _port;
+        std::string _address;
     public:
-        /** Default constructor */
+        //Default constructor
         LuxSocket();
         LuxSocket(const unsigned short port);
         virtual ~LuxSocket();
 
         void init();
         void error(const char *msg);
-	void receive(char *buf, struct sockaddr_in *cli_addr);
-	mongo::BSONObj receive(struct sockaddr_in *cli_addr);
-        void send(struct sockaddr_in *cli_addr);
-        void send(const char *message, struct sockaddr_in* cli_addr);
-        void send(const std::string &message, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj &BSMessage, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj &BSMessage,
+	void receive(char *buf, struct sockaddr_in *cliAddr);
+	mongo::BSONObj receive(struct sockaddr_in *cliAddr);
+        void send(struct sockaddr_in *cliAddr);
+        void send(const char *message, struct sockaddr_in* cliAddr);
+        void send(const std::string &message, struct sockaddr_in *cliAddr);
+        void send(mongo::BSONObj &bsMessage, struct sockaddr_in *cliAddr);
+        void send(mongo::BSONObj &bsMessage,
 		  std::list<struct sockaddr_in> &socketList);
 	void initSocketInfo();
+	unsigned short getPortNum();
     protected:
 };
 

@@ -2,24 +2,21 @@
 
 namespace socketlibrary {
   
-  /*
-   * Server opens a new UDP socket at port
-   */
+  // Server opens a new UDP socket at port
   LuxSocket::LuxSocket(const unsigned short port) {
-    socket = new UDPSocket(port);
+    _socket = new UDPSocket(port);
     initSocketInfo();
   }
 
-  /*
-   * Server opens a new UDP socket
-   */
+  // Server opens a new UDP socket
+  // Default port is 3000
   LuxSocket::LuxSocket() {
-    socket = new UDPSocket();
+    _socket = new UDPSocket(3000);
     initSocketInfo();
   }
 
   LuxSocket::~LuxSocket() {
-    delete socket;
+    delete _socket;
   }
 
   // Dumps error messages when they occur
@@ -30,49 +27,53 @@ namespace socketlibrary {
 
   // Gets the port and address from socket
   void LuxSocket::initSocketInfo() {
-    port = socket->getLocalPort();
-    address = socket->getLocalAddress();
+    _port = _socket->getLocalPort();
+    _address = _socket->getLocalAddress();
   }
 
   // Server receives data from client
-  mongo::BSONObj LuxSocket::receive(struct sockaddr_in *cli_addr) {
+  mongo::BSONObj LuxSocket::receive(struct sockaddr_in *cliAddr) {
     char buf[MESSAGE_SIZE]; // server reads input to this buffer
 
     memset(buf, 0, MESSAGE_SIZE);
-    socket->recvFrom(buf, MESSAGE_SIZE, cli_addr);
+    _socket->recvFrom(buf, MESSAGE_SIZE, cliAddr);
 
     return mongo::fromjson(buf);
   }
   
   // Send default message back
-  void LuxSocket::send(struct sockaddr_in *cli_addr) {
-    send("Got your message", cli_addr);
+  void LuxSocket::send(struct sockaddr_in *cliAddr) {
+    send("Got your message", cliAddr);
   }
   
   // Send a char array to client 
-  void LuxSocket::send(const char *message, struct sockaddr_in *cli_addr) {
-    socket->sendTo(message, strlen(message), cli_addr);
+  void LuxSocket::send(const char *message, struct sockaddr_in *cliAddr) {
+    _socket->sendTo(message, strlen(message), cliAddr);
   }
 
   // Send a string to client
-  void LuxSocket::send(const std::string &message, struct sockaddr_in *cli_addr) {
+  void LuxSocket::send(const std::string &message, struct sockaddr_in *cliAddr) {
     char *msgChar = new char[message.size() + 1];
     memcpy(msgChar, message.c_str(), message.size());
-    send(msgChar, cli_addr);
+    send(msgChar, cliAddr);
     delete msgChar;
   }
 
   // Send a BSON object to client
-  void LuxSocket::send(mongo::BSONObj &BSMessage, struct sockaddr_in *cli_addr) {
-    send(BSMessage.jsonString(), cli_addr);
+  void LuxSocket::send(mongo::BSONObj &bsMessage, struct sockaddr_in *cliAddr) {
+    send(bsMessage.jsonString(), cliAddr);
   }
 
   // Broadcast a BSON object to all clients in list
-  void LuxSocket::send(mongo::BSONObj &BSMessage, 
-		     std::list<struct sockaddr_in> &socketList) {
-    for (std::list<struct sockaddr_in>::iterator cli_addr = socketList.begin(); 
-	 cli_addr != socketList.end(); cli_addr++) {
-      send(BSMessage, &(*cli_addr));
+  void LuxSocket::send(mongo::BSONObj &bsMessage, 
+		       std::list<struct sockaddr_in> &socketList) {
+    for (std::list<struct sockaddr_in>::iterator cliAddr = socketList.begin(); 
+	 cliAddr != socketList.end(); cliAddr++) {
+      send(bsMessage, &(*cliAddr));
     }
+  }
+  
+  unsigned short LuxSocket::getPortNum() {
+    return _port;
   }
 }
