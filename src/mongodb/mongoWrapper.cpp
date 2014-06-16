@@ -20,6 +20,7 @@ void MongoWrapper::insert(const std::string &ns, const mongo::BSONObj &obj) {
     _c.insert(ns, obj);
 }
 
+
 void MongoWrapper::insert(const std::string &ns, const std::string &obj) {
     insert(ns, mongo::fromjson(obj));
 }
@@ -89,12 +90,12 @@ void MongoWrapper::remove(const std::string &ns, const std::string &q,
 
 mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
 				     const mongo::BSONObj &q) {
-  return _c.findOne(ns, q);    
+    return _c.findOne(ns, q);    
 }
 
 mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
 				     const std::string &q) {
-  return findOne(ns, mongo::fromjson(q));
+    return findOne(ns, mongo::fromjson(q));
 }
 
 void MongoWrapper::arrayPush(const std::string &ns, const mongo::BSONObj &q,
@@ -116,9 +117,9 @@ void MongoWrapper::arrayPush(const std::string &ns, const std::string &q,
 }
 
 void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
-	       const std::string &array_field_name,
-	       const std::string &elements,
-	       bool pullAll) {
+			     const std::string &array_field_name,
+			     const std::string &elements,
+			     bool pullAll) {
     std::string method("pull");
     if (pullAll) {
 	method = "$pushAll";
@@ -127,9 +128,9 @@ void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
 }
 
 void MongoWrapper::arrayPull(const std::string &ns, const std::string &q,
-	       const std::string &array_field_name,
-	       const std::string &elements,
-	       bool pullAll) {
+			     const std::string &array_field_name,
+			     const std::string &elements,
+			     bool pullAll) {
     arrayPull(ns, mongo::fromjson(q), array_field_name, elements, pullAll);
 }
 
@@ -144,4 +145,3 @@ void MongoWrapper::arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
     b.append(method, a.obj());
     update(ns, q, b.obj());
 }
-

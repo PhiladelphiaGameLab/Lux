@@ -20,12 +20,12 @@
 
 namespace socketlibrary {
 
-class LuxSocket{
-    private:
+    class LuxSocket{
+	private:
         UDPSocket *_socket;
         unsigned short _port;
         std::string _address;
-    public:
+	public:
         //Default constructor
         LuxSocket();
         LuxSocket(const unsigned short port);
@@ -43,9 +43,8 @@ class LuxSocket{
 		  std::list<struct sockaddr_in> &socketList);
 	void initSocketInfo();
 	unsigned short getPortNum();
-    protected:
-};
-
+	protected:
+    };
 }
 
 #endif // LUXSOCKET_H
