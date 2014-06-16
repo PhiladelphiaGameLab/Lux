@@ -6,7 +6,7 @@ MongoWrapper::MongoWrapper(const std::string &hostname) {
 
 void MongoWrapper::connect(const std::string &hostname) {
     try {
-	c.connect(hostname);
+	_c.connect(hostname);
     } catch(const mongo::DBException &e) {
 	error("Connection error.");
     }
@@ -17,7 +17,7 @@ void MongoWrapper::error(const std::string &msg) {
 }
 
 void MongoWrapper::insert(const std::string &ns, const mongo::BSONObj &obj) {
-    c.insert(ns, obj);
+    _c.insert(ns, obj);
 }
 
 void MongoWrapper::insert(const std::string &ns, const std::string &obj) {
@@ -25,7 +25,7 @@ void MongoWrapper::insert(const std::string &ns, const std::string &obj) {
 }
 
 std::string MongoWrapper::query(const std::string &ns, const mongo::BSONObj &q) {
-    std::auto_ptr<mongo::DBClientCursor> cursor = c.query(ns, q);
+    std::auto_ptr<mongo::DBClientCursor> cursor = _c.query(ns, q);
     std::string result("");
 
     while (cursor->more()) {
@@ -47,7 +47,7 @@ std::string MongoWrapper::query(const std::string &ns, const std::string &q) {
 #ifdef MONGO_DRIVER_26
 void MongoWrapper::update(const std::string &ns, const mongo::BSONObj &q,
 			  const mongo::BSONObj &obj) {
-    c.update(ns, q, obj);
+    _c.update(ns, q, obj);
 }
 
 void MongoWrapper::update(const std::string &ns, const std::string &q, 
@@ -56,7 +56,7 @@ void MongoWrapper::update(const std::string &ns, const std::string &q,
 }
 
 void MongoWrapper::remove(const std::string &ns, const mongo::BSONObj &q) {
-    c.remove(ns, q);
+    _c.remove(ns, q);
 }
 
 void MongoWrapper::remove(const std::string &ns, const std::string &q) {
@@ -66,7 +66,7 @@ void MongoWrapper::remove(const std::string &ns, const std::string &q) {
 void MongoWrapper::update(const std::string &ns, const mongo::BSONObj &q,
 			  const mongo::BSONObj &obj, bool upsert, 
 			  bool multi, const WriteConcern* wc) {
-    c.update(ns, q, obj, upsert, multi, wc);
+    _c.update(ns, q, obj, upsert, multi, wc);
 }
 
 void MongoWrapper::update(const std::string &ns, const std::string &q, 
@@ -78,7 +78,7 @@ void MongoWrapper::update(const std::string &ns, const std::string &q,
 
 void MongoWrapper::remove(const std::string &ns, const mongo::BSONObj &q,
 			  bool justOne, const WriteConcern* wc) {
-    c.remove(ns, q, justOne, wc);
+    _c.remove(ns, q, justOne, wc);
 }
 
 void MongoWrapper::remove(const std::string &ns, const std::string &q,
@@ -89,7 +89,7 @@ void MongoWrapper::remove(const std::string &ns, const std::string &q,
 
 mongo::BSONObj MongoWrapper::findOne(const std::string &ns,
 				     const mongo::BSONObj &q) {
-  return c.findOne(ns, q);    
+  return _c.findOne(ns, q);    
 }
 
 mongo::BSONObj MongoWrapper::findOne(const std::string &ns,

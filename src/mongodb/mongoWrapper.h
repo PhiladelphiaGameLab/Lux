@@ -86,7 +86,7 @@ class MongoWrapper {
 
     
     private:
-    mongo::DBClientConnection c;
+    mongo::DBClientConnection _c;
     
     // Print error message
     void error(const std::string &msg);
