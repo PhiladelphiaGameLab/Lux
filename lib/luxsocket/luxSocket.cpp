@@ -37,10 +37,10 @@ namespace socketlibrary {
   // Server receives data from client
   mongo::BSONObj LuxSocket::receive(struct sockaddr_in *cli_addr) {
     char buf[MESSAGE_SIZE]; // server reads input to this buffer
-
+    
     memset(buf, 0, MESSAGE_SIZE);
     socket->recvFrom(buf, MESSAGE_SIZE, cli_addr);
-
+    std::cout << "received: " << buf << std::endl;
     return mongo::fromjson(buf);
   }
   
