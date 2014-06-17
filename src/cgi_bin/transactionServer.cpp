@@ -116,7 +116,7 @@ const string ITEMLIST0("items0");
 const string ITEMLIST1("items1");
 const string CREATE_TIME("time");
 
-
+const string EMPTY_JSON_ARRAY("[]");
 
 
 // Time to wait for matching pending transaction
@@ -130,6 +130,7 @@ bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items);
 bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1);
 void addPendingTransaction(const string &accID, const TransactionInfo &info);
 void removePendingTransaction(const string &accID, const TransactionInfo &info);
+bool hasPendingTransaction(const string &accId, const TransactionInfo &info);
 void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info);
 bool matchRequest(const TransactionInfo &sending, 
 		  const TransactionInfo &receiving);
@@ -146,20 +147,19 @@ void addCompletedTransaction(const TransactionInfo &info, int flag);
 void reverseInfo(TransactionInfo &info);
 
 bool isGlobalAccount(const string &id);
-void getAsset(CGI);
-void addAccount(const string &id);
-void addSubaccount(const string &id, const string &subaccountId);
+void getAsset();
 void removeGroupMember(const string &gid, const string &id);
 void getAccountInfo(const string &id);
 void getSubAccountInfo(const string &id, const string &subaccountId);
 void getTransactionHistory(const string &id);
-void addAcount(const string &username);
+void addAccount(const string &username);
 void addSubAccount(const string &id);
 void createGroup(const string &id);
 void addGroupMember(const string &gid, const string &id);
 void removeGroupMember(const string &gid, const string &id);
 void changePermission(const string &gid, const string &id, int permission);
-
+void error(const string &msg);
+void sendJson(const string &jsonString);
 
 // Helper function to get rid of "" of a string
 inline void getRidOfQuote(string &str) {
@@ -234,8 +234,15 @@ int handleRequest() {
 	    this_thread::sleep_for(chrono::seconds(TOTAL_TIME * 2));
 	    // Remove pending transaction when time out
 	    // If this pending transaction is already been processed
-	    // this function will do nothing.
-	    removePendingTransaction(accID, info);
+	    // this function will do nothing.	    	    
+	    if (hasPendingTransaction(accID, info)) {
+		removePendingTransaction(accID, info);
+		string result = "{message:\"Transaction successfully finished.\"}";
+		sendJson(result);
+	    }
+	    else {
+		error("Transaction failed.");
+	    }
 	    return 0;
 	}
 	
@@ -247,6 +254,8 @@ int handleRequest() {
 
 	    if (checkMatch(info, subAcc0, subAcc1)) {
 		executeTransaction(info, subAcc0, subAcc1);
+		string result = "{message:\"Transaction successfully finished.\"}";
+		sendJson(result);		    
 		return 0;
 	    }
 
@@ -255,16 +264,35 @@ int handleRequest() {
 	}
 	// Time out
 	// Send back error message
+	error("Transaction failed.")
 	return 0;
     }
     else if (method.compare("addAccount") == 0) {
-        //addAccount
+	//addAccount
+	string username = environment.get("username");
+	addAccount(username);
+
     } 
     else if (method.compare("addSubaccount") == 0) {
         //addSubaccount
+	string id = environment.get("id0");
+	addSubAccount(id);
     } 
+    else if (method.compare("getTransactionHistory") == 0) {
+	string id = environment.get("id0");
+	getTransactionHistory(id);
+    }
+    else if (method.compare("getAccountInfo") == 0) {
+	string id = enviroment.get("id0");
+	getAccountInfo(id);
+    }
+    else if (method.compare("getSubAccountInfo") == 0) {
+	string id = environment.get("id0");
+	getSubAccountInfo(id, subId);
+    }
     else if (method.compare("get") == 0) {
         //getAsset
+	
     } 
     else {
         return 2;
@@ -347,16 +375,16 @@ bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items) {
 	string index1 = to_string(j);
 	bool find = false;
 	while ((item1 = items_array[index1]).ok()) {
-	  string value1 = item1.toString(false);
-	  if (value0.compare(value1) == 0) {
-	    find = true;
-	    break;
-	  }
-	  j++;
-	  index1 = to_string(j);
+	    string value1 = item1.toString(false);
+	    if (value0.compare(value1) == 0) {
+		find = true;
+		break;
+	    }
+	    j++;
+	    index1 = to_string(j);
 	}
 	if (!find) {
-	  return false;
+	    return false;
 	}
 	i++;
 	index0 = to_string(i);
@@ -480,6 +508,15 @@ void removePendingTransaction(const string &accID, const TransactionInfo &info) 
     conn.update(db_ns, query.obj(), q.obj());
 }
 
+bool hasPendingTransaction(const string &accId, const TransactionInfo &info) {
+    BSONObjBuilder query;
+    query.append(ACC_ID_FIELD, accId);
+    query.append(PENDING_ARRAY, info);
+    BSONObj bson = conn.findOne(db_ns, query.obj());
+    return !bson.isEmpty();
+}
+
+
 // Log transaction
 // Add complete transaction into player's account if needed
 void logTransaction(const TransactionInfo &info) {
@@ -593,15 +630,27 @@ void getAccountInfo(const string &id) {
     query.append(ACC_ID_FIELD, id);
     BSONObj accInfo = conn.findOne(db_ns, query.obj());
     
-    // TODO: send accInfo back to client
+    if (accInfo.isEmpty()) {
+	error("Account doesn't exist");
+    }
+    else {
+	sendJson(accInfo.jsonString());
+    }
 }
 
-void getSubAccountInfo(const string &id, const string &subaccountId) {
+void getSubAccountInfo(const string &id, const string &subAccountIndex) {
     BSONObjBuilder query;
-    query.append(SUB_ACC_ID_FIELD, id);
+    query.append(ACC_ID_FIELD, id);
     BSONObj accInfo = conn.findOne(db_ns, query.obj());
     
-    // TODO: send accInfo back to client  
+    BSONObj subInfo;
+    
+    if (findSubAccInAcc(accInfo, subAccountIndex, subInfo)) {
+	sendJson(subInfo.jsonString());
+	return;
+    }
+
+    error("Sub account doesn't exist");
 }
 
 void getTransactionHistory(const string &id) {
@@ -610,26 +659,30 @@ void getTransactionHistory(const string &id) {
     BSONObj accInfo = conn.findOne(db_ns, query.obj());
     
     string history = accInfo[TRANSACTION_HISTORY].toString(false);
-    
+
     getRidOfQuote(history);
     
     // TODO: send history back to client
-
+    string result("{message:\"");
+    result += history;
+    result += "\"}";
+    sendJson(result);
 }
 
 
 // Create a new account
-void addAcount(const string &username) {
+void addAccount(const string &username) {
     BSONObjBuilder acc;
     acc.genOID();
     acc.append(USER_NAME_FIELD, username);
-    acc.append(SUB_ACC_ARRAY_FILED, "[]");
-    acc.append(GROUP_ACC_FIELD, "[]");
-    acc.append(TRANSACTION_HISTORY, "[]");
+    acc.append(SUB_ACC_ARRAY_FILED, EMPTY_JSON_ARRAY);
+    acc.append(GROUP_ACC_FIELD, EMPTY_JSON_ARRAY);
+    acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
     conn.insert(db_ns, obj);
-    // TODO
-    // send back information to client
+
+    string result("{message:\"Added account\"}");
+    sendJson(result);
 }
 
 // Create a new sub account
@@ -637,8 +690,8 @@ void addSubAccount(const string &id) {
     // Create a sub account
     BSONObjBuilder sub;
     sub.genOID();
-    sub.append(ITEM_ARRAY_FIELD, "[]");
-    sub.append(PENDING_ARRAY, "[]");
+    sub.append(ITEM_ARRAY_FIELD, EMPTY_JSON_ARRAY);
+    sub.append(PENDING_ARRAY, EMPTY_JSON_ARRAY);
     BSONObj obj = sub.obj();
     conn.insert(db_ns, obj);
     
@@ -650,8 +703,8 @@ void addSubAccount(const string &id) {
 
     conn.arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
 
-    // TODO
-    // send back information to client        
+    string result("{message:\"Added sub account\"}");
+    sendJson(result);
 }
 
 // Remove a sub account from account
@@ -663,6 +716,9 @@ void removeSubAccount(const string &subid, const string &id) {
     conn.remove(db_ns, query.obj());   
     // remove from user's group array
     conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subid);    
+
+    string result("{message:\"Removed sub account\"}");
+    sendJson(result);
 }
 
 // Create a new group account, using user id as the first admin
@@ -673,7 +729,7 @@ void createGroup(const string &id) {
     admin += id;
     admin += "]";
     group.append(ADMIN_ARRAY_FIELD, admin);
-    group.append(MEMBER_ARRAY_FIELD, "[]");
+    group.append(MEMBER_ARRAY_FIELD, EMPTY_JSON_ARRAY);
 
     BSONObj obj = group.obj();
     conn.insert(db_ns, obj);
@@ -684,8 +740,9 @@ void createGroup(const string &id) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
     conn.arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
-    // TODO
-    // send back information to client
+
+    string result("{message:\"Created Group\"}");
+    sendJson(result);
 }
 
 // Add group member
@@ -694,6 +751,9 @@ void addGroupMember(const string &gid, const string &id) {
     query.append(GROUP_ID, gid);
     
     conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+    
+    string result("{message:\"Added Group Member\"}");
+    sendJson(result);
 }
 
 void removeGroupMember(const string &gid, const string &id) {
@@ -705,6 +765,9 @@ void removeGroupMember(const string &gid, const string &id) {
    
     // remove from user's group array
     conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
+
+    string result("{message:\"Removed Group Member\"}");
+    sendJson(result);
 }
 
 void changePermission(const string &gid, const string &id, int permission) {
@@ -715,11 +778,26 @@ void changePermission(const string &gid, const string &id, int permission) {
     case 1:
 	conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
 	conn.arrayPush(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
-      break;
+	break;
     case 0:
     default:
 	conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
 	conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
-      break;
+	break;
     }
+    string result("{message:\"Changed permission\"}");
+    sendJson(result);
 }
+
+// Send back error message
+void error(const string &msg) {
+    cout << "Content-type: application/json; charset=utf-8\n\n";
+    cout << "{result:\"error\",message:\"" << msg << "\"}\n";
+}
+
+void sendJson(const string &jsonString) {
+    cout << "Content-type: application/json; charset=utf-8\n\n";
+    cout << "{result:\"success\",content:" << jsonString << "}\n";
+}
+
+
