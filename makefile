@@ -1,46 +1,47 @@
-CC = g++
-Warnings = 
+CC = cd ./output; g++
+PROJ_DIR = /home/ec2-user/Alpha
+Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -m64 -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
+CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/output -I$(PROJ_DIR)/cgi_bin -I$(PROJ_DIR)/src/cgi_bin -I$(PROJ_DIR)/src/classes/static -I$(PROJ_DIR)/src/classes/instanceable -I$(PROJ_DIR)/src/processes $(Warnings)
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
-AuthLink= ./CGI.o ./MD5.o ./Authenticate.o
-InitLink= $(AuthLink) ./FindBGT.o ./HMBL.o
-BGTSpawnerLink= $(AuthLink) ./DBWriter.o ./SendNewRelevant.o ./HMBL.o ./battleground.o ./sendupdate.o ./socket.o ./luxSocket.o
+AuthLink= $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/MD5.o $(PROJ_DIR)/output/Authenticate.o
+InitLink= $(AuthLink) $(PROJ_DIR)/output/FindBGT.o $(PROJ_DIR)/output/HMBL.o
+BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o
 
-Auth = ./src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o ./cgi_bin/AuthorizationServer 
-Init = ./src/cgi_bin/Initialize.cpp $(InitLink) -o ./cgi_bin/Initialize
-BGTSpawner = ./src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o ./output/BGTSpawner
+Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi
+Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi
+BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
 
 
-Authen = -c ./src/classes/static/Authenticate.cpp
-FindBGT = -c ./src/classes/static/FindBGT.cpp
-Chat = -c ./src/tests/ChatTest/ChatHttp.cpp
-MD5 = -c ./src/classes/static/MD5.cpp
-CGI = -c ./src/classes/instanceable/CGI.cpp
-HMBL= -c ./src/classes/instanceable/HMBL.cpp
-socket = -c ./lib/luxsocket/socket.cpp
-socketB = -c ./lib/luxsocket/luxSocket.cpp
-DBWriter = -c ./src/processes/DBWriter.cpp
-SendNewRelevant =  -c ./src/processes/SendNewRelevant.cpp
-battleground = -c ./src/processes/battleground.cpp
-sendupdate = -c ./src/processes/sendupdate.cpp
+Authen = -c ../src/classes/static/Authenticate.cpp
+FindBGT = -c ../src/classes/static/FindBGT.cpp
+MD5 = -c ../src/classes/static/MD5.cpp
+CGI = -c ../src/classes/instanceable/CGI.cpp
+HMBL= -c ../src/classes/instanceable/HMBL.cpp
+socket = -c ../lib/luxsocket/socket.cpp
+socketB = -c ../lib/luxsocket/luxSocket.cpp
+DBWriter = -c ../src/processes/DBWriter.cpp
+DBWriter = -c ../src/processes/Chat.cpp
+SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp
+battleground = -c ../src/processes/battleground.cpp
+sendupdate = -c ../src/processes/sendupdate.cpp
 
 all: clean build run
 
 mkdir:
-	mkdir ./output
-	mkdir ./cgi_bin
+	mkdir $(PROJ_DIR)/output
+	mkdir $(PROJ_DIR)/cgi_bin
 
 # tell apache where the cgi_bin is
-apache: 
+apache:
 
 # Build All the Files!
-build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT Chat DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
+build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
 
 # Working:
 MD5:
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(MD5) $(LIB) 
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(MD5) $(LIB)
 
 CGI:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(CGI) $(LIB)
@@ -60,18 +61,18 @@ HMBL:
 FindBGT:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
 
-Chat:
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(Chat) $(LIB)
-
 DBWriter:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
+
+Chat:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Chat) $(LIB)
 
 sendupdate:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(sendupdate) $(LIB)
 
 battleground:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(battleground) $(LIB)
-	
+
 SendNewRelevant:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(SendNewRelevant) $(LIB)
 
@@ -82,13 +83,14 @@ Init:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(Init) $(LIB)
 
 BGTSpawner:
-	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB) 
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB)
 
 # spawn BGT
 run:
-	chmod -R 777 ./output
-	chmod -R 777 ./cgi_bin
-	./output/BGTSpawner
+	chmod -R 777 $(PROJ_DIR)/output
+	chmod -R 777 $(PROJ_DIR)/cgi_bin
+	rm -f $(PROJ_DIR)/lux_pipe*
+	$(PROJ_DIR)/output/BGTSpawner.cgi
 
 # deletes all of the ./cgi_bin/ & ./output/
 clean:
