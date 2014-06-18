@@ -17,6 +17,7 @@
 #include <string>
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
+#include <stdlib.h>
 
 using namespace std;
 using namespace mongo;
@@ -35,19 +36,22 @@ struct TransactionInfo {
                     string si0, string si1,
                     string iti0, string iti1):
         id0(i0), id1(i1), subaccountId0(si0), subaccountId1(si1),
-        itemsId0(iti0), itemsId1(iti1) {}
+        itemsId0(iti0), itemsId1(iti1) {};
     TransactionInfo(){};
 };
 
 // global varibales
 
 // get parameters from the HTTP Request
-CGI environment;    
+CGI *environment;
 
 // connection to mongo db
-MongoWrapper conn("localhost"); 
+MongoWrapper *conn;
+
 // the namespace of collection
 const string db_ns("db.transaction"); 
+
+const string OBJ_ID("_id");
 
 // Account structure
 // e.g.
@@ -116,7 +120,7 @@ const string ITEMLIST0("items0");
 const string ITEMLIST1("items1");
 const string CREATE_TIME("time");
 
-const string EMPTY_JSON_ARRAY("[]");
+const BSONArray EMPTY_JSON_ARRAY = BSON_ARRAY("array");
 
 
 // Time to wait for matching pending transaction
@@ -135,8 +139,8 @@ void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info);
 bool matchRequest(const TransactionInfo &sending, 
 		  const TransactionInfo &receiving);
 void executeTransaction(const TransactionInfo &info,
-			const BSONObj &subAcc0,
-			const BSONObj &subAcc1);
+			const string &subAccId0,
+			const string &subAccId1);
 void updateItemArray(const string method, const string &accID, 
 		     const string &itemIDs);
 string findTransaction(const TransactionInfo &info, int senderId);
@@ -148,16 +152,19 @@ void reverseInfo(TransactionInfo &info);
 
 bool isGlobalAccount(const string &id);
 void getAsset();
-void removeGroupMember(const string &gid, const string &id);
 void getAccountInfo(const string &id);
 void getSubAccountInfo(const string &id, const string &subaccountId);
 void getTransactionHistory(const string &id);
 void addAccount(const string &username);
+void removeAccount(const string &id);
 void addSubAccount(const string &id);
+void removeSubAccount(const string &subId, const string &id);
+void clearSubAccount(const string &subId);
 void createGroup(const string &id);
+void destoryGroup(const string &gid);
 void addGroupMember(const string &gid, const string &id);
 void removeGroupMember(const string &gid, const string &id);
-void changePermission(const string &gid, const string &id, int permission);
+void changeGroupPermission(const string &gid, const string &id, int permission);
 void error(const string &msg);
 void sendJson(const string &jsonString);
 
@@ -183,13 +190,20 @@ inline string getCurrentTime() {
     return time_t_to_String(rawtime);
 }
 
-int main(int argc, char **argv) {        
-    string EUID = environment.get("EUID");
-    string accessToken = environment.get("accessToken");
+int main(int argc, char **argv) {
+    /*
+    string EUID = environment->get("EUID");
+    string accessToken = environment->get("accessToken");
 
     if (!Authenticate::authenticateAccessToken(accessToken, EUID)) {
     	return 1;
     }
+    */
+    
+    cout << "Content-type: application/json; charset=utf-8\n\n";
+    
+    conn = new MongoWrapper("localhost"); 
+    environment = new CGI();   
 
     handleRequest();
 
@@ -197,14 +211,15 @@ int main(int argc, char **argv) {
 }
 
 int handleRequest() {
-    string method = environment.get("method");
+    string method = environment->get("method");
+
     if(method.compare("transaction") == 0) {
-        string id0 = environment.get("id0"); //verify id0 == EUID or use EUID directly?
-        string id1 = environment.get("id1");
-        string subaccountId0 = environment.get("subaccountId0");
-	string subaccountId1 = environment.get("subaccountId1");
-        string itemsId0 = environment.get("itemsId0");
-	string itemsId1 = environment.get("itemsId1");
+        string id0 = environment->get("id0"); //verify id0 == EUID or use EUID directly?
+        string id1 = environment->get("id1");
+        string subaccountId0 = environment->get("subaccountId0");
+	string subaccountId1 = environment->get("subaccountId1");
+        string itemsId0 = environment->get("itemsId0");
+	string itemsId1 = environment->get("itemsId1");
 	
 	TransactionInfo info(id0, id1, subaccountId0, 
 			     subaccountId1, itemsId0, itemsId1);	
@@ -250,10 +265,14 @@ int handleRequest() {
 	// several times untill time out
 	while (!timedOut()) {
 	    // Get the lastest subAcc1
-	    subAcc1 = conn.findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid1));
+	    subAcc1 = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid1));
 
 	    if (checkMatch(info, subAcc0, subAcc1)) {
-		executeTransaction(info, subAcc0, subAcc1);
+		string subAccId0 = subAcc0[SUB_ACC_ID_FIELD].toString(false);
+		getRidOfQuote(subAccId0);
+		string subAccId1 = subAcc1[SUB_ACC_ID_FIELD].toString(false);
+		getRidOfQuote(subAccId1);
+		executeTransaction(info, subAccId0, subAccId1);
 		string result = "{message:\"Transaction successfully finished.\"}";
 		sendJson(result);		    
 		return 0;
@@ -264,30 +283,64 @@ int handleRequest() {
 	}
 	// Time out
 	// Send back error message
-	error("Transaction failed.")
+	error("Transaction failed.");
 	return 0;
     }
     else if (method.compare("addAccount") == 0) {
 	//addAccount
-	string username = environment.get("username");
+	string username = environment->get("username");
 	addAccount(username);
 
     } 
+    else if (method.compare("removeAccount") == 0) {
+	string id = environment->get("id0");
+	removeAccount(id);
+    } 
     else if (method.compare("addSubaccount") == 0) {
         //addSubaccount
-	string id = environment.get("id0");
+	string id = environment->get("id0");
 	addSubAccount(id);
-    } 
+    }
+    else if (method.compare("removeSubAccount") == 0) {
+	string id = environment->get("id0");
+        string subId = environment->get("subaccountId0");
+	removeSubAccount(subId, id);
+    }
+    else if (method.compare("createGroup") == 0) {
+	string id = environment->get("id0");
+	createGroup(id);
+    }
+    else if (method.compare("destroyGroup") == 0) {
+	string gid = environment->get("groupId");
+	destoryGroup(gid);
+    }
+    else if (method.compare("addGroupMember") == 0) {
+	string id = environment->get("id0");
+	string gid = environment->get("groupId");
+	addGroupMember(gid, id);
+    }
+    else if (method.compare("removeGroupMember") == 0) {
+	string id = environment->get("id0");
+	string gid = environment->get("groupId");
+	removeGroupMember(gid, id);
+    }
+    else if (method.compare("changeGroupPermission") == 0) {
+	string id = environment->get("id0");
+	string gid = environment->get("groupId");
+	string permission = environment->get("permission");
+	changeGroupPermission(gid, id, atoi(permission.c_str()));
+    }
     else if (method.compare("getTransactionHistory") == 0) {
-	string id = environment.get("id0");
+	string id = environment->get("id0");
 	getTransactionHistory(id);
     }
     else if (method.compare("getAccountInfo") == 0) {
-	string id = enviroment.get("id0");
+	string id = environment->get("id0");
 	getAccountInfo(id);
     }
     else if (method.compare("getSubAccountInfo") == 0) {
-	string id = environment.get("id0");
+	string id = environment->get("id0");
+	string subId = environment->get("subId");
 	getSubAccountInfo(id, subId);
     }
     else if (method.compare("get") == 0) {
@@ -303,7 +356,7 @@ int handleRequest() {
 // Find two subaccounts in the two accounts
 bool findSubAcc(const TransactionInfo &info, 
 		BSONObj &subAcc0, BSONObj &subAcc1) {
-    BSONObj acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << info.id0));
+    BSONObj acc = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << info.id0));
     
     if (findSubAccInAcc(acc, info.subaccountId0, subAcc0) == false) {
 	return false;
@@ -325,7 +378,7 @@ bool findSubAcc(const TransactionInfo &info,
     }
     
     // Two accounts are different
-    acc = conn.findOne(db_ns, QUERY(ACC_ID_FIELD << info.id1));
+    acc = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << info.id1));
     if (findSubAccInAcc(acc, info.subaccountId1, subAcc1) == false) {
 	return false;
     }
@@ -352,7 +405,7 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
     string subid = id.toString(false);
     getRidOfQuote(subid);
     // use this sub id to find sub account in the db
-    subAcc = conn.findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid));
+    subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid));
     
     return true;
 }
@@ -364,30 +417,25 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
 // e.g. {sub_acc_id : xxx, items : [xxx,xxx,xxx]}
 bool checkItemIDs(const BSONObj &subaccount, const BSONElement &items) {
     int i = 0, j;
-    BSONElement item0;
-    BSONElement item1;
-    BSONElement items_array = subaccount[ITEM_ARRAY_FIELD];
-    string index0 = to_string(i);
-    while ((item0 = items[index0]).ok()) {
-	string value0 = item0.toString(false);
-	getRidOfQuote(value0);
-	j = 0;
-	string index1 = to_string(j);
+    vector<BSONElement> itemArr0 = items.Array();
+    vector<BSONElement> itemArr1 = subaccount[ITEM_ARRAY_FIELD].Array();
+    for (vector<BSONElement>::iterator it0 = itemArr0.begin() + 1; 
+	 it0 != itemArr0.end(); 
+	 ++it0){
+	string value0((*it0).toString(false));
 	bool find = false;
-	while ((item1 = items_array[index1]).ok()) {
-	    string value1 = item1.toString(false);
+	for (vector<BSONElement>::iterator it1 = itemArr1.begin() + 1; 
+	     it1 != itemArr1.end(); 
+	     ++it1){
+	    string value1((*it1).toString(false));
 	    if (value0.compare(value1) == 0) {
 		find = true;
 		break;
 	    }
-	    j++;
-	    index1 = to_string(j);
 	}
 	if (!find) {
 	    return false;
 	}
-	i++;
-	index0 = to_string(i);
     }
     return true;
 }
@@ -403,26 +451,21 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
 	return true;
     }
     
-    // Loop through subacc1's pending transaction
-    BSONElement array = subAcc1[PENDING_ARRAY];
-    BSONElement pending;
-    int i = 0;
-    string index = to_string(i);    
-    while ((pending = array[index]).ok()) {
-	BSONElement p1 = pending[PLAYER1];
-	if (p1.ok()) {
-	    TransactionInfo info1;
-	    makeInfoFromTransaction(pending, info1);
-	    if (matchRequest(info, info1)) {
-		// Remove pending
-		string accID = subAcc0[SUB_ACC_ID_FIELD].toString(false);
-		getRidOfQuote(accID);
-		removePendingTransaction(accID, info1);
-		return true;
-	    }
+    vector<BSONElement> pendingArr = subAcc1[PENDING_ARRAY].Array();
+    for (vector<BSONElement>::iterator it = pendingArr.begin() + 1; 
+	 it != pendingArr.end(); 
+	 ++it){
+	TransactionInfo info1;
+	makeInfoFromTransaction(*it, info1);
+	if (matchRequest(info, info1)) {
+	    // Remove pending
+	    string accId = subAcc0[SUB_ACC_ARRAY_FILED].toString(false);
+	    getRidOfQuote(accId);
+	    removePendingTransaction(accId, info1);
+	    return true;
 	}
-    }        
-    
+    }
+
     return false;
 }
 
@@ -486,7 +529,7 @@ void addPendingTransaction(const string &accID, const TransactionInfo &info) {
     BSONObjBuilder q;
     q.append("$push", p.obj());
     
-    conn.update(db_ns, query.obj(), q.obj());
+    conn->update(db_ns, query.obj(), q.obj());
 }
 
 void removePendingTransaction(const string &accID, const TransactionInfo &info) {
@@ -505,14 +548,21 @@ void removePendingTransaction(const string &accID, const TransactionInfo &info) 
     BSONObjBuilder q;
     q.append("$pull", p.obj());
     
-    conn.update(db_ns, query.obj(), q.obj());
+    conn->update(db_ns, query.obj(), q.obj());
 }
 
 bool hasPendingTransaction(const string &accId, const TransactionInfo &info) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, accId);
-    query.append(PENDING_ARRAY, info);
-    BSONObj bson = conn.findOne(db_ns, query.obj());
+    BSONObjBuilder t;
+    t.append(PLAYER0, info.id0);
+    t.append(PLAYER1, info.id1);
+    t.append(SUBACC0, info.subaccountId0);
+    t.append(SUBACC1, info.subaccountId1);
+    t.append(ITEMLIST0, info.itemsId0);
+    t.append(ITEMLIST1, info.itemsId1);
+    query.append(PENDING_ARRAY, t.obj());
+    BSONObj bson = conn->findOne(db_ns, query.obj());
     return !bson.isEmpty();
 }
 
@@ -567,7 +617,7 @@ void addCompletedTransaction(const TransactionInfo &info, int flag) {
     BSONObjBuilder q;
     q.append("$push", p.obj());
     
-    conn.update(db_ns, query.obj(), q.obj());
+    conn->update(db_ns, query.obj(), q.obj());
 }
 
 // Reverse ids in info 
@@ -616,7 +666,7 @@ void updateItemArray(const string method, const string &accID,
     BSONObjBuilder b;
     b.append(method, a.obj());
         
-    conn.update(db_ns, query.obj(), b.obj());        
+    conn->update(db_ns, query.obj(), b.obj());        
 }
 
 // Check if id is global id
@@ -628,7 +678,7 @@ bool isGlobalAccount(const string &id) {
 void getAccountInfo(const string &id) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
-    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    BSONObj accInfo = conn->findOne(db_ns, query.obj());
     
     if (accInfo.isEmpty()) {
 	error("Account doesn't exist");
@@ -641,7 +691,7 @@ void getAccountInfo(const string &id) {
 void getSubAccountInfo(const string &id, const string &subAccountIndex) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
-    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    BSONObj accInfo = conn->findOne(db_ns, query.obj());
     
     BSONObj subInfo;
     
@@ -650,13 +700,13 @@ void getSubAccountInfo(const string &id, const string &subAccountIndex) {
 	return;
     }
 
-    error("Sub account doesn't exist");
+    error("Sub account doesn't exist.");
 }
 
 void getTransactionHistory(const string &id) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
-    BSONObj accInfo = conn.findOne(db_ns, query.obj());
+    BSONObj accInfo = conn->findOne(db_ns, query.obj());
     
     string history = accInfo[TRANSACTION_HISTORY].toString(false);
 
@@ -679,9 +729,40 @@ void addAccount(const string &username) {
     acc.append(GROUP_ACC_FIELD, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
-    conn.insert(db_ns, obj);
+    cout << "insert " << db_ns << " " << obj << endl;
+    conn->insert(db_ns, obj);
+    cout << conn->findOne(db_ns, obj) << endl;
 
     string result("{message:\"Added account\"}");
+    sendJson(result);
+}
+
+void removeAccount(const string &id) {
+    BSONObj accInfo = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
+
+    cout << accInfo << endl;
+    if (accInfo.isEmpty()) {
+	error("Account doesn't exist.");
+    }
+
+    BSONElement subArray = accInfo[SUB_ACC_ARRAY_FILED];
+    
+    if (subArray.ok()) {
+	vector<BSONElement> elem = subArray.Array();
+	for (vector<BSONElement>::iterator it = elem.begin() + 1; 
+	     it != elem.end(); 
+	     ++it){
+	    BSONElement subId = (*it)[OBJ_ID];
+
+	    //clearSubAccount(subId); subId need to be changed
+	    
+	    conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << subId));	    
+	}
+    }
+
+    conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
+
+    string result("{message:\"Removed account\"}");
     sendJson(result);
 }
 
@@ -693,7 +774,7 @@ void addSubAccount(const string &id) {
     sub.append(ITEM_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     sub.append(PENDING_ARRAY, EMPTY_JSON_ARRAY);
     BSONObj obj = sub.obj();
-    conn.insert(db_ns, obj);
+    conn->insert(db_ns, obj);
     
     // Insert subid into sub acc array
     string subid = obj["_id"].toString(false);
@@ -701,24 +782,40 @@ void addSubAccount(const string &id) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id); 
 
-    conn.arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
+    conn->arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
 
     string result("{message:\"Added sub account\"}");
     sendJson(result);
 }
 
 // Remove a sub account from account
-void removeSubAccount(const string &subid, const string &id) {
+void removeSubAccount(const string &subId, const string &id) {
     BSONObjBuilder query;
-    query.append(SUB_ACC_ID_FIELD, subid);
+    query.append(SUB_ACC_ID_FIELD, subId);
     
     // remove sub account from database
-    conn.remove(db_ns, query.obj());   
+    clearSubAccount(subId);
+    conn->remove(db_ns, query.obj());   
     // remove from user's group array
-    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subid);    
+    conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subId);
+    
 
     string result("{message:\"Removed sub account\"}");
     sendJson(result);
+}
+
+void clearSubAccount(const string &subId) {
+    BSONObj subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD <<  subId));
+    
+    if (!subAcc.isEmpty()) {
+	vector<BSONElement> itemArr = subAcc[ITEM_ARRAY_FIELD].Array();
+	for (vector<BSONElement>::iterator it = itemArr.begin() + 1; 
+	     it != itemArr.end(); 
+	     ++it){
+	    BSONElement itemId = (*it)[OBJ_ID];
+	    conn->remove(db_ns, QUERY(OBJ_ID << itemId));
+	}
+    }
 }
 
 // Create a new group account, using user id as the first admin
@@ -732,17 +829,48 @@ void createGroup(const string &id) {
     group.append(MEMBER_ARRAY_FIELD, EMPTY_JSON_ARRAY);
 
     BSONObj obj = group.obj();
-    conn.insert(db_ns, obj);
+    conn->insert(db_ns, obj);
 
     // Insert group id into group array
     string gid = obj["_id"].toString(false);
     getRidOfQuote(gid);
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
-    conn.arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
+    conn->arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
 
     string result("{message:\"Created Group\"}");
     sendJson(result);
+}
+
+void destoryGroup(const string &gid) {
+    BSONObj group = conn->findOne(db_ns, QUERY(GROUP_ID << gid));
+    if (group.isEmpty()) {
+	error("Group doesn't exist.");
+    }
+    
+    BSONElement accounts;
+    accounts = group[MEMBER_ARRAY_FIELD];
+    if (accounts.ok()) {
+	vector<BSONElement> memberArr = accounts[ITEM_ARRAY_FIELD].Array();
+	for (vector<BSONElement>::iterator it = memberArr.begin() + 1; 
+	     it != memberArr.end(); 
+	     ++it){
+	    BSONElement id = (*it)[OBJ_ID];
+	    conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
+	}
+    }
+    accounts = group[ADMIN_ARRAY_FIELD];
+    if (accounts.ok()) {
+	vector<BSONElement> adminArr = accounts[ITEM_ARRAY_FIELD].Array();
+	for (vector<BSONElement>::iterator it = adminArr.begin() + 1; 
+	     it != adminArr.end(); 
+	     ++it){
+	    BSONElement id = (*it)[OBJ_ID];
+	    conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
+	}
+    }
+    
+    conn->remove(db_ns, QUERY(GROUP_ID << gid));
 }
 
 // Add group member
@@ -750,7 +878,7 @@ void addGroupMember(const string &gid, const string &id) {
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+    conn->arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
     
     string result("{message:\"Added Group Member\"}");
     sendJson(result);
@@ -760,29 +888,29 @@ void removeGroupMember(const string &gid, const string &id) {
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
     
-    conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
-    conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
+    conn->arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+    conn->arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
    
     // remove from user's group array
-    conn.arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
+    conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << id), GROUP_ACC_FIELD, gid);
 
     string result("{message:\"Removed Group Member\"}");
     sendJson(result);
 }
 
-void changePermission(const string &gid, const string &id, int permission) {
+void changeGroupPermission(const string &gid, const string &id, int permission) {
     BSONObjBuilder query;
     query.append(GROUP_ID, gid);
 
     switch(permission) {
     case 1:
-	conn.arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
-	conn.arrayPush(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
+	conn->arrayPull(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn->arrayPush(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
 	break;
     case 0:
     default:
-	conn.arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
-	conn.arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
+	conn->arrayPush(db_ns, query.obj(), MEMBER_ARRAY_FIELD, id);
+	conn->arrayPull(db_ns, query.obj(), ADMIN_ARRAY_FIELD, id);
 	break;
     }
     string result("{message:\"Changed permission\"}");
@@ -791,13 +919,12 @@ void changePermission(const string &gid, const string &id, int permission) {
 
 // Send back error message
 void error(const string &msg) {
-    cout << "Content-type: application/json; charset=utf-8\n\n";
-    cout << "{result:\"error\",message:\"" << msg << "\"}\n";
+    cout << "{status:\"error\",message:\"" << msg << "\"}\n";
+    exit(0);
 }
 
 void sendJson(const string &jsonString) {
-    cout << "Content-type: application/json; charset=utf-8\n\n";
-    cout << "{result:\"success\",content:" << jsonString << "}\n";
+    cout << "{status:\"success\",content:" << jsonString << "}\n";
 }
 
 
