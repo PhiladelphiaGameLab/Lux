@@ -36,7 +36,10 @@ CGI::CGI() : argCnt(0){
     std::string request_method = CGI::getEnvStr("REQUEST_METHOD");
     std::string query_string = CGI::getEnvStr("QUERY_STRING");
     std::string content_length = CGI::getEnvStr("CONTENT_LENGTH");
-
+    
+    //request_method = "GET";
+    //query_string = "method=removeAccount&id0=53a1eabed7b3c1f977e66bf7";
+    
     int query_length = 0;
 
     // Check request_method variable
@@ -56,11 +59,11 @@ CGI::CGI() : argCnt(0){
     }
     else if (request_method.compare("POST") == 0) {
 	// Handle POST requests
-	if (content_length.compare("") != 0) {
-	    int post_length;
-	    post_length = atoi(content_length.c_str());
-	    // Need to figure out how the content is organized in POST method
-	    return;
+	if (content_length.compare("") != 0) {	    
+	    char buf[1024];
+	    query_length = atoi(content_length.c_str());
+	    fread(buf, 1, query_length, stdin);
+	    query_string = buf;
 	}
     }
     /*
@@ -82,7 +85,7 @@ CGI::CGI() : argCnt(0){
     */
 
     // Separate query_string into arguments
-    int start_name, end_name, start_value, end_value = 0;
+    int start_name, end_name, start_value, end_value = -1;
     while (end_value < query_length){
 	// Find argument name
 	
@@ -106,7 +109,7 @@ CGI::CGI() : argCnt(0){
 	values[argCnt] = decode_string(md);
 
 	argCnt++;
-    }   
+    }
 }
 
 // done
@@ -121,16 +124,16 @@ std::string CGI::get(const std::string &name) {
     int i;
     for (i=0; i < argCnt; i++) {
 	if (name.compare(names[i]) == 0) {
-	    std::string ret = "";
-	    ret.push_back('\"');
-	    ret += values[i];
-	    ret.push_back('\"');
-	    return ret;
+	    return values[i];
 	}
     }
     
     if(JSONin.hasElement(name.c_str())) {
-        return JSONin[name].toString();
+	std::string ele = JSONin[name].toString(false);
+	if (ele[0] == '\"') {
+	    ele = ele.substr(1, ele.size() - 2);
+	}
+	return ele;
     }
     return "";
 }
