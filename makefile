@@ -2,7 +2,7 @@ CC = g++
 Warnings = 
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -m64 -std=c++11 -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
+CFLAGS = -m64 -std=c++11 -I./lib/luxsocket -I./output -I./cgi_bin -I./src/cgi_bin -I./src/classes/static -I./src/classes/instanceable -I./src/processes $(Warnings) 
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 AuthLink= ./CGI.o ./MD5.o ./Authenticate.o
 InitLink= $(AuthLink) ./FindBGT.o ./HMBL.o
@@ -15,6 +15,7 @@ BGTSpawner = ./src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o ./output/BGTSpa
 
 Authen = -c ./src/classes/static/Authenticate.cpp
 FindBGT = -c ./src/classes/static/FindBGT.cpp
+Chat = -c ./src/tests/ChatTest/ChatHttp.cpp
 MD5 = -c ./src/classes/static/MD5.cpp
 CGI = -c ./src/classes/instanceable/CGI.cpp
 HMBL= -c ./src/classes/instanceable/HMBL.cpp
@@ -35,7 +36,7 @@ mkdir:
 apache: 
 
 # Build All the Files!
-build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
+build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT Chat DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
 
 # Working:
 MD5:
@@ -58,6 +59,9 @@ HMBL:
 
 FindBGT:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(FindBGT) $(LIB)
+
+Chat:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(Chat) $(LIB)
 
 DBWriter:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(DBWriter) $(LIB)
@@ -90,7 +94,3 @@ run:
 clean:
 	rm -rf ./output
 	rm -rf ./cgi_bin
-
-
-
-
