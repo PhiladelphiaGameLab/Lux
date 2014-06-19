@@ -28,14 +28,14 @@ using namespace mongo;
 struct TransactionInfo {
     string id0; 
     string id1;
-    string subaccountId0;
-    string subaccountId1;
+    string subId0;
+    string subId1;
     string itemsId0;
     string itemsId1;
     TransactionInfo(string i0, string i1,
                     string si0, string si1,
                     string iti0, string iti1):
-        id0(i0), id1(i1), subaccountId0(si0), subaccountId1(si1),
+        id0(i0), id1(i1), subId0(si0), subId1(si1),
         itemsId0(iti0), itemsId1(iti1) {};
     TransactionInfo(){};
 };
@@ -53,11 +53,28 @@ const string db_ns("db.transaction");
 
 const string OBJ_ID("_id");
 
+// Account type
+const string ACC_TYPE_FILED("type");
+enum AccType{
+    ACCOUNT,
+    SUB_ACCOUNT,
+    GLOBAL_ACCOUNT,
+    GROUP_ACCOUNT
+};
+
+enum AccRelation {
+    PARENT,
+    MEMBER,
+    ADMIN,    
+};
+
+
 // Account structure
 // e.g.
 // {
 //  "_id" : "xxx", (created by mongo)
 //  "name" : username,
+//  "type" : ACCOUNT, or GLOBAL_ACCOUNT,
 //  "group" : [],
 //  "sub_acc" : [],
 //  "trans_history" : []
@@ -73,16 +90,18 @@ const string SUB_ACC_ARRAY_FILED("sub_acc_array");
 // transaction history array in account
 const string TRANSACTION_HISTORY("completed_array");
 
-
 // Sub account structure
 // e.g.
 // {
 //  "_id" : "xxx", (created by mongo)
+//  "type" : SUB_ACCOUNT,
+//  "parent" : _id (account id),
 //  "items" : [],
 //  "pending" : []
 // }
 // field name for subaccount, default is equal to account id
 const string SUB_ACC_ID_FIELD(ACC_ID_FIELD);
+const string SUB_PARENT_FIELD("parent");
 // items array in sub account
 const string ITEM_ARRAY_FIELD("items");
 // Field name of pending array
@@ -95,8 +114,10 @@ const bool LOG_SELF_TRANSACTION = false;
 // e.g.
 // {
 //  "_id" : "xxx", (created by mongo)
+//  "type" : AccType.GROUP_ACCOUNT,
 //  "admin" : [], (userids)
 //  "member" : [] (userids)
+// }
 const string GROUP_ID("_id");
 const string ADMIN_ARRAY_FIELD("admin");
 const string MEMBER_ARRAY_FIELD("member");
@@ -138,9 +159,8 @@ bool hasPendingTransaction(const string &accId, const TransactionInfo &info);
 void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info);
 bool matchRequest(const TransactionInfo &sending, 
 		  const TransactionInfo &receiving);
-void executeTransaction(const TransactionInfo &info,
-			const string &subAccId0,
-			const string &subAccId1);
+void executeTransaction(const TransactionInfo &info);
+
 void updateItemArray(const string method, const string &accID, 
 		     const string &itemIDs);
 string findTransaction(const TransactionInfo &info, int senderId);
@@ -153,28 +173,49 @@ void reverseInfo(TransactionInfo &info);
 bool isGlobalAccount(const string &id);
 void getAsset();
 void getAccountInfo(const string &id);
-void getSubAccountInfo(const string &id, const string &subaccountId);
+void getSubAccountInfo(const string &id, const string &subId);
 void getTransactionHistory(const string &id);
+
+void ensureAccountType(const BSONObj &acc, int accType);
+void ensureRelationship(const BSONObj &acc0, const BSONObj &acc1, int relation);
+bool findStringInArray(vector<BSONElement> &array, const string &str);
 void addAccount(const string &username);
 void removeAccount(const string &id);
 void addSubAccount(const string &id);
-void removeSubAccount(const string &subId, const string &id);
+void removeSubAccount(const string &id, const string &subId);
 void clearSubAccount(const string &subId);
 void createGroup(const string &id);
 void destoryGroup(const string &gid);
 void addGroupMember(const string &gid, const string &id);
 void removeGroupMember(const string &gid, const string &id);
 void changeGroupPermission(const string &gid, const string &id, int permission);
+void addItemToSubAccount(const string &subAccId, const string &itemId);
+void removeItemFromSubAccount(const string &subAccId, const string &itemId);
 void error(const string &msg);
 void sendJson(const string &jsonString);
 
-// Helper function to get rid of "" of a string
-inline void getRidOfQuote(string &str) {
+// Helper function to get rid of "" of a filed value of string
+inline string getFieldValue(const BSONObj &obj, const string &field) {
     // get rid of "" surrounding a string
     // e.g. ""hello"" -> "hello"
+    string str = obj[field].toString(false);
     if (str[0] == '\"') {
 	str = str.substr(1, str.size() - 2);
     }
+    return str;
+}
+
+inline string getFieldValue(const BSONElement &elem, const string &field = "") {
+    // get rid of "" surrounding a string
+    // e.g. ""hello"" -> "hello"
+    string str(elem.toString(false));
+    if (field.size() > 0) {
+	str = elem[field].toString(false);
+    }
+    if (str[0] == '\"') {
+	str = str.substr(1, str.size() - 2);
+    }
+    return str;
 }
 
 inline bool timedOut() {
@@ -199,11 +240,9 @@ int main(int argc, char **argv) {
     	return 1;
     }
     */
-    
-    cout << "Content-type: application/json; charset=utf-8\n\n";
-    
-    conn = new MongoWrapper("localhost"); 
-    environment = new CGI();   
+
+    environment = new CGI();        
+    conn = new MongoWrapper("localhost");
 
     handleRequest();
 
@@ -216,34 +255,29 @@ int handleRequest() {
     if(method.compare("transaction") == 0) {
         string id0 = environment->get("id0"); //verify id0 == EUID or use EUID directly?
         string id1 = environment->get("id1");
-        string subaccountId0 = environment->get("subaccountId0");
-	string subaccountId1 = environment->get("subaccountId1");
+        string subId0 = environment->get("subId0");
+	string subId1 = environment->get("subId1");
         string itemsId0 = environment->get("itemsId0");
 	string itemsId1 = environment->get("itemsId1");
 	
-	TransactionInfo info(id0, id1, subaccountId0, 
-			     subaccountId1, itemsId0, itemsId1);	
+	TransactionInfo info(id0, id1,
+			     subId0, subId1,
+			     itemsId0, itemsId1);	
 	BSONObj subAcc0, subAcc1;
 	
 	findSubAcc(info, subAcc0, subAcc1);
 	
         if (!checkItemIDs(subAcc0, (fromjson(info.itemsId0)["items"]))) {
             //failed error
-	    return -1;
+	    error("Items don't match.");
         }
 	if (!checkItemIDs(subAcc1, (fromjson(info.itemsId1)["items"]))) {
-	    return -1;
+	    error("Items don't match.");
 	}
 	
-	string subid0 = subAcc0[SUB_ACC_ID_FIELD].toString(false);
-	getRidOfQuote(subid0);
-	string subid1 = subAcc1[SUB_ACC_ID_FIELD].toString(false);
-	getRidOfQuote(subid1);
-	
-	if (subid0.compare(subid1) < 0) {
+	if (subId0.compare(subId1) < 0) {
 	    // Always let the bigger one do check match stuff
-	    string accID = subid0;
-	    getRidOfQuote(accID);
+	    string accID = subId0;
 	    addPendingTransaction(accID, info);
 	    // Sleep for some time and cancel pending this transaction
 	    this_thread::sleep_for(chrono::seconds(TOTAL_TIME * 2));
@@ -265,14 +299,10 @@ int handleRequest() {
 	// several times untill time out
 	while (!timedOut()) {
 	    // Get the lastest subAcc1
-	    subAcc1 = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid1));
+	    subAcc1 = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subId1));
 
 	    if (checkMatch(info, subAcc0, subAcc1)) {
-		string subAccId0 = subAcc0[SUB_ACC_ID_FIELD].toString(false);
-		getRidOfQuote(subAccId0);
-		string subAccId1 = subAcc1[SUB_ACC_ID_FIELD].toString(false);
-		getRidOfQuote(subAccId1);
-		executeTransaction(info, subAccId0, subAccId1);
+		executeTransaction(info);
 		string result = "{message:\"Transaction successfully finished.\"}";
 		sendJson(result);		    
 		return 0;
@@ -290,21 +320,20 @@ int handleRequest() {
 	//addAccount
 	string username = environment->get("username");
 	addAccount(username);
-
     } 
     else if (method.compare("removeAccount") == 0) {
 	string id = environment->get("id0");
 	removeAccount(id);
     } 
-    else if (method.compare("addSubaccount") == 0) {
+    else if (method.compare("addSubAccount") == 0) {
         //addSubaccount
 	string id = environment->get("id0");
 	addSubAccount(id);
     }
     else if (method.compare("removeSubAccount") == 0) {
 	string id = environment->get("id0");
-        string subId = environment->get("subaccountId0");
-	removeSubAccount(subId, id);
+        string subId = environment->get("subId0");
+	removeSubAccount(id, subId);
     }
     else if (method.compare("createGroup") == 0) {
 	string id = environment->get("id0");
@@ -340,15 +369,15 @@ int handleRequest() {
     }
     else if (method.compare("getSubAccountInfo") == 0) {
 	string id = environment->get("id0");
-	string subId = environment->get("subId");
+	string subId = environment->get("subId0");
 	getSubAccountInfo(id, subId);
     }
     else if (method.compare("get") == 0) {
         //getAsset
 	
-    } 
+    }
     else {
-        return 2;
+	error("Requested method doesn't exist.");
     }
     return 0;
 }
@@ -358,18 +387,18 @@ bool findSubAcc(const TransactionInfo &info,
 		BSONObj &subAcc0, BSONObj &subAcc1) {
     BSONObj acc = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << info.id0));
     
-    if (findSubAccInAcc(acc, info.subaccountId0, subAcc0) == false) {
+    if (findSubAccInAcc(acc, info.subId0, subAcc0) == false) {
 	return false;
     }
     
     if (info.id0.compare(info.id1) == 0) {
 	// Two accounts are the same
-	if (info.subaccountId0.compare(info.subaccountId1) == 0) {
+	if (info.subId0.compare(info.subId1) == 0) {
 	    // If two sub accounts are the same, simply copy it
 	    subAcc1 = subAcc0;
 	    return true;
 	}
-	if (findSubAccInAcc(acc, info.subaccountId1, subAcc1) == false) {
+	if (findSubAccInAcc(acc, info.subId1, subAcc1) == false) {
 	    return false;		
 	}
 	else {
@@ -379,7 +408,7 @@ bool findSubAcc(const TransactionInfo &info,
     
     // Two accounts are different
     acc = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << info.id1));
-    if (findSubAccInAcc(acc, info.subaccountId1, subAcc1) == false) {
+    if (findSubAccInAcc(acc, info.subId1, subAcc1) == false) {
 	return false;
     }
     
@@ -391,6 +420,7 @@ bool findSubAcc(const TransactionInfo &info,
 // subaccounts' ids are stored in an array.
 // e.g. Account: {"_id":xxxx, "sub_acc_array":[xxx,xxx,xxx,xxx]}.
 bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
+    /*
     BSONElement subArray = acc[SUB_ACC_ARRAY_FILED];
     if (!subArray.ok()) {
 	// If account doesn't have sub accounts, return false
@@ -402,11 +432,11 @@ bool findSubAccInAcc(const BSONObj &acc, const string &index, BSONObj &subAcc) {
 	return false;
     }
     
-    string subid = id.toString(false);
-    getRidOfQuote(subid);
+    string subId = getFieldValue(subArray, index);
+
     // use this sub id to find sub account in the db
-    subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << subid));
-    
+    subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subid)));
+    */
     return true;
 }
 
@@ -459,8 +489,7 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
 	makeInfoFromTransaction(*it, info1);
 	if (matchRequest(info, info1)) {
 	    // Remove pending
-	    string accId = subAcc0[SUB_ACC_ARRAY_FILED].toString(false);
-	    getRidOfQuote(accId);
+	    string accId = getFieldValue(subAcc0, SUB_ACC_ARRAY_FILED);
 	    removePendingTransaction(accId, info1);
 	    return true;
 	}
@@ -470,18 +499,12 @@ bool checkMatch(const TransactionInfo &info, BSONObj &subAcc0, BSONObj &subAcc1)
 }
 
 void makeInfoFromTransaction(BSONElement &pending, TransactionInfo &info) {
-    info.id0 = pending[PLAYER0].toString(false);
-    getRidOfQuote(info.id0);
-    info.id1 = pending[PLAYER1].toString(false);
-    getRidOfQuote(info.id1);
-    info.subaccountId0 = pending[SUBACC0].toString(false);
-    getRidOfQuote(info.subaccountId0);
-    info.subaccountId1 = pending[SUBACC1].toString(false);
-    getRidOfQuote(info.subaccountId1);
-    info.itemsId0 = pending[ITEMLIST0].toString(false);
-    getRidOfQuote(info.itemsId0);
-    info.itemsId1 = pending[ITEMLIST1].toString(false);    
-    getRidOfQuote(info.itemsId1);
+    info.id0 = getFieldValue(pending, PLAYER0);
+    info.id1 = getFieldValue(pending, PLAYER1);
+    info.subId0 = getFieldValue(pending, SUBACC0);
+    info.subId1 = getFieldValue(pending, SUBACC1);
+    info.itemsId0 = getFieldValue(pending, ITEMLIST0);
+    info.itemsId1 = getFieldValue(pending, ITEMLIST1);
 }
 
 bool matchRequest(const TransactionInfo &sending, 
@@ -489,8 +512,8 @@ bool matchRequest(const TransactionInfo &sending,
     int result = 0;
     result += sending.id0.compare(receiving.id1);
     result += sending.id1.compare(receiving.id0);
-    result += sending.subaccountId0.compare(receiving.subaccountId1);
-    result += sending.subaccountId1.compare(receiving.subaccountId0);
+    result += sending.subId0.compare(receiving.subId1);
+    result += sending.subId1.compare(receiving.subId0);
     result += sending.itemsId0.compare(receiving.itemsId1);
     result += sending.itemsId1.compare(receiving.itemsId0);
     
@@ -502,8 +525,8 @@ bool matchRequest(const TransactionInfo &sending,
 // Here simply put all information in an json object
 // e.g. { p0 : id0,
 //        p1 : id1,
-//        s0 : subaccountId0,
-//        s1 : subaccountId1,
+//        s0 : subId0,
+//        s1 : subId1,
 //        items0 : itemsId0,
 //        items1 : itemsId1,
 //        createTime : time
@@ -519,8 +542,8 @@ void addPendingTransaction(const string &accID, const TransactionInfo &info) {
     BSONObjBuilder t;
     t.append(PLAYER0, info.id0);
     t.append(PLAYER1, info.id1);
-    t.append(SUBACC0, info.subaccountId0);
-    t.append(SUBACC1, info.subaccountId1);
+    t.append(SUBACC0, info.subId0);
+    t.append(SUBACC1, info.subId1);
     t.append(ITEMLIST0, info.itemsId0);
     t.append(ITEMLIST1, info.itemsId1);
     t.append(CREATE_TIME, getCurrentTime());
@@ -539,8 +562,8 @@ void removePendingTransaction(const string &accID, const TransactionInfo &info) 
     BSONObjBuilder t;
     t.append(PLAYER0, info.id0);
     t.append(PLAYER1, info.id1);
-    t.append(SUBACC0, info.subaccountId0);
-    t.append(SUBACC1, info.subaccountId1);
+    t.append(SUBACC0, info.subId0);
+    t.append(SUBACC1, info.subId1);
     t.append(ITEMLIST0, info.itemsId0);
     t.append(ITEMLIST1, info.itemsId1);
     BSONObjBuilder p;
@@ -557,8 +580,8 @@ bool hasPendingTransaction(const string &accId, const TransactionInfo &info) {
     BSONObjBuilder t;
     t.append(PLAYER0, info.id0);
     t.append(PLAYER1, info.id1);
-    t.append(SUBACC0, info.subaccountId0);
-    t.append(SUBACC1, info.subaccountId1);
+    t.append(SUBACC0, info.subId0);
+    t.append(SUBACC1, info.subId1);
     t.append(ITEMLIST0, info.itemsId0);
     t.append(ITEMLIST1, info.itemsId1);
     query.append(PENDING_ARRAY, t.obj());
@@ -607,8 +630,8 @@ void addCompletedTransaction(const TransactionInfo &info, int flag) {
     BSONObjBuilder t;
     t.append(PLAYER0, tmp.id0);
     t.append(PLAYER1, tmp.id1);
-    t.append(SUBACC0, tmp.subaccountId0);
-    t.append(SUBACC1, tmp.subaccountId1);
+    t.append(SUBACC0, tmp.subId0);
+    t.append(SUBACC1, tmp.subId1);
     t.append(ITEMLIST0, tmp.itemsId0);
     t.append(ITEMLIST1, tmp.itemsId1);
     t.append(CREATE_TIME, getCurrentTime());
@@ -623,25 +646,23 @@ void addCompletedTransaction(const TransactionInfo &info, int flag) {
 // Reverse ids in info 
 void reverseInfo(TransactionInfo &info) {
     string id = info.id0;
-    string subid = info.subaccountId0;
+    string subid = info.subId0;
     string items = info.itemsId0;
     info.id0 = info.id1;
-    info.subaccountId0 = info.subaccountId1;
+    info.subId0 = info.subId1;
     info.itemsId0 = info.itemsId1;
     info.id1 = id;
-    info.subaccountId1 = subid;
+    info.subId1 = subid;
     info.itemsId1 = items;
 }
 
 
-void executeTransaction(const TransactionInfo &info,
-			const string &subAccId0,
-			const string &subAccId1) {
-    updateItemArray("$pullAll", subAccId0, info.itemsId0);
-    updateItemArray("$pullAll", subAccId1, info.itemsId1);
-    updateItemArray("$pushAll", subAccId0, info.itemsId1);
-    updateItemArray("$pushAll", subAccId1, info.itemsId0);
-    removePendingTransaction(subAccId1, info);
+void executeTransaction(const TransactionInfo &info) {
+    updateItemArray("$pullAll", info.subId0, info.itemsId0);
+    updateItemArray("$pullAll", info.subId1, info.itemsId1);
+    updateItemArray("$pushAll", info.subId0, info.itemsId1);
+    updateItemArray("$pushAll", info.subId1, info.itemsId0);
+    removePendingTransaction(info.subId1, info);
 }
 
 // Update items array
@@ -677,7 +698,7 @@ bool isGlobalAccount(const string &id) {
 
 void getAccountInfo(const string &id) {
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);
+    query.append(ACC_ID_FIELD, OID(id));
     BSONObj accInfo = conn->findOne(db_ns, query.obj());
     
     if (accInfo.isEmpty()) {
@@ -688,18 +709,18 @@ void getAccountInfo(const string &id) {
     }
 }
 
-void getSubAccountInfo(const string &id, const string &subAccountIndex) {
-    BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id);
-    BSONObj accInfo = conn->findOne(db_ns, query.obj());
+void getSubAccountInfo(const string &id, const string &subId) {    
+    BSONObj subInfo = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
     
-    BSONObj subInfo;
-    
-    if (findSubAccInAcc(accInfo, subAccountIndex, subInfo)) {
+    int type = atoi(getFieldValue(subInfo, ACC_TYPE_FILED).c_str());
+    if (type == SUB_ACCOUNT) {
+	string pId = getFieldValue(subInfo, SUB_PARENT_FIELD);
+	if (pId.compare(id) != 0) {
+	    error("Sub account doesn't belong to account.");
+	}
 	sendJson(subInfo.jsonString());
 	return;
     }
-
     error("Sub account doesn't exist.");
 }
 
@@ -708,9 +729,7 @@ void getTransactionHistory(const string &id) {
     query.append(ACC_ID_FIELD, id);
     BSONObj accInfo = conn->findOne(db_ns, query.obj());
     
-    string history = accInfo[TRANSACTION_HISTORY].toString(false);
-
-    getRidOfQuote(history);
+    string history = getFieldValue(accInfo, TRANSACTION_HISTORY);
     
     // TODO: send history back to client
     string result("{message:\"");
@@ -719,28 +738,63 @@ void getTransactionHistory(const string &id) {
     sendJson(result);
 }
 
+void ensureAccountType(const BSONObj &acc, int accType) {
+    int type = atoi(getFieldValue(acc, ACC_TYPE_FILED).c_str());
+    if (type != accType) {
+	error("Account type error");
+    }
+}
+
+void ensureRelationship(const BSONObj &acc0, const BSONObj &acc1, int relation) {
+    switch (relation) {
+	case PARENT:
+	    string id0 = acc0[OBJ_ID].OID().toString();
+	    string id1 = acc1[OBJ_ID].OID().toString();
+	    if (id0.compare(getFieldValue(acc1, SUB_PARENT_FIELD)) != 0) {
+		error("Sub account doesn't belong to account.");
+	    }
+	    vector<BSONElement> subArray = acc0[SUB_ACC_ARRAY_FILED].Array();
+	    if (!findStringInArray(subArray, id1)) {
+		error("Sub account doesn't belong to account.");
+	    }	    
+	    break;
+    }
+}
+
+bool findStringInArray(vector<BSONElement> &array, const string &str) {
+    for (vector<BSONElement>::iterator it = array.begin() + 1; 
+	 it != array.end(); 
+	 ++it){
+	string value = getFieldValue(*it);
+	if (value.compare(str) == 0) {
+	    return true;
+	}
+    }
+    return false;
+}
 
 // Create a new account
 void addAccount(const string &username) {
     BSONObjBuilder acc;
     acc.genOID();
     acc.append(USER_NAME_FIELD, username);
+    acc.append(ACC_TYPE_FILED, ACCOUNT);
     acc.append(SUB_ACC_ARRAY_FILED, EMPTY_JSON_ARRAY);
     acc.append(GROUP_ACC_FIELD, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
-    cout << "insert " << db_ns << " " << obj << endl;
-    conn->insert(db_ns, obj);
-    cout << conn->findOne(db_ns, obj) << endl;
 
-    string result("{message:\"Added account\"}");
-    sendJson(result);
+    conn->insert(db_ns, obj);
+
+    BSONObjBuilder result;
+    result.append("message", "Added account.");
+    result.append(obj[OBJ_ID]);
+    sendJson(result.obj().jsonString());
 }
 
 void removeAccount(const string &id) {
     BSONObj accInfo = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
 
-    cout << accInfo << endl;
     if (accInfo.isEmpty()) {
 	error("Account doesn't exist.");
     }
@@ -752,67 +806,81 @@ void removeAccount(const string &id) {
 	for (vector<BSONElement>::iterator it = elem.begin() + 1; 
 	     it != elem.end(); 
 	     ++it){
-	    BSONElement subId = (*it)[OBJ_ID];
+	    string subId = (*it)[OBJ_ID].OID().toString();
 
-	    //clearSubAccount(subId); subId need to be changed
+	    clearSubAccount(subId);
 	    
-	    conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << subId));	    
+	    conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
 	}
     }
 
     conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
-
-    string result("{message:\"Removed account\"}");
-    sendJson(result);
+    
+    BSONObjBuilder result;
+    result.append("message", "Removed account.");
+    result.append(OBJ_ID, OID(id));
+    sendJson(result.obj().jsonString());
 }
 
 // Create a new sub account
 void addSubAccount(const string &id) {
     // Create a sub account
     BSONObjBuilder sub;
-    sub.genOID();
+    sub.genOID();    
+    sub.append(ACC_TYPE_FILED, SUB_ACCOUNT);
+    sub.append(SUB_PARENT_FIELD, id);
     sub.append(ITEM_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     sub.append(PENDING_ARRAY, EMPTY_JSON_ARRAY);
     BSONObj obj = sub.obj();
     conn->insert(db_ns, obj);
     
     // Insert subid into sub acc array
-    string subid = obj["_id"].toString(false);
-    getRidOfQuote(subid);
+    string subId(obj["_id"].OID().toString());
+
     BSONObjBuilder query;
-    query.append(ACC_ID_FIELD, id); 
+    query.append(ACC_ID_FIELD, OID(id));
 
-    conn->arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subid);
-
-    string result("{message:\"Added sub account\"}");
-    sendJson(result);
+    conn->arrayPush(db_ns, query.obj(), SUB_ACC_ARRAY_FILED, subId);
+    
+    BSONObjBuilder result;
+    result.append("message", "Added sub account");
+    result.append(OBJ_ID, subId);
+    sendJson(result.obj().jsonString());
 }
 
 // Remove a sub account from account
-void removeSubAccount(const string &subId, const string &id) {
-    BSONObjBuilder query;
-    query.append(SUB_ACC_ID_FIELD, subId);
+void removeSubAccount(const string &id, const string &subId) {
+    BSONObj accInfo = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
+    BSONObj subInfo = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
+    
+    ensureAccountType(accInfo, ACCOUNT);
+    ensureAccountType(subInfo, SUB_ACCOUNT);
+    ensureRelationship(accInfo, subInfo, PARENT);
     
     // remove sub account from database
-    clearSubAccount(subId);
-    conn->remove(db_ns, query.obj());   
+    //clearSubAccount(subId);
+    conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
     // remove from user's group array
-    conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << id), SUB_ACC_ARRAY_FILED, subId);
-    
 
-    string result("{message:\"Removed sub account\"}");
-    sendJson(result);
+    // bug here array pull
+    conn->arrayPull(db_ns, QUERY(ACC_ID_FIELD << OID(id)),
+		    SUB_ACC_ARRAY_FILED, subId);
+
+    BSONObjBuilder result;
+    result.append("message", "Removed sub account");
+    result.append(OBJ_ID, subId);
+    sendJson(result.obj().jsonString());
 }
 
 void clearSubAccount(const string &subId) {
-    BSONObj subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD <<  subId));
+    BSONObj subAcc = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD <<  OID(subId)));
     
     if (!subAcc.isEmpty()) {
 	vector<BSONElement> itemArr = subAcc[ITEM_ARRAY_FIELD].Array();
 	for (vector<BSONElement>::iterator it = itemArr.begin() + 1; 
 	     it != itemArr.end(); 
 	     ++it){
-	    BSONElement itemId = (*it)[OBJ_ID];
+	    string itemId((*it)[OBJ_ID].OID().toString());
 	    conn->remove(db_ns, QUERY(OBJ_ID << itemId));
 	}
     }
@@ -822,18 +890,16 @@ void clearSubAccount(const string &subId) {
 void createGroup(const string &id) {
     BSONObjBuilder group;
     group.genOID();
-    string admin("[");
-    admin += id;
-    admin += "]";
-    group.append(ADMIN_ARRAY_FIELD, admin);
+    group.append(ACC_TYPE_FILED, GROUP_ACCOUNT);
+    group.append(ADMIN_ARRAY_FIELD, BSON_ARRAY("array" << id));
     group.append(MEMBER_ARRAY_FIELD, EMPTY_JSON_ARRAY);
 
     BSONObj obj = group.obj();
     conn->insert(db_ns, obj);
 
     // Insert group id into group array
-    string gid = obj["_id"].toString(false);
-    getRidOfQuote(gid);
+    string gid(obj["_id"].OID().toString());
+
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, id);
     conn->arrayPush(db_ns, query.obj(), GROUP_ACC_FIELD, gid);
@@ -917,6 +983,16 @@ void changeGroupPermission(const string &gid, const string &id, int permission) 
     sendJson(result);
 }
 
+void addItemToSubAccount(const string &subAccId, const string &itemId) {
+    conn->arrayPush(db_ns, QUERY(SUB_ACC_ID_FIELD << subAccId), 
+		    ITEM_ARRAY_FIELD, itemId);
+}
+
+void removeItemFromSubAccount(const string &subAccId, const string &itemId) {
+    conn->arrayPull(db_ns, QUERY(SUB_ACC_ID_FIELD << subAccId), 
+		    ITEM_ARRAY_FIELD, itemId);
+}
+
 // Send back error message
 void error(const string &msg) {
     cout << "{status:\"error\",message:\"" << msg << "\"}\n";
@@ -926,5 +1002,3 @@ void error(const string &msg) {
 void sendJson(const string &jsonString) {
     cout << "{status:\"success\",content:" << jsonString << "}\n";
 }
-
-
