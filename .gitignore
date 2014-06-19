@@ -2,7 +2,12 @@
 *.slo
 *.lo
 *.o
+*.out
 *.obj
+
+# CGI Files
+*.cgi
+*.pl
 
 # Compiled Dynamic libraries
 *.so
