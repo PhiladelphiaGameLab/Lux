@@ -120,9 +120,9 @@ void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
 			     const std::string &array_field_name,
 			     const std::string &elements,
 			     bool pullAll) {
-    std::string method("pull");
+    std::string method("$pull");
     if (pullAll) {
-	method = "$pushAll";
+	method = "$pullAll";
     }
     arrayUpdate(ns, q, array_field_name, elements, method);
 }
