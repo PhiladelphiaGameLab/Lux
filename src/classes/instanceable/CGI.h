@@ -67,12 +67,13 @@ class CGI{
 	std::string getJSON();
     protected:
     private:
+	static const int MAX_LENGTH = 2048;
         static const int MAX_ARGS = 10;
-        int argCnt;
-        std::string names[MAX_ARGS];
-        std::string values[MAX_ARGS];
-        mongo::BSONObj JSONin;
-	std::string json;
+        int _argCnt;
+        std::string _names[MAX_ARGS];
+        std::string _values[MAX_ARGS];
+        mongo::BSONObj _jsonIn;
+	std::string _json;
 };
 
 #endif // CGI_H
