@@ -13,7 +13,6 @@ Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin
 Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi
 BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
 
-
 Authen = -c ../src/classes/static/Authenticate.cpp
 FindBGT = -c ../src/classes/static/FindBGT.cpp
 MD5 = -c ../src/classes/static/MD5.cpp
@@ -22,7 +21,7 @@ HMBL= -c ../src/classes/instanceable/HMBL.cpp
 socket = -c ../lib/luxsocket/socket.cpp
 socketB = -c ../lib/luxsocket/luxSocket.cpp
 DBWriter = -c ../src/processes/DBWriter.cpp
-DBWriter = -c ../src/processes/Chat.cpp
+DBWriter = -c ../src/processes/ChatHttp.cpp
 SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp
 battleground = -c ../src/processes/battleground.cpp
 sendupdate = -c ../src/processes/sendupdate.cpp
