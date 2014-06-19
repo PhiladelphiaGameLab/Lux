@@ -26,7 +26,8 @@ std::string CGI::decodeString(const std::string &str) {
    return result;
 }
 
-CGI::CGI() : argCnt(0){
+CGI::CGI(const std::string contentType) : _argCnt(0){
+    std::cout << "Content-type: " << contentType << " charset=utf-8\n\n";
     // done
     // Initialize private variables
     for (int pos = 0; pos < MAX_ARGS; pos++){
@@ -72,7 +73,7 @@ CGI::CGI() : argCnt(0){
 	    for (int pos = 0; pos < post_length; pos++){
 		postString[pos] = fgetc(stdin);
 	    }
-	    _JsonIn = mongo::fromjson(postString, postLength);
+	    _jsonIn = mongo::fromjson(postString, postLength);
 	}
 	free(postString);
     }
@@ -107,8 +108,8 @@ CGI::CGI() : argCnt(0){
 
 // done
 mongo::BSONElement CGI::get(const std::string &name, bool bson) {
-    if (_JsonIn.hasElement(name.c_str())) {
-	return _JsonIn[name];
+    if (_jsonIn.hasElement(name.c_str())) {
+	return _jsonIn[name];
     }
     return mongo::BSONElement();
 }
@@ -121,8 +122,8 @@ std::string CGI::get(const std::string &name) {
 	}
     }
     
-    if(_JsonIn.hasElement(name.c_str())) {
-	std::string ele = _JsonIn[name].toString(false);
+    if(_jsonIn.hasElement(name.c_str())) {
+	std::string ele = _jsonIn[name].toString(false);
 	if (ele[0] == '\"') {
 	    ele = ele.substr(1, ele.size() - 2);
 	}

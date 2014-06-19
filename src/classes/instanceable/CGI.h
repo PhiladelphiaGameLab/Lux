@@ -18,13 +18,13 @@
 
 class CGI{
     public:
-        CGI();
+        CGI(const std::string contentType = "application/json");
 
 	// Returns a enviroment string
         static std::string getEnvStr(const std::string &key);
 
 	// Decodes a value field of query string 
-        std::string decode_string(const std::string &str);
+        std::string decodeString(const std::string &str);
 
 	// Returns the value of a field in string format
         std::string get(const std::string &name);
