@@ -1,5 +1,5 @@
 CC = cd ./output; g++
-PROJ_DIR = /home/ec2-user/Alpha
+PROJ_DIR = /home/ec2-user/Justin
 Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
