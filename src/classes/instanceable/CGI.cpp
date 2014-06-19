@@ -106,6 +106,8 @@ CGI::CGI() : argCnt(0){
 	values[argCnt] = decode_string(md);
 
 	argCnt++;
+	std::cout << "Content-type: text/html\n\n" << std::endl;
+
     }   
 }
 

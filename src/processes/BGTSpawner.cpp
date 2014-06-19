@@ -1,6 +1,7 @@
 #include "BGTSpawner.h"
 
 bool spawnNewBgt(int bgtID) {
+    std::cout << sizeof(mongo::BSONObj) << std::endl;
     //connect to the database
     mongo::DBClientConnection c;
     c.connect("localhost");

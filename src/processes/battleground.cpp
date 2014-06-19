@@ -28,25 +28,24 @@ template class HMBL<sockaddr_in>;
 void *BattleGround::spawn(void* param){
         std::cout << "HELP! Battleground : 1 " << std::endl;
 	struct s_bgt_params_in *param_in;
-	cout << "before cast" << endl;
+	
 	param_in = (struct s_bgt_params_in*)param;
 	
  	//connect to the database
- 	cout << "before db" << endl;
     	DBClientConnection c;
     	c.connect("localhost");
-	cout << "db connected" << endl;
+
     // this pipe stuff should be right:
 
     // create pipe to send updates on
-	LuxSocket socket(3000);
+	LuxSocket socket(3002);
         int pipe = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
 
 
      // construct a HMBL
      //locbasedhashmap HMBL;
      //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
-     	cout << "creat map"  << "r u null?" << param_in->pipe_hmbl << endl;
+     	cout << "create map"  << "r u null?" << param_in->pipe_hmbl << endl;
 	HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
 
 

@@ -16,7 +16,7 @@
 
 #include "socket.h"
 
-#define MESSAGE_SIZE 1024
+#define MESSAGE_SIZE 2 << 16
 
 namespace socketlibrary {
 

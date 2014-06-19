@@ -1,18 +1,34 @@
 CC = cd ./output; g++
+<<<<<<< HEAD
 PROJ_DIR = /home/ec2-user/Justin
 Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
 CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/output -I$(PROJ_DIR)/cgi_bin -I$(PROJ_DIR)/src/cgi_bin -I$(PROJ_DIR)/src/classes/static -I$(PROJ_DIR)/src/classes/instanceable -I$(PROJ_DIR)/src/processes $(Warnings)
+=======
+PROJ_DIR = /home/ec2-user/Alpha
+Warnings = 
+#-Wall -pedantic -W -Wextra -v
+OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
+CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/output -I$(PROJ_DIR)/cgi_bin -I$(PROJ_DIR)/src/cgi_bin -I$(PROJ_DIR)/src/classes/static -I$(PROJ_DIR)/src/classes/instanceable -I$(PROJ_DIR)/src/processes $(Warnings) 
+>>>>>>> upstream/master
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 AuthLink= $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/MD5.o $(PROJ_DIR)/output/Authenticate.o
 InitLink= $(AuthLink) $(PROJ_DIR)/output/FindBGT.o $(PROJ_DIR)/output/HMBL.o
 BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o
 
+<<<<<<< HEAD
 Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi
 Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi
 BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
 
+=======
+Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi 
+Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi
+BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
+
+
+>>>>>>> upstream/master
 Authen = -c ../src/classes/static/Authenticate.cpp
 FindBGT = -c ../src/classes/static/FindBGT.cpp
 MD5 = -c ../src/classes/static/MD5.cpp
@@ -21,8 +37,12 @@ HMBL= -c ../src/classes/instanceable/HMBL.cpp
 socket = -c ../lib/luxsocket/socket.cpp
 socketB = -c ../lib/luxsocket/luxSocket.cpp
 DBWriter = -c ../src/processes/DBWriter.cpp
+<<<<<<< HEAD
 Chat = -c ../src/tests/ChatTest/ChatHttp.cpp -o $(PROJ_DIR)/output/ChatHttp.cgi
 SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp
+=======
+SendNewRelevant =  -c ../src/processes/SendNewRelevant.cpp
+>>>>>>> upstream/master
 battleground = -c ../src/processes/battleground.cpp
 sendupdate = -c ../src/processes/sendupdate.cpp
 
