@@ -68,9 +68,9 @@ class MongoWrapper {
 		   const std::string &elements,
 		   bool pushAll = false);
 
-    void arrayPush(const std::string &ns, const std::string &q,
+    void arrayPush(const std::string &ns, const mongo::BSONObj &q,
 		   const std::string &array_field_name,
-		   const std::string &elements,
+		   const mongo::BSONObj &elements,
 		   bool pushAll = false);
 
     // Delete elements from an array of a document
@@ -79,9 +79,9 @@ class MongoWrapper {
 		   const std::string &elements,
 		   bool pullAll = false);
 
-    void arrayPull(const std::string &ns, const std::string &q,
+    void arrayPull(const std::string &ns, const mongo::BSONObj &q,
 		   const std::string &array_field_name,
-		   const std::string &elements,
+		   const mongo::BSONObj &elements,
 		   bool pullAll = false);
 
     
@@ -95,4 +95,10 @@ class MongoWrapper {
 		     const std::string &array_field_name,
 		     const std::string &element,
 		     const std::string &method);
+
+    void arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
+		     const std::string &array_field_name,
+		     const mongo::BSONObj &element,
+		     const std::string &method);
 };
+

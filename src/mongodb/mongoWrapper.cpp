@@ -108,14 +108,18 @@ void MongoWrapper::arrayPush(const std::string &ns, const mongo::BSONObj &q,
     }
     arrayUpdate(ns, q, array_field_name, elements, method);
 }
-    
-void MongoWrapper::arrayPush(const std::string &ns, const std::string &q,
-			     const std::string &array_field_name,
-			     const std::string &elements,
-			     bool pushAll) {
-    arrayPush(ns, mongo::fromjson(q), array_field_name, elements, pushAll);
-}
 
+void MongoWrapper::arrayPush(const std::string &ns, const mongo::BSONObj &q,
+			     const std::string &array_field_name,
+			     const mongo::BSONObj &elements,
+			     bool pushAll) {
+    std::string method("$push");
+    if (pushAll) {
+	method = "$pushAll";
+    }
+    arrayUpdate(ns, q, array_field_name, elements, method);
+}
+    
 void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
 			     const std::string &array_field_name,
 			     const std::string &elements,
@@ -127,17 +131,31 @@ void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
     arrayUpdate(ns, q, array_field_name, elements, method);
 }
 
-void MongoWrapper::arrayPull(const std::string &ns, const std::string &q,
+void MongoWrapper::arrayPull(const std::string &ns, const mongo::BSONObj &q,
 			     const std::string &array_field_name,
-			     const std::string &elements,
+			     const mongo::BSONObj &elements,
 			     bool pullAll) {
-    arrayPull(ns, mongo::fromjson(q), array_field_name, elements, pullAll);
+    std::string method("$pull");
+    if (pullAll) {
+	method = "$pullAll";
+    }
+    arrayUpdate(ns, q, array_field_name, elements, method);
 }
-
 
 void MongoWrapper::arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
 			       const std::string &array_field_name,
 			       const std::string &elements,
+			       const std::string &method) {
+    mongo::BSONObjBuilder a;
+    a.append(array_field_name, elements);
+    mongo::BSONObjBuilder b;
+    b.append(method, a.obj());
+    update(ns, q, b.obj());
+}
+
+void MongoWrapper::arrayUpdate(const std::string &ns, const mongo::BSONObj &q,
+			       const std::string &array_field_name,
+			       const mongo::BSONObj &elements,
 			       const std::string &method) {
     mongo::BSONObjBuilder a;
     a.append(array_field_name, elements);
