@@ -19,7 +19,7 @@
  */
 #ifndef BATTLEGROUND_H
 #define BATTLEGROUND_H
-#define DATABASE_NAME "Gameplay_DB"
+#define DATABASE_NAME "Luxdb.gameplay"
 
 #include <sys/stat.h>
 #include <unistd.h>

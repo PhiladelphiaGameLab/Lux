@@ -1,6 +1,6 @@
 #ifndef FINDBGT_H
 #define FINDBGT_H
-#define DATABASE_NAME "Gameplay_DB"
+#define DATABASE_NAME "Luxdb.gameplay"
 
 
 #include "HMBL.h"

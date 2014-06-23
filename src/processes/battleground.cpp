@@ -23,10 +23,14 @@ using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
-void *BattleGround::spawn(void* param){
-	struct s_bgt_params_in *param_in;
-	param_in = (struct s_bgt_params_in*)param;
+template class HMBL<sockaddr_in>;
 
+void *BattleGround::spawn(void* param){
+        std::cout << "HELP! Battleground : 1 " << std::endl;
+	struct s_bgt_params_in *param_in;
+	
+	param_in = (struct s_bgt_params_in*)param;
+	
  	//connect to the database
     	DBClientConnection c;
     	c.connect("localhost");
@@ -34,14 +38,15 @@ void *BattleGround::spawn(void* param){
     // this pipe stuff should be right:
 
     // create pipe to send updates on
-	LuxSocket socket(0);
+	LuxSocket socket(3002);
         int pipe = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
 
 
      // construct a HMBL
      //locbasedhashmap HMBL;
      //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
-     HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
+     	cout << "create map"  << "r u null?" << param_in->pipe_hmbl << endl;
+	HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
 
 
      //These 2 lines have to be uncommented to update the port in MongoDB
@@ -58,9 +63,9 @@ void *BattleGround::spawn(void* param){
 	BSONObj message = socket.receive(&cli_addr);
 
         // get accessToken from BSONObj message
-        string accessToken = message["sender"]["accessToken"].String(); // this should be as easy as this- but might not be.
+        string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
         // get EUID from BSONObj message
-        string EUID = message["sender"]["EUID"].String();
+        string EUID = message["sender"]["EUID"].toString(false);
 
 	
 		
@@ -75,7 +80,7 @@ void *BattleGround::spawn(void* param){
 //	    time_t now = time(0);
 	    const long double sysTime = time(0);
 	    const long double timestamp = sysTime*1000;
-            
+            std::cout << "battlegorund " << timestamp << std::endl; 
 	    string currentTime= to_string(timestamp);
 	    
 
@@ -93,8 +98,8 @@ void *BattleGround::spawn(void* param){
 	
 	
 	   //get the id of the message
-	   BSONElement id;
-	   id = completeMessage["_id"];
+	   string id;
+	   id = completeMessage["_id"].toString(false);
 	   
            //Check for id (Maybe cursor is needed)
            if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty())

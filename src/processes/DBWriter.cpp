@@ -5,7 +5,7 @@ using namespace std;
 
 
 void *DBWriter::spawn(void* param_in){ // dbWriter thread
-
+    std::cout << "HELP! DBWriter : 1 " << endl;
     struct s_dbWriter_params_in *params_in;
     params_in = (struct s_dbWriter_params_in*)param_in;
 
@@ -17,6 +17,7 @@ void *DBWriter::spawn(void* param_in){ // dbWriter thread
     BSONObj msg;
 
     while(1){
+ 	 std::cout << "HELP! DBWriter : 2 " << std::endl;
         // get message
         read(FIFO, &msg, sizeof(BSONObj));
 	if(!msg.isEmpty()){
