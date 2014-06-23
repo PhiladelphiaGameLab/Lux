@@ -1,5 +1,5 @@
 CC = cd ./output; g++
-PROJ_DIR = /home/ec2-user/Justin
+PROJ_DIR = /home/ec2-user/Alpha
 Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
@@ -14,21 +14,6 @@ Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initiali
 BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
 
 
-<<<<<<< HEAD
-Authen = -c ../src/classes/static/Authenticate.cpp -g
-FindBGT = -c ../src/classes/static/FindBGT.cpp -g
-MD5 = -c ../src/classes/static/MD5.cpp -g
-CGI = -c ../src/classes/instanceable/CGI.cpp -g
-HMBL= -c ../src/classes/instanceable/HMBL.cpp -g
-socket = -c ../lib/luxsocket/socket.cpp -g
-socketB = -c ../lib/luxsocket/luxSocket.cpp -g
-DBWriter = -c ../src/processes/DBWriter.cpp -g
-SendNewRelevant =  -c ../src/processes/SendNewRelevant.cpp -g
-battleground = -c ../src/processes/battleground.cpp -g
-sendupdate = -c ../src/processes/sendupdate.cpp -g
-=======
-Authen = -c ../src/classes/static/Authenticate.cpp
-FindBGT = -c ../src/classes/static/FindBGT.cpp
 MD5 = -c ../src/classes/static/MD5.cpp
 CGI = -c ../src/classes/instanceable/CGI.cpp
 HMBL= -c ../src/classes/instanceable/HMBL.cpp
@@ -38,7 +23,6 @@ DBWriter = -c ../src/processes/DBWriter.cpp
 SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp
 battleground = -c ../src/processes/battleground.cpp
 sendupdate = -c ../src/processes/sendupdate.cpp
->>>>>>> origin/master
 
 all: clean build run
 
