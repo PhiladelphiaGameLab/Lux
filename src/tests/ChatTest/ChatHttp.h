@@ -19,15 +19,16 @@
 //#include "socket.h"
 
 class ChatHttp{
+	public:
+    	static void AddNode(std::string uName, std::string givenIP, std::string type);
+		static void DeleteNode(std::string uName);
+		static void AddEdge(std::string uName1, std::string uName2);
+		static void DeleteEdge(std::string uName1, std::string uName2);
+		static void GetInfo(std::string uName, std::string type);
+		static void UpdateInfo(std::string uName, std::string type, std::string value);
+		static void FindNode(std::string type, std::string value);
+	protected:
     private:
-    	void AddUser(std::string uName, std::string givenIP, std::string givenPort);
-        void AddGroup(std::string grName);
-		void DeleteUser(std::string uName);
-		void AddEdge(std::string uName1, std::string uName2);
-		void DeleteEdge(std::string uName1, std::string uName2);
-    public:
-        ChatHttp();
-    protected:
 };
 
 #endif // CHATHTTP_H
