@@ -45,8 +45,8 @@ struct s_sut_params_in {
 
 struct s_SUTMessage
 {
-    BSONObj message;
     vector<Node<sockaddr_in>*> SocketList;
+    BSONObj message;
 };
 
 #endif // SENDUPDATE_H
