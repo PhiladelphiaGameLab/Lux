@@ -1,5 +1,5 @@
 CC = cd ./output; g++
-PROJ_DIR = /home/ec2-user/Justin
+PROJ_DIR = /home/ec2-user/Alpha
 Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
@@ -14,8 +14,6 @@ Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initiali
 BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
 
 
-Authen = -c ../src/classes/static/Authenticate.cpp
-FindBGT = -c ../src/classes/static/FindBGT.cpp
 MD5 = -c ../src/classes/static/MD5.cpp
 CGI = -c ../src/classes/instanceable/CGI.cpp
 HMBL= -c ../src/classes/instanceable/HMBL.cpp
@@ -37,6 +35,8 @@ apache:
 
 # Build All the Files!
 build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
+
+cgi-exec: Init BGTSpawner Auth
 
 # Working:
 MD5:

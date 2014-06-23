@@ -1,4 +1,7 @@
 #include "BGTSpawner.h"
+#include <string>
+
+int BGTSpawner::counter = 0;
 
 bool spawnNewBgt(int bgtID) {
     std::cout << sizeof(mongo::BSONObj) << std::endl;
@@ -30,14 +33,25 @@ bool spawnNewBgt(int bgtID) {
     pthread_t DBW_ID;
     
     // these paths have to be unique names (just have to be unique)
-    //const char *bgt_sut_pipeLocation = "/temp/lux_pipe0"; // bgt->sut
-    //const char *sut_db_pipeLocation = "/temp/lux_pipe1"; // sut->dbwriter
-    //const char *hmbl_snr_pipeLocation = "/temp/lux_pipe2"; // HMBL->SNR
+    //const char *bgt_sut_pipeLocation = "./lux_pipe0"; // bgt->sut
+    //const char *sut_db_pipeLocation = "./lux_pipe1"; // sut->dbwriter
+    //const char *hmbl_snr_pipeLocation = "./lux_pipe2"; // HMBL->SNR
     
     // just for test
-    const char *bgt_sut_pipeLocation = "./lux_pipe0"; // bgt->sut
-    const char *sut_db_pipeLocation = "./lux_pipe1"; // sut->dbwriter
-    const char *hmbl_snr_pipeLocation = "./lux_pipe2"; // HMBL->SNR
+    std::string xx = "./lux_pipe" + std::to_string(BGTSpawner::counter+10);//.c_str();
+    std::string yy = "./lux_pipe" + std::to_string(BGTSpawner::counter+11);//.c_str();
+    std::string zz = "./lux_pipe" + std::to_string(BGTSpawner::counter+12);//.c_str();
+
+   // BGTSpawner::counter++;
+
+
+    std::cout<<xx<<std::endl;
+    std::cout<<yy<<std::endl;
+    std::cout<<zz<<std::endl;
+
+    const char *bgt_sut_pipeLocation = xx.c_str(); // bgt->sut
+    const char *sut_db_pipeLocation = yy.c_str(); //"./lux_pipe1"; // sut->dbwriter
+    const char *hmbl_snr_pipeLocation = zz.c_str(); //"./lux_pipe2"; // HMBL->SNR
     
     if(mkfifo(bgt_sut_pipeLocation, 0666) >= 0){
         bgt_params_in->pipe_w = bgt_sut_pipeLocation;
@@ -46,8 +60,8 @@ bool spawnNewBgt(int bgtID) {
     if(mkfifo(hmbl_snr_pipeLocation, 0666) >= 0){
         bgt_params_in->pipe_hmbl = hmbl_snr_pipeLocation;
     }
-   
-    //Spawn a BGT thread
+    std::cout << bgt_params_in->pipe_hmbl << std::endl; 
+    //Spawn a Battleground thread
     pthread_create(&BGT_ID,NULL,BattleGround::spawn, bgt_params_in);
     
     
@@ -58,16 +72,16 @@ bool spawnNewBgt(int bgtID) {
         sut_params_in->pipe_w = sut_db_pipeLocation;
     }
     
-    //Spawn a SUT thread
+   //Spawn a SUT thread
     pthread_create(&SUT_ID,NULL,SendUpdate::spawn, sut_params_in);
     
     s_dbWriter_params_in *dbWriter_params_in = new s_dbWriter_params_in;
     dbWriter_params_in->pipe_r = sut_db_pipeLocation;
     
     //Spawn  DBWriter thread
-    pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
+    // pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
     
-    
+ 
     s_snr_params_in *snr_params_in = new s_snr_params_in;
     snr_params_in->pipe_r = hmbl_snr_pipeLocation;
     //Spawn a SNR thread

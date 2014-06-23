@@ -40,7 +40,6 @@ namespace socketlibrary {
     
     memset(buf, 0, MESSAGE_SIZE);
     socket->recvFrom(buf, MESSAGE_SIZE, cli_addr);
-    std::cout << "received: " << buf << std::endl;
     return mongo::fromjson(buf);
   }
   
