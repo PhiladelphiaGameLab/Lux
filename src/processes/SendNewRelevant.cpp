@@ -10,7 +10,7 @@ void *SendNewRelevant::spawn(void*  param_in){
 
 
         LuxSocket socket;
-
+        std::cout<<"opening pipe in SNR"<<std::endl;  
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
 	struct s_SNRMessage piped;
 
@@ -19,7 +19,10 @@ void *SendNewRelevant::spawn(void*  param_in){
         // read socket
         read(FIFO, &piped, sizeof(s_SNRMessage));
         // read documents from mongo
+        cout<<"piped.newBucketList.size : "<<piped.newBucketList.size()<<endl;
         for (vector<int>::iterator bucket = piped.newBucketList.begin(); bucket != piped.newBucketList.end(); bucket++){
+
+		//cout<<"Entering SNR for loop"<<endl;
             // query the database
             auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME, QUERY("bucketID" << (*bucket)));
             // iterate elements from the buckets

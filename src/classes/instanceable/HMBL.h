@@ -252,19 +252,26 @@ std::vector<Node<T>*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
 	std::vector<Node<T>*> clients; //will be returned by this function and contain pointers to affected clients
 	std::vector<int> proxBucks; //contains the list of buckets in the items proximity
 
+	 std::cout<<"Entering surroundings in  get_clients"<<std::endl;
 	proxBucks = HMBL_HELPER::surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
 
 	int thresh = proxBucks.size();
 	Node<T>* walk;
-
+	int ctr = 0;
+	std::cout<<"Returned bucket size:"<<thresh<<std::endl;
 	for (int i = 0; i < thresh; i++){
 		walk = arrMap[proxBucks[i]];
+		ctr = 0;
+		//std::cout<<"Value inside for loop i:"<<i<<std::endl;
 		while (walk != 0){
+		ctr++;
+		cout<< "walk in HMBL is : "<<walk <<endl;
+		 //std::cout<<"Value inside while loop ctr:"<<ctr<<std::endl;
 			clients.push_back(walk);
 			walk = walk->Next;
 		}
 	}
-
+	std::cout<<"Returned Successfully from get_clients"<<std::endl;
 	return clients;
 }
 
@@ -358,7 +365,9 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	s_SNRMessage *newSurrBuck = new s_SNRMessage;
 	newSurrBuck->newBucketList = impSurr;
 	//newSurrBuck->socket = ;
-	write(pipeFD, newSurrBuck, sizeof(newSurrBuck));
+	cout<<"HMBL trying to pipe to SNR"<<endl;
+	write(pipeFD, newSurrBuck, sizeof(s_SNRMessage));
+	cout<<"HMBL piped to SNR"<<endl;
 
 }
 
