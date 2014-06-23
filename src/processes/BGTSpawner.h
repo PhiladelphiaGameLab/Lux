@@ -7,11 +7,12 @@
 #include "sendupdate.h"
 #include "SendNewRelevant.h"
 #include "DBWriter.h"
-
+#include <stdlib.h>
 class BGTSpawner
 {
     public:
         bool spawnNewBgt(int);
+	static int counter;
     protected:
     private:
 };

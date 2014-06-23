@@ -96,7 +96,7 @@ std::vector<int> HMBL_HELPER::surroundings(int xloc, int yloc, int rad, int mapx
 	for (int k = 0; k < thresh; k++){
 		std::cout << " [" << k << "] = " << surroundings[k] << std::endl;
 	}
-
+	std::cout<<"Returned Successfully from the  surroundings"<<std::endl;
 	return surroundings;
 }
 
