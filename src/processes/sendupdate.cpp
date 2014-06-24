@@ -24,7 +24,7 @@ void *SendUpdate::spawn(void*  param_in) {
 	std::cout << "HELP! Send update : 2 " << std::endl;
 	read(FIFO, &piped, sizeof(s_SUTMessage));
 	cout<<"Size of s_SUTMessage : "<<sizeof(s_SUTMessage)<<endl;
-	std::cout<<"Recieved in sendupdate messsage"<<piped.message.toString() <<std::endl;
+	//std::cout<<"Recieved in sendupdate messsage"<<piped.message.toString() <<std::endl;
 
 //	if (piped.SocketList == NULL)
  //	{

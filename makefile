@@ -9,20 +9,24 @@ AuthLink= $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/MD5.o $(PROJ_DIR)/output/A
 InitLink= $(AuthLink) $(PROJ_DIR)/output/FindBGT.o $(PROJ_DIR)/output/HMBL.o
 BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o
 
-Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi
-Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi
-BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi
+Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi -g
+Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi -g
+BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi -g
 
+Authen = -c ../src/classes/static/Authenticate.cpp
+FindBGT = -c ../src/classes/static/FindBGT.cpp
+MD5 = -c ../src/classes/static/MD5.cpp -g
+CGI = -c ../src/classes/instanceable/CGI.cpp -g
+HMBL= -c ../src/classes/instanceable/HMBL.cpp -g
+socket = -c ../lib/luxsocket/socket.cpp -g
+socketB = -c ../lib/luxsocket/luxSocket.cpp -g
+DBWriter = -c ../src/processes/DBWriter.cpp -g
+SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp -g
+battleground = -c ../src/processes/battleground.cpp -g
+sendupdate = -c ../src/processes/sendupdate.cpp -g
 
-MD5 = -c ../src/classes/static/MD5.cpp
-CGI = -c ../src/classes/instanceable/CGI.cpp
-HMBL= -c ../src/classes/instanceable/HMBL.cpp
-socket = -c ../lib/luxsocket/socket.cpp
-socketB = -c ../lib/luxsocket/luxSocket.cpp
-DBWriter = -c ../src/processes/DBWriter.cpp
-SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp
-battleground = -c ../src/processes/battleground.cpp
-sendupdate = -c ../src/processes/sendupdate.cpp
+Mongo:
+	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
 
 all: clean build run
 
@@ -82,7 +86,7 @@ BGTSpawner:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB)
 
 # spawn BGT
-run:
+run: Mongo
 	chmod -R 777 $(PROJ_DIR)/output
 	chmod -R 777 $(PROJ_DIR)/cgi_bin
 	rm -f $(PROJ_DIR)/lux_pipe*
