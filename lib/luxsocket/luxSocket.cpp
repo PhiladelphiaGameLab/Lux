@@ -10,7 +10,7 @@ namespace socketlibrary {
     // Server opens a new UDP socket
     // Default port is 3000
     LuxSocket::LuxSocket() {
-	_socket = new UDPSocket(3000);
+	_socket = new UDPSocket;
         initSocketInfo();
     }
 

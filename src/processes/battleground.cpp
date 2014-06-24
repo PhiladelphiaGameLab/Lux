@@ -38,15 +38,15 @@ void *BattleGround::spawn(void* param){
     // this pipe stuff should be right:
 
     // create pipe to send updates on
-	LuxSocket socket(3010);
-        int pipe = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
-
+	LuxSocket socket(3000);
+        int pipes = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
+	std::cout << "HELP! Battleground : socket opened " <<socket.getPortNum()<< std::endl;	
 
      // construct a HMBL
      //locbasedhashmap HMBL;
      //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
        //	cout << "create map"  << "r u null?" << param_in->pipe_hmbl << endl;
-	if (param_in == NULL) {
+/*	if (param_in == NULL) {
 	    cout << "param is null" << endl;
 	    exit(0);
 	}
@@ -54,8 +54,14 @@ void *BattleGround::spawn(void* param){
 	    cout << "null" << endl;
 	    exit(0);
 	}	
+*/	
+	std::cout << "BGT about to create HMBL" << std::endl;
 	HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
+	
+	std::cout << "BGT created HMBL" << std::endl;
 
+     int fd[2];
+     pipe(fd); 
 
      //These 2 lines have to be uncommented to update the port in MongoDB
      // uint16_t portNo = getNewPort();
@@ -67,7 +73,8 @@ void *BattleGround::spawn(void* param){
 
 	while(1){
 	 sockaddr_in cli_addr;
-	 // accept clients, who will send in their update
+	 // accept clients, who will send in their updatei
+	std::cout << "Battleground awaiting message" << std::endl;
 	BSONObj message = socket.receive(&cli_addr);
 	cout<<"Battleground received a message"<<endl;
         // get accessToken from BSONObj message
@@ -164,8 +171,12 @@ void *BattleGround::spawn(void* param){
 	     std::cout<<"Creating pipes with messsage"<<pipeStruct.message.toString() <<std::endl;
 
             // pipe updates to send updates thread
-            write(pipe, &pipeStruct, sizeof(pipeStruct));
-            
+            write(pipes, &pipeStruct, sizeof(pipeStruct));
+	   // write(fd[1],&pipeStruct,sizeof(pipeStruct));
+	   
+	 //   close(pipe);            
+	// int pipe2 = open(param_in->pipe_w, O_WRONLY);
+
              std::cout<<"Creating BSONobj for Analytics"<<std::endl;
             //No Use now just for analytics
             BSONObjBuilder build;
@@ -173,6 +184,14 @@ void *BattleGround::spawn(void* param){
 	   // build.append("Socket",cli_addr);
 	    BSONObj AnalyticsMessage;
 	    AnalyticsMessage = build.obj();
+
+	    s_SUTMessage pipe_msg;
+	     std::cout<<"Batttleground reading message from pipe"<<std::endl;
+	      read(pipes, &pipe_msg, sizeof(pipe_msg));
+	       //	read(fd[0],&pipe_msg,sizeof(pipe_msg));
+		
+	       std::cout<<"Creating pipes sizeof"<<sizeof(pipe_msg) <<std::endl;
+             std::cout<<"Creating pipes with messsage"<<pipe_msg.message.toString() <<std::endl;
 
         }
 

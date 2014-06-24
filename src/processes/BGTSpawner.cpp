@@ -38,26 +38,26 @@ bool spawnNewBgt(int bgtID) {
     //const char *hmbl_snr_pipeLocation = "./lux_pipe2"; // HMBL->SNR
     
     // just for test
-    std::string xx = "./lux_pipe" + std::to_string(BGTSpawner::counter+10);//.c_str();
-    std::string yy = "./lux_pipe" + std::to_string(BGTSpawner::counter+11);//.c_str();
-    std::string zz = "./lux_pipe" + std::to_string(BGTSpawner::counter+12);//.c_str();
+  //  std::string xx = "./lux_pipe" + std::to_string(BGTSpawner::counter+10);//.c_str();
+  //  std::string yy = "./lux_pipe" + std::to_string(BGTSpawner::counter+11);//.c_str();
+  //  std::string zz = "./lux_pipe" + std::to_string(BGTSpawner::counter+12);//.c_str();
 
    // BGTSpawner::counter++;
 
 
-    std::cout<<xx<<std::endl;
-    std::cout<<yy<<std::endl;
-    std::cout<<zz<<std::endl;
+   // std::cout<<xx<<std::endl;
+   // std::cout<<yy<<std::endl;
+   // std::cout<<zz<<std::endl;
 
-    const char *bgt_sut_pipeLocation = xx.c_str(); // bgt->sut
-    const char *sut_db_pipeLocation = yy.c_str(); //"./lux_pipe1"; // sut->dbwriter
-    const char *hmbl_snr_pipeLocation = zz.c_str(); //"./lux_pipe2"; // HMBL->SNR
+    const char *bgt_sut_pipeLocation ="./lux_pipe0";// xx.c_str(); // bgt->sut
+    const char *sut_db_pipeLocation ="./lux_pipe1";// yy.c_str(); //"./lux_pipe1"; // sut->dbwriter
+    const char *hmbl_snr_pipeLocation = "./lux_pipe2";//zz.c_str(); //"./lux_pipe2"; // HMBL->SNR
     
-    if(mkfifo(bgt_sut_pipeLocation, 0666) >= 0){
+    if(mkfifo(bgt_sut_pipeLocation, S_IRWXU) >= 0){
         bgt_params_in->pipe_w = bgt_sut_pipeLocation;
     }
     
-    if(mkfifo(hmbl_snr_pipeLocation, 0666) >= 0){
+    if(mkfifo(hmbl_snr_pipeLocation, S_IRWXU) >= 0){
         bgt_params_in->pipe_hmbl = hmbl_snr_pipeLocation;
     }
     std::cout << bgt_params_in->pipe_hmbl << std::endl; 
@@ -68,7 +68,7 @@ bool spawnNewBgt(int bgtID) {
     s_sut_params_in *sut_params_in = new s_sut_params_in;
     sut_params_in->pipe_r = bgt_sut_pipeLocation;
     
-    if(mkfifo(sut_db_pipeLocation, 0666) >= 0){
+    if(mkfifo(sut_db_pipeLocation, S_IRWXU) >= 0){
         sut_params_in->pipe_w = sut_db_pipeLocation;
     }
     
