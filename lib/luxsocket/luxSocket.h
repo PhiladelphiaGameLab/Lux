@@ -16,15 +16,11 @@
 
 #include "socket.h"
 
-#define MESSAGE_SIZE 2 << 16
+#define MESSAGE_SIZE 1 << 16
 
 namespace socketlibrary {
 
     class LuxSocket{
-	private:
-        UDPSocket *_socket;
-        unsigned short _port;
-        std::string _address;
 	public:
         //Default constructor
         LuxSocket();
@@ -42,8 +38,17 @@ namespace socketlibrary {
         void send(mongo::BSONObj &bsMessage,
 		  std::list<struct sockaddr_in> &socketList);
 	void initSocketInfo();
-	unsigned short getPortNum();
-	protected:
+	unsigned short getPortNum() {
+	    return _port;
+	};
+	std::string getAddress() {
+	    return _address;
+	}
+
+	private:
+        UDPSocket *_socket;
+        unsigned short _port;
+        std::string _address;
     };
 }
 
