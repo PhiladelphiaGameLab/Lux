@@ -29,7 +29,7 @@ namespace socketlibrary {
 
         void init();
         void error(const char *msg);
-	void receive(char *buf, struct sockaddr_in *cliAddr);
+	void receive(char *buf, size_t len, struct sockaddr_in *cliAddr);
 	mongo::BSONObj receive(struct sockaddr_in *cliAddr);
         void send(struct sockaddr_in *cliAddr);
         void send(const char *message, struct sockaddr_in* cliAddr);

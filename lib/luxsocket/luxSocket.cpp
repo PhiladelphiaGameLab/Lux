@@ -30,9 +30,10 @@ namespace socketlibrary {
 	_address = _socket->getLocalAddress();
     }
 
-    void LuxSocket::receive(char *buf, struct sockaddr_in *cliAddr) {
-	memset(buf, 0, MESSAGE_SIZE);
-	_socket->recvFrom(buf, MESSAGE_SIZE, cliAddr);	
+    void LuxSocket::receive(char *buf, size_t len, struct sockaddr_in *cliAddr) {
+	memset(buf, 0, len);
+	_socket->recvFrom(buf, len, cliAddr);
+	
     }
 
     // Server receives data from client
