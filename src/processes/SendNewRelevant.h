@@ -44,6 +44,7 @@ struct newConnectionInfo{
 */
 struct s_snr_params_in
 {
+    int fd[2];
     const char* pipe_r;
 };
 

@@ -112,13 +112,14 @@ HMBL<T>::HMBL(int mapw, int maph, int col, int row, std::string pipeLocation){
 	columns = col;
 	rows = row;
 	bucketTotal = row * col;
-
+	
+	std::cout<< "Creating HMBL"<<std::endl;
 	arrMap = new Node<T>*[bucketTotal]; //Array of Pointers representing each bucket
 	hashTable = new CNode<T>*[bucketTotal / 2]; //HashMap of Clients
 
 	clearHMBL();
-
-	pipeFD = open(pipeLocation.c_str(), O_WRONLY);
+	std::cout<<" created HMBL"<<std::endl;
+	//pipeFD = open(pipeLocation.c_str(), O_WRONLY);
 }
 
 //Default Constructor

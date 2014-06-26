@@ -25,8 +25,8 @@ SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp -g
 battleground = -c ../src/processes/battleground.cpp -g
 sendupdate = -c ../src/processes/sendupdate.cpp -g
 
-Mongo:
-	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
+#Mongo:
+#	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
 
 all: clean build run
 
@@ -86,7 +86,7 @@ BGTSpawner:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB)
 
 # spawn BGT
-run: Mongo
+run:
 	chmod -R 777 $(PROJ_DIR)/output
 	chmod -R 777 $(PROJ_DIR)/cgi_bin
 	rm -f $(PROJ_DIR)/lux_pipe*

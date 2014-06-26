@@ -26,20 +26,28 @@ using namespace socketlibrary;
 template class HMBL<sockaddr_in>;
 
 void *BattleGround::spawn(void* param){
-        std::cout << "HELP! Battleground :  " << pthread_self() << std::endl;
+        std::cout << "In Battleground thread : " << pthread_self() << std::endl;
 	struct s_bgt_params_in *param_in;
 	
 	param_in = (struct s_bgt_params_in*)param;
 	
+	std::cout<<"Connecting... to database."<<std::endl;
  	//connect to the database
     	DBClientConnection c;
     	c.connect("localhost");
-
+	std::cout<<"Connected to database."<<std::endl;
     // this pipe stuff should be right:
 
     // create pipe to send updates on
-	LuxSocket socket(3000);
-        int pipes = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
+	LuxSocket socket(3003);
+	std::cout<<"Socket created"<<std::endl;
+
+       int pipe_error;
+       //if( (pipe_error = mkfifo(param_in->pipe_w, 0666)) <0) {
+	//	cout<<"Error creating pipe :"<< pipe_error<<std::endl;
+	//}
+	//cout<<"Pipe created"<<std::endl;
+       int pipes = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
 	std::cout << "HELP! Battleground : socket opened " <<socket.getPortNum()<< std::endl;	
 
      // construct a HMBL
@@ -60,8 +68,8 @@ void *BattleGround::spawn(void* param){
 	
 	std::cout << "BGT created HMBL" << std::endl;
 
-     int fd[2];
-     pipe(fd); 
+    // int fd[2];
+    // pipe(fd); 
 
      //These 2 lines have to be uncommented to update the port in MongoDB
      // uint16_t portNo = getNewPort();
@@ -115,11 +123,12 @@ void *BattleGround::spawn(void* param){
 	   //get the id of the message
 	   string id;
 	   id = completeMessage["_id"].toString(false);
-	   
+	   cout<<"id: "<< id <<", complete message: "<< completeMessage.toString(true) << std::endl;
+           cout <<"Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty() <<endl;
            //Check for id (Maybe cursor is needed)
-           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty())
-           {
+           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty()){
            	//insert into MongoDB
+           	cout<<"Inserting id into the data base"<<std::endl;
            	c.insert(DATABASE_NAME,completeMessage);
            }
         	
@@ -145,11 +154,13 @@ void *BattleGround::spawn(void* param){
 	     	
 	     	
 	    //get bucket ID
-	    //int bgt_id = Map.getBucket(location[0],location[1],mapSizeX,mapSizeY,thredSizeX,threadSizeY);
-	    int bgt_id = 0;
+	   // int bucket_id = Map.getBucket(location[0],location[1],mapSizeX,mapSizeY,thredSizeX,threadSizeY);
+	   // int bgt_id = 0;
+	    
+	    int bucket_id = Map.findBucket(locationX,locationY);
 	    
 	    //Update bucket in the document
-	    c.update(DATABASE_NAME,BSON("_id"<<id),BSON("bgt_id"<< bgt_id));
+	     c.update(DATABASE_NAME,BSON("_id"<<id),BSON("bucket_id"<< bucket_id));
 	    
             // query HMBL for socket list
              std::cout<<"In Battlegound calling Map.get_clients"<<std::endl;
@@ -170,7 +181,8 @@ void *BattleGround::spawn(void* param){
 	     std::cout<<"Creating pipes sizeof"<<sizeof(pipeStruct) <<std::endl;
 	     std::cout<<"Creating pipes with messsage"<<pipeStruct.message.toString() <<std::endl;
 
-            // pipe updates to send updates thread
+          std::cout<<"First socket in the list being sent: "<<pipeStruct.SocketList[0]<<std::endl;  
+	  // pipe updates to send updates thread
             write(pipes, &pipeStruct, sizeof(pipeStruct));
 	   // write(fd[1],&pipeStruct,sizeof(pipeStruct));
 	   
@@ -187,13 +199,13 @@ void *BattleGround::spawn(void* param){
 
 	    s_SUTMessage pipe_msg;
 	     std::cout<<"Batttleground reading message from pipe"<<std::endl;
-	      read(pipes, &pipe_msg, sizeof(pipe_msg));
-	       //	read(fd[0],&pipe_msg,sizeof(pipe_msg));
+	     // read(pipes, &pipe_msg, sizeof(pipe_msg));
+	    //   read(fd[0],&pipe_msg,sizeof(pipe_msg));
 		
 	       std::cout<<"Creating pipes sizeof"<<sizeof(pipe_msg) <<std::endl;
              std::cout<<"Creating pipes with messsage"<<pipe_msg.message.toString() <<std::endl;
-
-        }
+//while(1){}
+      }
 
 	}
    	cout<<"COMING OUT OF BATTLEGROUND'S while loop ----------------------------------------------------------------"<<endl;

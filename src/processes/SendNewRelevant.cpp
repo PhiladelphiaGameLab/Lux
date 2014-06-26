@@ -12,11 +12,19 @@ void *SendNewRelevant::spawn(void*  param_in){
         LuxSocket socket;
         std::cout<<"opening pipe in SNR"<<std::endl;  
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
+       //	pipe(params_in->fd);
+
+	int ss_fd[2];
+        memcpy(ss_fd,params_in->fd,sizeof(params_in->fd));
+
+
 	struct s_SNRMessage piped;
 
     while(1){
 	 std::cout << "HELP! SNR : 2 " << std::endl;
         // read socket
+       // read(ss_fd[0], &piped, sizeof(s_SNRMessage));
+	
         read(FIFO, &piped, sizeof(s_SNRMessage));
         // read documents from mongo
         cout<<"piped.newBucketList.size : "<<piped.newBucketList.size()<<endl;
