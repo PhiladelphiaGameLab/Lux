@@ -10,7 +10,8 @@ void *SendUpdate::spawn(void*  param_in) {
 	params_in = (struct s_sut_params_in*)param_in;
 
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
-
+	cout<<"FIFO : "<<FIFO<<std::endl;
+	//pipe(params_in->fd);
 	LuxSocket socket;
 
 	s_SUTMessage piped;
@@ -23,8 +24,9 @@ void *SendUpdate::spawn(void*  param_in) {
 		
 	std::cout << "HELP! Send update : 2 " << std::endl;
 	read(FIFO, &piped, sizeof(s_SUTMessage));
-	cout<<"Size of s_SUTMessage : "<<sizeof(s_SUTMessage)<<endl;
-	//std::cout<<"Recieved in sendupdate messsage"<<piped.message.toString() <<std::endl;
+	cout<<"Size of piped message : "<<sizeof(piped)<<endl;
+	//read(s_fd[0], &piped, sizeof(s_SUTMessage));
+	std::cout<<"Recieved in sendupdate messsage "<<piped.message.toString() <<std::endl;
 
 //	if (piped.SocketList == NULL)
  //	{
@@ -43,12 +45,13 @@ void *SendUpdate::spawn(void*  param_in) {
 	std::cout<< "Send Update size of list: "<<piped.SocketList.size()<< std::endl;
 		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin();clientVector != clients.end(); clientVector++) {
 			cout<<"Entering 'for' loop of sendupdate " <<clients[0] << endl;
-			pthread_mutex_lock((*clientVector)->Lock);
+			//pthread_mutex_lock((*clientVector)->Lock);
 			cout<<"After Locking"<<endl;
 			sockaddr_in cli_addr = (*clientVector)->sock;
 			std::cout << "Sending message "<< std::endl;
 			socket.send(piped.message, &cli_addr);
-    			pthread_mutex_unlock((*clientVector)->Lock);
+    			//pthread_mutex_unlock((*clientVector)->Lock);
+    			cout<<"Exiting 'for' loop of sendupdate "<<std::endl;
 		}
 	}
 
