@@ -16,7 +16,7 @@
 
 #include "socket.h"
 
-#define MESSAGE_SIZE 1 << 16
+#define MESSAGE_SIZE 65507 // UDP packet maximum size
 
 namespace socketlibrary {
 
