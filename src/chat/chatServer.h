@@ -15,15 +15,18 @@ namespace chat{
     using std::map;
 
 
-    const int BUFSIZE = 1 << 10;
+    // Maximum size of UDP packet
+    // 0xffff - (sizeof(IP Header) + sizeof(UDP Header)) = 65535-(20+8) = 65507
+    const int BUFSIZE = 65507;
 
     typedef string UserId; // EUID
     typedef unsigned int ChatId;
     typedef unsigned short SubServerId;
+    typedef unsigned int MsgId;
+    typedef unsigned char BYTE;
 
     struct UserInfo {
 	UserId id;
-	string name; // User name shown on client side
 	bool isOnline; // If user is currently online
 	sockaddr_in addr; // User address, including ip, port and other data
     };
@@ -71,7 +74,7 @@ namespace chat{
 	    _portNum = port;
 	};
 	
-	string jsonString();
+	string toString();
     
 	private:
 	string _address;
@@ -86,23 +89,25 @@ namespace chat{
 	};
     };
 
-    string Chat::jsonString() {
-	string json("{");
-	json += "name: \"chat\",";
-	json += "id:";
-	json += std::to_string(_id);
-	json += ", users:[";
-	vector<UserId>::iterator it = _userList.begin();
-	json += *it;
-	it ++;
-	while(it != _userList.end()) {
-	    json += ",";
-	    json += *it;
-	    it ++;
+    string Chat::toString() {
+	string str("");
+	for (int i = 0; i < sizeof(_id); i++) {
+	    str.push_back(*((char*)_id + i));
 	}
-	json += "]}";
-
-	return json;	    
+	for (int i = 0; i < sizeof(_capacity); i++) {
+	    str.push_back(*((char*)_capacity + i));
+	}
+	int size = _userList.size();
+	for (int i = 0; i < sizeof(size); i++) {
+	    str.push_back(*((char*)size + i));
+	}
+	
+	for (vector<UserId>::iterator it = _userList.begin();
+	     it != _userList.end();
+	     it ++) {
+	    str += *it;
+	}
+	return str;
     }
 
     class SubServer {
@@ -130,6 +135,14 @@ namespace chat{
     
 	int emptySpace() {
 	    return _capacity - _chatPool.size();
+	};
+	
+	Chat* getChat(ChatId id) {
+	    map<ChatId, Chat*>::iterator it = _chatPool.find(id);
+	    if (it != _chatPool.end()) {
+		return it->second;
+	    }
+	    return NULL;
 	};
 
 	map<ChatId, Chat*>& getChats() {
