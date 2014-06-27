@@ -30,6 +30,12 @@ namespace socketlibrary {
 	_address = _socket->getLocalAddress();
     }
 
+    void LuxSocket::receive(char *buf, size_t len, struct sockaddr_in *cliAddr) {
+	memset(buf, 0, len);
+	_socket->recvFrom(buf, len, cliAddr);
+	
+    }
+
     // Server receives data from client
     mongo::BSONObj LuxSocket::receive(struct sockaddr_in *cliAddr) {
 	char buf[MESSAGE_SIZE]; // server reads input to this buffer
@@ -70,9 +76,5 @@ namespace socketlibrary {
 	     cliAddr != socketList.end(); cliAddr++) {
 	    send(bsMessage, &(*cliAddr));
 	}
-    }
-
-    unsigned short LuxSocket::getPortNum() {
-	return _port;
     }
 }
