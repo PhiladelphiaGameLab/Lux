@@ -5,33 +5,8 @@ using boost::thread;
 using namespace chat;
 using socketlibrary::LuxSocket;
 
-enum REQUEST_TYPE{
-    CONNECT,
-    DISCONNECT,    
-    POLLING,
-    CREATE_CHAT,
-    QUIT_CHAT,
-    ADD_USER_TO_CHAT,
-    SEND_MESSAGE
-};
-
-enum MESSAGE_TYPE {    
-    NO_MORE_SERVERS,
-    EXCEED_CHAT_CAP,
-    CHAT_NOT_EXIST,
-    USER_NOT_IN_CHAT,
-    CONNECT_ERROR,
-    USER_LIST,
-    TEXT_MSG,
-    AUDIO_MSG,
-    VIDEO_MSG,
-    CHAT_INFO,
-    SERVER_INFO,
-    RE_CONNECT,
-    CONFIRM
-};
-
-const int EUID_LEN = 10; // EUID length, not determined yet
+using std::cout;
+using std::endl;
 
 // Stores all online user information here
 map<UserId, UserInfo *> userPool;
@@ -42,39 +17,10 @@ list<SubServer *> subServList;
 // Socket
 LuxSocket *mainSock;
 
-// Parse meesage from client and handle request
-// -----------------------------------------------------------------------------
-// Packet format:
-//    4 byte     xx* byte      1 byte        1 byte          message/parameters 
-//  Message ID  sender EUID  request type  message type    ....................
-// -----------------------------------------------------------------------------
-// Message/Parameters format:
-// USER_LIST :     4 byte         xx* byte xx* byte 
-//               user number    EUID0   EUID1    ....
-// QUIT_CHAT:  4 byte
-//             chatId
-// PORTS:   2 byte           2 byte
-//        receiving   polling receiving
-// TEXT_MSG,   
-// AUDIO_MSG,
-// VIDEO_MSG : 4 byte         conetnt
-//             chatId     ...................
-// -----------------------------------------------------------------------------
-// xx: length of EUID (not determined yet)
-//
-void parseMessage(char *buf, MsgId &msgId, UserId &senderId, 
-		  BYTE &reqType, BYTE &msgType, char *message);
-void parseChatId(char *message, ChatId &id);
-void parseUserList(char *message, vector<UserId> &idList);
-void parsePortNum(char *message, unsigned short &cliPort, 
-		  unsigned short &pollPort);
-void makeMessage(char *buf, MsgId &msgId, UserId &senderId, 
-		  BYTE &reqType, BYTE &msgType, const char *message);
-
 // Creates chat for users in the list
 // Sends back the chat data so that all clients and create coressponding chat box
 void createChat(const UserInfo &user, vector<UserId> &idList,
-		BYTE &msgType, char *message);
+		MESSAGE_TYPE &msgType, char *message);
 
 // Find a sub server for chat 
 SubServer* findSubServer();
@@ -84,23 +30,6 @@ SubServer* createNewSubServer();
 
 // Make chat info into a string
 void makeChatInfo(ChatId chatId, string &msgChatInfo);
-
-// Send message to a client
-// -----------------------------------------------------------------------------
-// Packet format:
-//    4 byte     xx* byte      1 byte        1 byte          message/parameters 
-//  Message ID  sender EUID  request type  message type    ....................
-// -----------------------------------------------------------------------------
-// Message/Parameters format:
-// CHAT_INFO :  4 bype   4 byte    4 byte      xx* byte   xx* byte
-//              chatID  capacity  user number   EUID0      EUID1   ....
-// SERVER_INFO: 4 byte   2 byte
-//               ipv4     port
-// TEXT_MSG,
-// AUDIO_MSG,
-// VIDEO_MSG : ...................
-// -----------------------------------------------------------------------------
-// xx: length of EUID (not determined yet)
 
 void sendToAll(char *buf, LuxSocket &sock, Chat &chat);
 // Sends message to all users expect the sender in this chat
@@ -126,7 +55,7 @@ void updateUserPorts(UserInfo &user, unsigned short recvPort,
 		     unsigned short pollPort);
 
 
-void handleClientRequest(char* buf, sockaddr_in *tmpAddr);
+void handleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr);
 // Sub server thread
 void startSubServerThread(SubServer *serv);
 
@@ -153,7 +82,7 @@ string toString(ChatId chatId);
 bool equalId(UserId id0, UserId id1);
 
 int main() {
-    unsigned short port = 8000;
+    unsigned short port = 3000;
     mainSock = new LuxSocket(port);
     struct sockaddr_in cliAddr;
     char *buf = new char[BUFSIZE];
@@ -162,91 +91,102 @@ int main() {
     while (1) {
 	// This is the main server.
 	// Receive data from clients and do whatever need to do.
-	mainSock->receive(buf, BUFSIZE, &cliAddr);	
-	char *tmpBuf = new char[strlen(buf) + 1];
-	strcpy(tmpBuf, buf);
+	size_t n = mainSock->receive(buf, BUFSIZE, &cliAddr);
+	
+	BYTE *tmpBuf = new BYTE[n];
+	memcpy(tmpBuf, buf, n);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
-	thread(handleClientRequest, tmpBuf, tmpAddr).detach();
+	thread(handleClientRequest, tmpBuf, n, tmpAddr).detach();
     }
     return 0;
 }
 
-void handleClientRequest(char *buf, sockaddr_in* tmpAddr) {
+void handleClientRequest(BYTE *buf, size_t len, sockaddr_in* tmpAddr) {
     // Parse message and handle request
     sockaddr_in cliAddr(*tmpAddr);
     delete tmpAddr;
     string serverInfo(mainSock->getAddress());
     MsgId msgId;
     UserId senderId;
-    char *message;	
-    BYTE reqType, msgType;
-    parseMessage(buf, msgId, senderId, reqType, msgType, message);
+    REQUEST_TYPE reqType;
+    MESSAGE_TYPE msgType;
 
+    ChatPacket::parseMessage(buf, len, msgId, senderId, reqType, msgType);
+    
+    cout << len << endl;
+    cout << msgId << endl;
+    cout << senderId << endl;
+    cout << reqType << endl;
+    cout << msgType << endl;
+    
     UserInfo *user = findUser(senderId);
     if (reqType != CONNECT) {
 	if (!verifyUser(*user, cliAddr)) {
 	    // User ip changed or isOnline state changed,
 	    // requires user to reconnect
 	    msgType = RE_CONNECT;
-	    makeMessage(buf, msgId, senderId, reqType,
-			msgType, "");
-	    mainSock->send(buf, &cliAddr);
+	    len = ChatPacket::makeMessage(buf, msgId, senderId, reqType,
+					  msgType, "");
+	    mainSock->send(buf, len, &cliAddr);
 	    delete[] buf;
 	    return;
 	}
     }
-	
+
     // Main thread only handles request other chat
     switch (reqType) {	    
 	case CONNECT: {
 	    unsigned short recvPort, pollPort;
-	    parsePortNum(message, recvPort, pollPort);
+	    ChatPacket::parsePortNum(buf, recvPort, pollPort);
+	    
 	    if (connect(senderId, cliAddr, recvPort, pollPort)) {
 		// Successfully connected
 		msgType = SERVER_INFO;
-		makeMessage(buf, msgId, senderId, reqType, 
-			    msgType, serverInfo.c_str());
+		len = ChatPacket::makeMessage(buf, msgId, senderId, reqType, 
+					      msgType, serverInfo.c_str());
 	    }		
 	    else {
 		msgType = CONNECT_ERROR;
-		makeMessage(buf, msgId, senderId, reqType,
-			    msgType, "Connection error.");
-	    }
-	    mainSock->send(buf, &cliAddr);
+		len = ChatPacket::makeMessage(buf, msgId, senderId, reqType,
+					      msgType, "Connection error.");
+	    }	 
+	    mainSock->send(buf, len, &cliAddr);
 	    break;
 	}
 	case DISCONNECT: {
 	    disconnect(*user);
 	    msgType = SERVER_INFO;
-	    makeMessage(buf, msgId, senderId, reqType, 
+	    len = ChatPacket::makeMessage(buf, msgId, senderId, reqType, 
 			msgType, serverInfo.c_str());
-	    mainSock->send(buf, &(user->addr));
+	    mainSock->send(buf, len, &(user->addr));
 	    break;
 	}
 	case POLLING: {
 	    unsigned short recvPort, pollPort;
-	    parsePortNum(message, recvPort, pollPort);
+	    ChatPacket::parsePortNum(buf, recvPort, pollPort);
 	    user->isOnline = true;
 	    updateUserPorts(*user, recvPort, pollPort);
 	    msgType = CONFIRM;
-	    makeMessage(buf, msgId, senderId, reqType, msgType, "OK");
-	    mainSock->send(buf, &(user->pollAddr));
+	    len = ChatPacket::makeMessage(buf, msgId, senderId, reqType, msgType, "OK");
+	    mainSock->send(buf, len, &(user->pollAddr));
 	    break;
 	}
 	case CREATE_CHAT: {
 	    vector<UserId> idList;
-	    parseUserList(message, idList);
-	    createChat(*user, idList, msgType, message);
-	    makeMessage(buf, msgId, senderId, reqType,
-			msgType, message);		
+	    char *text = new char[BUFSIZE];
+	    ChatPacket::parseUserList(buf, idList);
+	    createChat(*user, idList, msgType, text);
+	    len = ChatPacket::makeMessage(buf, msgId, senderId, reqType,
+			msgType, text);		
 	    for (vector<UserId>::iterator it = idList.begin();
 		 it != idList.end();
 		 it ++) {
 		UserInfo *user = findUser(*it);
 		if (user != NULL) {
-		    mainSock->send(buf, &(user->addr));
+		    mainSock->send(buf, len, &(user->addr));
 		}
 	    }
+	    delete[] text;
 	    break;
 	}
 	default: {
@@ -262,9 +202,9 @@ void startSubServerThread(SubServer *serv) {
     char *buf = new char[BUFSIZE];
 	
     while (1) {	    
-	sock.receive(buf, BUFSIZE, &cliAddr);
+	int n = sock.receive(buf, BUFSIZE, &cliAddr);
 	char *tmpBuf = new char[strlen(buf) + 1];
-	strcpy(tmpBuf, buf);
+	memcpy(tmpBuf, buf, n);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
 	thread(subServerHandleClientRequest, tmpBuf, tmpAddr, serv).detach();
     }    
@@ -280,13 +220,14 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
     UserId senderId;
     char *message;
     BYTE reqType, msgType;
-    parseMessage(buf, msgId, senderId, reqType, msgType, message);
+    /*
+    ChatPacket::parseMessage(buf, msgId, senderId, reqType, msgType, message);
 
     UserInfo *user = findUser(senderId);
     if (!verifyUser(*user, cliAddr)) {
 	// User ip changed, require user to reconnect
 	msgType = RE_CONNECT;
-	makeMessage(buf, msgId, senderId, reqType,
+	ChatPacket::makeMessage(buf, msgId, senderId, reqType,
 		    msgType, "");
 	sock.send(buf, &cliAddr);
 	delete[] buf;
@@ -294,13 +235,13 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
     }
 	
     ChatId chatId;
-    parseChatId(message, chatId);
+    ChatPacket::parseChatId(message, chatId);
     Chat *chat = serv->getChat(chatId);
 
     if (chat == NULL) {
 	msgType = CHAT_NOT_EXIST;
 	*message = '\0';
-	makeMessage(buf, msgId, senderId, reqType,
+	ChatPacket::makeMessage(buf, msgId, senderId, reqType,
 		    msgType, message);
 	sock.send(buf, &cliAddr);
 	delete[] buf;
@@ -309,7 +250,7 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
     switch (reqType) {
 	case QUIT_CHAT: {
 	    quitChat(*user, *chat, msgType, message);
-	    makeMessage(buf, msgId, senderId, reqType, msgType, message);
+	    ChatPacket::makeMessage(buf, msgId, senderId, reqType, msgType, message);
 	    if (msgType == CONFIRM) {
 		sendToAll(buf, sock, *chat);
 	    }
@@ -320,9 +261,9 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
 	}
 	case ADD_USER_TO_CHAT: {
 	    vector<UserId> idList;
-	    parseUserList(message + sizeof(chatId), idList);
+	    ChatPacket::parseUserList(message + sizeof(chatId), idList);
 	    addUserToChat(*chat, idList, msgType, message);
-	    makeMessage(buf, msgId, senderId, reqType, msgType, message);	
+	    ChatPacket::makeMessage(buf, msgId, senderId, reqType, msgType, message);	
 	    if (msgType == CONFIRM) {
 		sendToAll(buf, sock, *chat);
 	    }
@@ -335,7 +276,7 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
 	{
 	    sendToOthers(buf, sock, *chat, senderId);
 	    msgType = CONFIRM;
-	    makeMessage(buf, msgId, senderId, reqType, msgType, "");
+	    ChatPacket::makeMessage(buf, msgId, senderId, reqType, msgType, "");
 	    sock.send(buf, &cliAddr);
 	    break;
 	}
@@ -344,6 +285,7 @@ void subServerHandleClientRequest(char *buf, sockaddr_in *tmpAddr,
 	}
     }
     delete[] buf;
+    */
 }
 
 // Functions of main thread 
@@ -414,7 +356,7 @@ void makeMessage(char *buf, MsgId &msgId, UserId &senderId,
 
 
 void createChat(const UserInfo &user, vector<UserId> &idList,
-		BYTE &msgType, char *message) {
+		MESSAGE_TYPE &msgType, char *message) {
     SubServer* serv = findSubServer();
     if (serv == NULL) {
 	// No server is available
@@ -517,6 +459,7 @@ bool connect(UserId &id, sockaddr_in &addr, unsigned short port,
     user->pollAddr = addr;
     user->pollAddr.sin_port = htons(pollPort);
     userPool.insert(pair<UserId, UserInfo*>(user->id, user));
+    addr.sin_port = user->addr.sin_port;
     return true;
 }
 

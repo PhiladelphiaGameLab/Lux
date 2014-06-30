@@ -1,11 +1,13 @@
 #ifndef CHATSERVER_H
 #define CHATSERVER_H
 
+#include "chatUtility.h"
 #include "luxSocket.h"
 #include <cstring>
 #include <string>
 #include <vector>
 #include <map>
+
 
 namespace chat{
 
@@ -13,17 +15,6 @@ namespace chat{
     using std::vector;
     using std::pair;
     using std::map;
-
-
-    // Maximum size of UDP packet
-    // 0xffff - (sizeof(IP Header) + sizeof(UDP Header)) = 65535-(20+8) = 65507
-    const int BUFSIZE = 65507;
-
-    typedef string UserId; // EUID
-    typedef unsigned int ChatId;
-    typedef unsigned short SubServerId;
-    typedef unsigned int MsgId;
-    typedef unsigned char BYTE;
 
     struct UserInfo {
 	UserId id;
@@ -92,6 +83,9 @@ namespace chat{
 
     string Chat::toString() {
 	string str("");
+	for (int i = 0; i < sizeof(_portNum); i++) {
+	    str.push_back(*((char*)&_portNum) + i);
+	}						  
 	for (int i = 0; i < sizeof(_id); i++) {
 	    str.push_back(*((char*)&_id + i));
 	}
