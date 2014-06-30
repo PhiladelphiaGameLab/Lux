@@ -29,6 +29,7 @@ namespace chat{
 	UserId id;
 	bool isOnline; // If user is currently online
 	sockaddr_in addr; // User address, including ip, port and other data
+	sockaddr_in pollAddr;
     };
 
     class Chat {
@@ -92,14 +93,14 @@ namespace chat{
     string Chat::toString() {
 	string str("");
 	for (int i = 0; i < sizeof(_id); i++) {
-	    str.push_back(*((char*)_id + i));
+	    str.push_back(*((char*)&_id + i));
 	}
 	for (int i = 0; i < sizeof(_capacity); i++) {
-	    str.push_back(*((char*)_capacity + i));
+	    str.push_back(*((char*)&_capacity + i));
 	}
 	int size = _userList.size();
 	for (int i = 0; i < sizeof(size); i++) {
-	    str.push_back(*((char*)size + i));
+	    str.push_back(*((char*)&size + i));
 	}
 	
 	for (vector<UserId>::iterator it = _userList.begin();
