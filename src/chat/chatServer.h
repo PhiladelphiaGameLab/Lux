@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
-
+#include <boost/thread/thread.hpp>
 
 namespace chat{
 
@@ -168,8 +168,8 @@ namespace chat{
 	    _chatPool.insert(pair<ChatId, Chat*>(chat.getId(), &chat));
 	};
 
-	socketlibrary::LuxSocket& getSocket() {
-	    return *_udpSocket;
+	socketlibrary::LuxSocket* getSocket() {
+	    return _udpSocket;
 	};
     
 	string getAddress() {
@@ -183,7 +183,7 @@ namespace chat{
 	string receive();
 
 	private:
-	static const unsigned short _startPort = 10000;
+	static const unsigned short _startPort = 30000;
 	socketlibrary::LuxSocket *_udpSocket;
 	SubServerId _id;
 	int _capacity;
@@ -193,6 +193,25 @@ namespace chat{
 	    return id++;
 	};
     };
+    
+
+    
+    // Thread manager class
+    // When expires, it will kill all child threads
+    class ThreadMgr : public std::vector<boost::thread*> {
+	public:
+	~ThreadMgr() {
+	    for (std::vector<boost::thread*>::iterator it = begin();
+		 it != end();
+		 it ++) {
+		if ((*it) != NULL) {
+		    (*it)->interrupt();
+		}
+	    }
+
+	};
+    };
+
 }
 
 #endif // CHATSERVER_H

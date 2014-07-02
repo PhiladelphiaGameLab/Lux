@@ -1,5 +1,4 @@
 #include "chatServer.h"
-#include <boost/thread/thread.hpp>
 
 using boost::thread;
 using namespace chat;
@@ -33,9 +32,9 @@ SubServer* createNewSubServer();
 // Make chat info into a string
 void makeChatInfo(ChatId chatId, string &msgChatInfo);
 
-void sendToAll(BYTE *buf, size_t len, LuxSocket &sock, Chat &chat);
+void sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat);
 // Sends message to all users expect the sender in this chat
-void sendToOthers(BYTE *buf, size_t len, LuxSocket &sock, Chat &chat, 
+void sendToOthers(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat, 
 		  UserId &senderId);
 
 // Update chats in chat list
@@ -77,23 +76,33 @@ UserInfo* findUser(UserId id);
 bool verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr);
 int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
 
-
 // Returns a new chat id
 ChatId getNewChatId();
 string toString(UserId userId);
 string toString(ChatId chatId);
 bool equalId(UserId id0, UserId id1);
+ThreadMgr *threads;
 
+void sigint_handler(int sig) {
+    cout << "exiting..." << endl;
+    if (threads) {
+	delete threads;
+    }
+    exit(0);
+}
 int main() {
     unsigned short port = 3000;
     mainSock = new LuxSocket(port);
     struct sockaddr_in cliAddr;
     char *buf = new char[BUFSIZE];
-    string serverInfo(mainSock->getAddress());    
+    string serverInfo(mainSock->getAddress());
 
+    signal(SIGINT, sigint_handler);
+
+    threads = new ThreadMgr();
     while (1) {
 	// This is the main server.
-	// Receive data from clients and do whatever need to do.
+	// Receive data from clients and do whatever need to do.	
 	size_t n = mainSock->receive(buf, BUFSIZE, &cliAddr);
 	
 	BYTE *tmpBuf = new BYTE[n];
@@ -230,13 +239,13 @@ void handleClientRequest(BYTE *buf, size_t len, sockaddr_in* tmpAddr) {
 }
 
 void startSubServerThread(SubServer *serv) {
-    LuxSocket sock = serv->getSocket();	
+    LuxSocket *sock = serv->getSocket();
     struct sockaddr_in cliAddr;	
-    char *buf = new char[BUFSIZE];
+    BYTE *buf = new BYTE[BUFSIZE];
     cout << "SubServer " << serv->getId() << "working." << endl;
-    cout << "Port " << sock.getPortNum() << endl;
+    cout << "Port " << sock->getPortNum() << endl;
     while (1) {	    
-	int n = sock.receive(buf, BUFSIZE, &cliAddr);
+	int n = sock->receive(buf, BUFSIZE, &cliAddr);
 	BYTE *tmpBuf = new BYTE[n];
 	memcpy(tmpBuf, buf, n);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
@@ -249,7 +258,7 @@ void subServerHandleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
     sockaddr_in cliAddr(*tmpAddr);
     delete tmpAddr;
     // Parse message and handle request
-    LuxSocket sock = serv->getSocket();
+    LuxSocket *sock = serv->getSocket();
     MsgId msgId;
     UserId senderId;
     REQUEST_TYPE reqType;
@@ -265,7 +274,7 @@ void subServerHandleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	msgType = RE_CONNECT;
 	packet.makeMessage(msgId, senderId, reqType,
 				msgType, "Not connected");
-	sock.send(packet.getData(), packet.getLen(), &cliAddr);
+	sock->send(packet.getData(), packet.getLen(), &cliAddr);
 	delete[] buf;
 	return;
     }
@@ -278,7 +287,7 @@ void subServerHandleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	msgType = CHAT_NOT_EXIST;
 	packet.makeMessage(msgId, senderId, reqType,
 			   msgType, "Chat does not exist.");
-	sock.send(packet.getData(), packet.getLen(), &(user->addr));
+	sock->send(packet.getData(), packet.getLen(), &(user->addr));
 	delete[] buf;
 	return;
     }
@@ -290,7 +299,7 @@ void subServerHandleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 		sendToAll(packet.getData(), packet.getLen(), sock, *chat);
 	    }
 	    else {
-		sock.send(packet.getData(), packet.getLen(), &(user->addr));
+		sock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    }
 	    break;
 	}
@@ -305,17 +314,16 @@ void subServerHandleClientRequest(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 		sendToAll(packet.getData(), packet.getLen(), sock, *chat);
 	    }
 	    else {
-		sock.send(packet.getData(), packet.getLen(), &(user->addr));
+		sock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    }
 	    break;
 	}
 	case SEND_MESSAGE: {
-	    cout << "SENDDDDDDDDDDDDDDD" << endl;
 	    sendToOthers(packet.getData(), packet.getLen(), sock, *chat, 
 			 senderId);
 	    msgType = CONFIRM;
 	    packet.makeMessage(msgId, senderId, reqType, msgType, "");
-	    sock.send(packet.getData(), packet.getLen(), &(user->addr));
+	    sock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    break;
 	}
 	default: {
@@ -383,7 +391,8 @@ SubServer* findSubServer() {
 SubServer* createNewSubServer() {
     SubServer *server = new SubServer();
     // Start sub server thread
-    thread(startSubServerThread, server).detach();
+    thread *t = new thread(startSubServerThread, server);
+    threads->push_back(t);
     return server;
 }
 
@@ -481,7 +490,7 @@ void quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType) {
 
 
 // Shared funtcions
-void sendToOthers(BYTE *buf, size_t len, LuxSocket &sock, Chat &chat, 
+void sendToOthers(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat, 
 		  UserId &senderId) {
     for (vector<UserId>::iterator it = chat.getList().begin();
 	 it != chat.getList().end();
@@ -490,19 +499,19 @@ void sendToOthers(BYTE *buf, size_t len, LuxSocket &sock, Chat &chat,
 	if (user != NULL) {
 	    if (!equalId(senderId, user->id)) {
 		cout << "Send to: " << user->id << endl;
-		sock.send(buf, len, &(user->addr));
+		sock->send(buf, len, &(user->addr));
 	    }
 	}
     }    
 }
 
-void sendToAll(BYTE *buf, size_t len, LuxSocket &sock, Chat &chat) {
+void sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat) {
     for (vector<UserId>::iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
 	UserInfo *user = findUser(*it);
 	if (user != NULL) {
-	    sock.send(buf, len, &(user->addr));
+	    sock->send(buf, len, &(user->addr));
 	}
     }
 }
