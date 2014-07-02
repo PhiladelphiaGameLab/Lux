@@ -26,7 +26,7 @@ namespace chat{
     class Chat {
 	public:
     
-	Chat(int capacity = 100) : _capacity(capacity) {
+	Chat(int capacity = 100) : _capacity(capacity), _changed(true) {
 	    _id = getNewId();
 	};
 
@@ -52,28 +52,34 @@ namespace chat{
 
 	void eraseUser(typename vector<UserId>::iterator &it) {
 	    _userList.erase(it);
+	    _changed = true;
 	};
     
 	void insertUser(UserId item) {
 	    _userList.push_back(item);
+	    _changed = true;
 	};
 
 	void setAddress(const string &addr) {
 	    _address = addr;
+	    _changed = true;
 	};
     
 	void setPortNum(unsigned short port) {
 	    _portNum = port;
+	    _changed = true;
 	};
 	
-	string toString();
-    
+	const vector<BYTE>& toBytes();
+
 	private:
 	string _address;
 	unsigned short _portNum;
 	ChatId _id;
 	int _capacity;
 	vector<UserId> _userList;
+	vector<BYTE> bytes;
+	bool _changed;
 
 	static ChatId getNewId() {
 	    static ChatId id = 0;
@@ -81,28 +87,38 @@ namespace chat{
 	};
     };
 
-    string Chat::toString() {
-	string str("");
+    const vector<BYTE>& Chat::toBytes() {
+	if (!_changed)
+	    return bytes;
+	bytes.clear();
+	
 	for (int i = 0; i < sizeof(_portNum); i++) {
-	    str.push_back(*((char*)&_portNum) + i);
-	}						  
+	    bytes.push_back(*((BYTE*)&_portNum + i));
+	}
+
 	for (int i = 0; i < sizeof(_id); i++) {
-	    str.push_back(*((char*)&_id + i));
+	    bytes.push_back(*((BYTE*)&_id + i));
 	}
+
 	for (int i = 0; i < sizeof(_capacity); i++) {
-	    str.push_back(*((char*)&_capacity + i));
+	    bytes.push_back(*((BYTE*)&_capacity + i));
 	}
+
 	int size = _userList.size();
 	for (int i = 0; i < sizeof(size); i++) {
-	    str.push_back(*((char*)&size + i));
+	    bytes.push_back(*((BYTE*)&size + i));
 	}
-	
+
 	for (vector<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
-	    str += *it;
+	    for (int i = 0; i < (*it).length(); i++) {
+		bytes.push_back((*it)[i]);
+	    }
+	    std::cout << (*it) << std::endl;
 	}
-	return str;
+
+	return bytes;
     }
 
     class SubServer {
