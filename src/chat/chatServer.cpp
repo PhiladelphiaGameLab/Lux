@@ -34,7 +34,7 @@ UserInfo* ChatServer::connect(UserId &id, sockaddr_in &addr,
 			      unsigned short port, 
 			      unsigned short pollPort) {
     UserInfo *user = findUser(id);
-    if (user == NULL) {
+    if (user == nullptr) {
 	user = new UserInfo();
     }
     user->id = id;
@@ -137,7 +137,19 @@ SubServer* ChatServer::findSubServer() {
 }
 
 SubServer* ChatServer::createNewSubServer() {
-    SubServer *server = new SubServer();
+    SubServer *server;
+    try {
+	server = new SubServer();
+    }
+    catch (string e) {
+	cout << "An exception has been thrown: " << e << endl;
+	if (server) {
+	    delete server;
+	}
+	return nullptr;
+    }
+    cout << "============" << endl;
+    cout << "Create server: " << server->getPortNum() << endl;
     // Start sub server thread
     thread *t = new thread(&ChatServer::startSubServerThread, this, server);
     server->setThread(t);
@@ -184,6 +196,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 
     packet.parseMessage(msgId, senderId, reqType, msgType);
         
+    cout << "Receive message from " << senderId << endl;
     UserInfo *user = findUser(senderId);
     if (reqType != CONNECT) {
 	if (!verifyUser(user, cliAddr)) {
@@ -234,7 +247,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	}
 	case DISCONNECT: {
 #ifdef DEBUG
-	    cout << "User " << senderId << "disconnecting...\n"; 
+	    cout << "User " << senderId << " disconnecting...\n"; 
 #endif
 	    disconnect(*user);
 	    msgType = CONFIRM;
@@ -329,11 +342,14 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	packet.makeMessage(msgId, senderId, reqType,
 			   msgType, "Chat does not exist.");
 	sock->send(packet.getData(), packet.getLen(), &(user->addr));
-	delete[] buf;
 	return;
     }
     switch (reqType) {
-	case QUIT_CHAT: {	    
+	case QUIT_CHAT: {
+#ifdef DEBUG
+	    cout << "Quit chat: "<< user->id << endl;
+#endif
+
 	    quitChat(*user, *chat, msgType);
 	    packet.makeMessage(msgId, senderId, reqType, msgType);
 	    if (msgType == CONFIRM) {

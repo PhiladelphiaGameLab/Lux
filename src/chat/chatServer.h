@@ -18,13 +18,6 @@ namespace chat{
     using socketlibrary::LuxSocket;
     using boost::thread;
 
-    struct UserInfo {
-	UserId id;
-	bool isOnline; // If user is currently online
-	sockaddr_in addr; // User address, including ip, port and other data
-	sockaddr_in pollAddr;
-    };
-
     class Chat {
 	public:
     
@@ -126,8 +119,13 @@ namespace chat{
     class SubServer {
 	public:
 	SubServer(int capacity = 100) : _capacity(capacity) {
-	    _id = getNewId();
-	    _udpSocket = new socketlibrary::LuxSocket(_id + _startPort);
+	    // Assign port 0, let OS to find an open port
+	    try {
+		_udpSocket = new LuxSocket(0);
+	    }
+	    catch (string e){
+		throw e;
+	    }
 	};
         
 	~SubServer() {
@@ -147,10 +145,6 @@ namespace chat{
 		    delete it->second;
 		}
 	    }	    
-	};
-    
-	SubServerId getId() {
-	    return _id;
 	};
     
 	int getCapacity() {
@@ -205,15 +199,9 @@ namespace chat{
 
 	private:
 	boost::thread *_thisThread;
-	static const unsigned short _startPort = 30000;
 	socketlibrary::LuxSocket *_udpSocket;
-	SubServerId _id;
 	int _capacity;
 	map<ChatId, Chat*> _chatPool;
-	static SubServerId getNewId() {
-	    static SubServerId id = 0;
-	    return id++;
-	};
     };
         
     // Thread manager class

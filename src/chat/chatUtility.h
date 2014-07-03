@@ -47,7 +47,14 @@ namespace chat {
     typedef unsigned char BYTE;
 
     const int HEADER_LEN = sizeof(MsgId) + EUID_LEN + sizeof(BYTE) * 2;
-    
+
+    struct UserInfo {
+	UserId id;
+	bool isOnline; // If user is currently online
+	sockaddr_in addr; // User address, including ip, port and other data
+	sockaddr_in pollAddr;
+    };
+
     class ChatPacket {
 // -----------------------------------------------------------------------------
 // Packet format:
@@ -288,7 +295,8 @@ namespace chat {
 	delete tmp;
 	
 	return 1;
-    }
+    }        
+
 }
 #endif 
 //CHAT_UTILITY_H
