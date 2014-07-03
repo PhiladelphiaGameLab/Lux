@@ -33,9 +33,6 @@ struct ChatRoom {
 
 ChatRoom *chatRoom;
 
-
-
-
 void menu();
 void connect();
 void disconnect();
@@ -149,6 +146,7 @@ void menu() {
 void connect() {
     buf[p++] = (unsigned char)CONNECT;
     buf[p++] = (unsigned char)PORTS;
+    cout << "Connect port: " << ntohs(serverAddr.sin_port) << endl;
     for (int i = 0; i < sizeof(clientPort); i++) {
 	buf[p++] = *((unsigned char*)&clientPort + i);
     }
@@ -158,6 +156,7 @@ void connect() {
 }
 
 void disconnect() {
+    cout << "Disconnect port: " << ntohs(serverAddr.sin_port) << endl;
     buf[p++] = (unsigned char)DISCONNECT;
     buf[p++] = (unsigned char)PORTS;
     for (int i = 0; i < sizeof(clientPort); i++) {
@@ -209,7 +208,7 @@ void sendMessage(const string &msg) {
     cout << "Chat ip :" << chatRoom->addr.sin_addr.s_addr << endl;
     cout << "Main ip :" << serverAddr.sin_addr.s_addr << endl;
     cout << "Port :" << chatRoom->addr.sin_port << endl;
-    int n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&chatRoom->addr, 
+    int n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&(chatRoom->addr), 
 		   sizeof(serverAddr));
     if (n < 0) {
 	cout << "Error in sendto\n";
@@ -253,7 +252,7 @@ void print(unsigned char *buf, int n) {
 	pack.parseChatInfo(port, id, cap, count, users);
 	chatRoom = new ChatRoom();
 	chatRoom->addr = serverAddr;
-	chatRoom->addr.sin_port = port;
+	chatRoom->addr.sin_port = htons(port);
 	chatRoom->id = id;
 	/*
 	cout << "ChatId " << id << endl;
@@ -279,8 +278,11 @@ void print(unsigned char *buf, int n) {
 void startReceiving(LuxSocket *sock) {
     int n = 0;
     while (1) {
-	n = sock->receive(buf, BUFSIZE, &serverAddr);
+	sockaddr_in tmpAddr;
+	n = sock->receive(buf, BUFSIZE, &tmpAddr);
 	cout << "receive" << n << endl;
-	print(buf, n);
+	BYTE *tmp = new BYTE[n];
+	memcpy(tmp, buf, n);
+	print(tmp, n);
     }
 }
