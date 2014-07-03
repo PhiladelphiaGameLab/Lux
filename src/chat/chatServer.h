@@ -15,6 +15,8 @@ namespace chat{
     using std::vector;
     using std::pair;
     using std::map;
+    using socketlibrary::LuxSocket;
+    using boost::thread;
 
     struct UserInfo {
 	UserId id;
@@ -130,6 +132,17 @@ namespace chat{
         
 	~SubServer() {
 	    delete _udpSocket;
+	    if (_thisThread) {
+		_thisThread->interrupt();
+		delete _thisThread;
+	    }
+	    for (map<ChatId, Chat*>::iterator it = _chatPool.begin();
+		 it != _chatPool.end();
+		 it ++) {
+		if ((it->second) != NULL) {
+		    delete it->second;
+		}
+	    }	    
 	};
     
 	SubServerId getId() {
@@ -181,8 +194,13 @@ namespace chat{
 	};
 
 	string receive();
+	
+	void setThread(boost::thread *t) {
+	    _thisThread = t;
+	}
 
 	private:
+	boost::thread *_thisThread;
 	static const unsigned short _startPort = 30000;
 	socketlibrary::LuxSocket *_udpSocket;
 	SubServerId _id;
@@ -193,9 +211,7 @@ namespace chat{
 	    return id++;
 	};
     };
-    
-
-    
+        
     // Thread manager class
     // When expires, it will kill all child threads
     class ThreadMgr : public std::vector<boost::thread*> {
@@ -212,6 +228,68 @@ namespace chat{
 	};
     };
 
+    class ChatServer {
+	public:
+	ChatServer(unsigned short port = 3000) {
+	    _mainSock = new LuxSocket(port);
+	};
+	~ChatServer();
+	run();
+	
+	private:
+	map<UserId, UserInfo*> _userPool;
+	list<SubServer *> _subServerList;
+	LuxSocket *_mainSock;
+	
+	// Server functions
+
+	// Add new user into user pool
+	bool connect(UserId &id, sockaddr_in &addr, unsigned short port, 
+		     unsigned short pollPort);
+
+	// Clear user online status
+	bool disconnect(UserInfo &user);
+
+	// Creates chat for users
+	Chat* createChat(const UserInfo &user, vector<UserId> &idArray, 
+			 MESSAGE_TYPE &msgType);
+	void addUserToChat(Chat &chat, vector<UserId> idArray, 
+			   MESSAGE_TYPE &msgType);
+	void quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType);
+
+
+	// Find a sub server for chat 
+	SubServer* findSubServer();
+
+	// Create a new sub server
+	SubServer* createNewSubServer();
+
+	// Make chat info into a string
+	void makeChatInfo(ChatId chatId, string &msgChatInfo);
+
+	void sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat);
+	// Sends message to all users expect the sender in this chat
+	void sendToOthers(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat, 
+			  UserId &senderId);
+
+	// Threads to handle requests
+	void mainRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr);
+	void chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr, 
+				SubServer *serv);
+
+	// Sub server thread
+	void startSubServerThread(SubServer *serv);
+	
+	
+	// Helper functions
+	UserInfo* findUser(UserId id);
+	bool verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr);
+	int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
+
+	// Update functions
+	void updateUserPool();	
+    };
+    
 }
 
 #endif // CHATSERVER_H

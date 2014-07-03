@@ -90,6 +90,7 @@ void sigint_handler(int sig) {
     }
     exit(0);
 }
+
 int main() {
     unsigned short port = 3000;
     mainSock = new LuxSocket(port);
