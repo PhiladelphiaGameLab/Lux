@@ -87,7 +87,12 @@ namespace chat {
 //
 
 	public:	
-	ChatPacket(BYTE *buf, size_t len) : _buf(buf), _len(len) {}; 
+	ChatPacket(BYTE *buf, size_t len) : _buf(buf), _len(len) {};
+	~ChatPacket() {
+	    if (_buf) {
+		delete[] _buf;
+	    }
+	};
 	int parseMessage(MsgId &msgId, UserId &senderId, 
 			 REQUEST_TYPE &reqType, 
 			 MESSAGE_TYPE &msgType);

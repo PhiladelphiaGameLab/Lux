@@ -32,19 +32,19 @@ namespace chat{
 	    _id = getNewId();
 	};
 
-	ChatId getId() {
+	ChatId getId() const {
 	    return _id;
 	};
     
-	int getCapacity() {
+	int getCapacity() const {
 	    return _capacity;
 	};
     
-	bool isEmpty() {
+	bool isEmpty() const {
 	    return _userList.size() == 0;
 	};
     
-	int emptySpace() {
+	int emptySpace() const {
 	    return _capacity - _userList.size();
 	};
 
@@ -131,15 +131,19 @@ namespace chat{
 	};
         
 	~SubServer() {
-	    delete _udpSocket;
+	    if (_udpSocket) {
+		delete _udpSocket;
+	    }
 	    if (_thisThread) {
 		_thisThread->interrupt();
-		delete _thisThread;
+		if (_thisThread) {
+		    delete _thisThread;
+		}
 	    }
 	    for (map<ChatId, Chat*>::iterator it = _chatPool.begin();
 		 it != _chatPool.end();
 		 it ++) {
-		if ((it->second) != NULL) {
+		if (it->second) {
 		    delete it->second;
 		}
 	    }	    
@@ -234,26 +238,28 @@ namespace chat{
 	    _mainSock = new LuxSocket(port);
 	};
 	~ChatServer();
-	run();
+	void run();
 	
 	private:
+	// Stores all online user information here
 	map<UserId, UserInfo*> _userPool;
+	// Stores all chats in the list
 	list<SubServer *> _subServerList;
 	LuxSocket *_mainSock;
 	
 	// Server functions
 
 	// Add new user into user pool
-	bool connect(UserId &id, sockaddr_in &addr, unsigned short port, 
-		     unsigned short pollPort);
+	UserInfo* connect(UserId &id, sockaddr_in &addr, unsigned short port, 
+			  unsigned short pollPort);
 
 	// Clear user online status
 	bool disconnect(UserInfo &user);
 
 	// Creates chat for users
-	Chat* createChat(const UserInfo &user, vector<UserId> &idArray, 
+	Chat* createChat(const UserInfo &user, const vector<UserId> &idArray, 
 			 MESSAGE_TYPE &msgType);
-	void addUserToChat(Chat &chat, vector<UserId> idArray, 
+	void addUserToChat(Chat &chat, const vector<UserId> &idArray,
 			   MESSAGE_TYPE &msgType);
 	void quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType);
 
@@ -263,9 +269,6 @@ namespace chat{
 
 	// Create a new sub server
 	SubServer* createNewSubServer();
-
-	// Make chat info into a string
-	void makeChatInfo(ChatId chatId, string &msgChatInfo);
 
 	void sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat);
 	// Sends message to all users expect the sender in this chat
@@ -288,6 +291,11 @@ namespace chat{
 
 	// Update functions
 	void updateUserPool();	
+	void updateUserPorts(UserInfo &user, unsigned short recvPort, 
+			     unsigned short pollPort);
+	void updateChat(SubServer &subServ);
+
+	static bool equalId(const UserId &id0, const UserId &id1);
     };
     
 }
