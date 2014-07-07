@@ -8,6 +8,8 @@
 #include <vector>
 #include <map>
 #include <boost/thread/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <mutex>
 
 namespace chat{
 
@@ -41,26 +43,24 @@ namespace chat{
 	};
     
 	bool isEmpty() const {
-	    return _userList.size() == 0;
+	    return _userNum == 0;
 	};
     
 	int emptySpace() const {
-	    return _capacity - _userList.size();
+	    return _capacity - _userNum;
 	};
-
-        vector<UserId>& getList() {
+	
+        const list<UserId>& getList() {
 	    return _userList;
 	};
 
-	void eraseUser(typename vector<UserId>::iterator &it) {
+	void eraseUser(const typename list<UserId>::const_iterator &it) {
 	    _userList.erase(it);
+	    _userNum = _userList.size();
 	    _changed = true;
 	};
     
-	void insertUser(UserId item) {
-	    _userList.push_back(item);
-	    _changed = true;
-	};
+	void insertUser(const vector<UserId> &idArray);
 
 	void setAddress(const string &addr) {
 	    _address = addr;
@@ -74,20 +74,45 @@ namespace chat{
 	
 	const vector<BYTE>& toBytes();
 
+	boost::shared_mutex& getReaderMutex() {
+	    return _userListMutex;
+	}
+
+	bool quitChat(const UserId &id, MESSAGE_TYPE &msgType);
+
 	private:
 	string _address;
 	unsigned short _portNum;
 	ChatId _id;
 	int _capacity;
-	vector<UserId> _userList;
+	int _userNum;
+	list<UserId> _userList;
 	vector<BYTE> bytes;
 	bool _changed;
+	// Reader and writer lock for _userList
+	boost::shared_mutex _userListMutex;
 
 	static ChatId getNewId() {
 	    static ChatId id = 0;
 	    return id++;
 	};
     };
+
+    void Chat::insertUser(const vector<UserId> &idArray) {
+	// writer 
+	// get upgrade access
+	boost::upgrade_lock<boost::shared_mutex> lock(_userListMutex);
+	// get exclusive access
+	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+	    
+	for (vector<UserId>::const_iterator it = idArray.begin();
+	     it != idArray.end();
+	     it ++) {
+	    _userList.push_back(*it);
+	}
+	_userNum = _userList.size();
+	_changed = true;
+    }
 
     const vector<BYTE>& Chat::toBytes() {
 	if (!_changed)
@@ -106,12 +131,16 @@ namespace chat{
 	    bytes.push_back(*((BYTE*)&_capacity + i));
 	}
 
+	// reader
+	// get upgrade access
+	boost::upgrade_lock<boost::shared_mutex> lock(_userListMutex);
+
 	int size = _userList.size();
 	for (int i = 0; i < sizeof(size); i++) {
 	    bytes.push_back(*((BYTE*)&size + i));
 	}
-
-	for (vector<UserId>::iterator it = _userList.begin();
+		
+	for (list<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    for (int i = 0; i < (*it).length(); i++) {
@@ -123,9 +152,30 @@ namespace chat{
 	return bytes;
     }
 
+    bool Chat::quitChat(const UserId &id, MESSAGE_TYPE &msgType) {
+	// writer 
+	// get upgrade access
+	boost::upgrade_lock<boost::shared_mutex> lock(_userListMutex);
+	// get exclusive access
+	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+	    
+	for (list<UserId>::const_iterator it = _userList.begin();
+	     it != _userList.end();
+	     it ++) {
+	    if (id == *it) {
+		eraseUser(it);
+		msgType = CONFIRM;
+		return true;
+	    }
+	}	    
+	return false;
+    }
+
+
+
     class SubServer {
 	public:
-	SubServer(int capacity = 100) : _capacity(capacity) {
+	SubServer(int capacity = 100) : _capacity(capacity), _chatNum(0) {
 	    // Assign port 0, let OS to find an open port
 	    try {
 		_udpSocket = new LuxSocket(0);
@@ -159,14 +209,18 @@ namespace chat{
 	};
     
 	bool isEmpty() {
-	    return _chatPool.size() == 0;
+	    return _chatNum == 0;
 	};
     
 	int emptySpace() {
-	    return _capacity - _chatPool.size();
+	    return _capacity - _chatNum;
 	};
 	
 	Chat* getChat(ChatId id) {
+	    // reader
+	    // get upgrade access
+	    boost::upgrade_lock<boost::shared_mutex> lock(_chatPoolMutex);
+	    
 	    map<ChatId, Chat*>::iterator it = _chatPool.find(id);
 	    if (it != _chatPool.end()) {
 		return it->second;
@@ -178,12 +232,20 @@ namespace chat{
 	    return _chatPool;
 	};
 
-	void eraseChat(typename map<ChatId, Chat*>::iterator &it) {
+	void eraseChat(const typename map<ChatId, Chat*>::iterator &it) {
 	    _chatPool.erase(it);
+	    _chatNum--;
 	};
     
-	void inserChat(Chat &chat) {
+	void insertChat(Chat &chat) {
+	    // write
+	    // get upgrade access
+	    boost::upgrade_lock<boost::shared_mutex> lock(_chatPoolMutex);
+	    // get exclusive access
+	    boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+	    
 	    _chatPool.insert(pair<ChatId, Chat*>(chat.getId(), &chat));
+	    _chatNum++;
 	};
 
 	socketlibrary::LuxSocket* getSocket() {
@@ -203,14 +265,21 @@ namespace chat{
 	void setThread(boost::thread *t) {
 	    _thisThread = t;
 	}
+	
+	boost::shared_mutex& getChatPoolMutex() {
+	    return _chatPoolMutex;
+	}
 
 	private:
 	boost::thread *_thisThread;
 	socketlibrary::LuxSocket *_udpSocket;
 	int _capacity;
+	int _chatNum;
 	map<ChatId, Chat*> _chatPool;
+	// Reader and writer lock for _chatPool
+	boost::shared_mutex _chatPoolMutex;
     };
-        
+    
     // Thread manager class
     // When expires, it will kill all child threads
     class ThreadMgr : public std::vector<boost::thread*> {
@@ -229,7 +298,8 @@ namespace chat{
 
     class ChatServer {
 	public:
-	ChatServer(unsigned short port = 3000) {
+	ChatServer(unsigned short port = 3000) 
+	    : _updatingUserPool(false), _updatingChats(false) {
 	    _mainSock = new LuxSocket(port);
 	};
 	~ChatServer();
@@ -238,12 +308,26 @@ namespace chat{
 	private:
 	// Stores all online user information here
 	map<UserId, UserInfo*> _userPool;
+	// Reader/Writer mutex for _userPool
+	boost::shared_mutex _userPoolMutex;
+	// Indicate whether _userPool is been updating
+	bool _updatingUserPool;
+
 	// Stores all chats in the list
 	list<SubServer *> _subServerList;
+	// Exclusive Mutex for sub server list
+	std::mutex _subServerMutex;
+	// Indicate whether _userPool is been updating
+	bool _updatingChats;
+
 	LuxSocket *_mainSock;
+
+	// Time between two calls of update
+	int _updateTime = 10;
+
 	
 	// Server functions
-
+	
 	// Add new user into user pool
 	UserInfo* connect(UserId &id, sockaddr_in &addr, unsigned short port, 
 			  unsigned short pollPort);
@@ -285,14 +369,31 @@ namespace chat{
 	int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
 
 	// Update functions
+	void updateAll();
 	void updateUserPool();	
 	void updateUserPorts(UserInfo &user, unsigned short recvPort, 
 			     unsigned short pollPort);
-	void updateChat(SubServer &subServ);
+	void updateSubServer();
+	void updateChats(SubServer &subServ);
+	
+	
 
 	static bool equalId(const UserId &id0, const UserId &id1);
     };
     
+
+    // Set a boolean to false when it expires
+    class IndicatorHelper {
+	public:
+	IndicatorHelper(bool &i) : _indicator(i) {
+	    _indicator = true;
+	};
+	~IndicatorHelper() {
+	    _indicator = false;
+	};
+	private:
+	bool _indicator;
+    };
 }
 
 #endif // CHATSERVER_H
