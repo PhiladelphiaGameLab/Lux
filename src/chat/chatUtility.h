@@ -48,11 +48,10 @@ namespace chat {
 
     const int HEADER_LEN = sizeof(MsgId) + EUID_LEN + sizeof(BYTE) * 2;
 
-    struct UserInfo {
-	UserId id;
-	bool isOnline; // If user is currently online
-	sockaddr_in addr; // User address, including ip, port and other data
-	sockaddr_in pollAddr;
+
+    enum COPY_TYPE{
+	NOT_COPY_OLD,
+	COPY_OLD
     };
 
     class ChatPacket {
@@ -94,11 +93,10 @@ namespace chat {
 //
 
 	public:	
-	ChatPacket(BYTE *buf, size_t len) : _buf(buf), _len(len) {};
+	ChatPacket(BYTE *buf, size_t len) 
+	    : _buf(buf), _len(len), _maxLen(len) {};
 	~ChatPacket() {
-	    if (_buf) {
-		delete[] _buf;
-	    }
+	    delete[] _buf;
 	};
 	int parseMessage(MsgId &msgId, UserId &senderId, 
 			 REQUEST_TYPE &reqType, 
@@ -117,13 +115,14 @@ namespace chat {
 
 	
 	size_t makeMessage(MsgId &msgId, UserId &senderId, 
-			 BYTE reqType, BYTE msgType, 
-			 const char *message);
+			   BYTE reqType, BYTE msgType, 
+			   const char *message);
 	size_t makeMessage(MsgId &msgId, UserId &senderId, 
 			   BYTE reqType, BYTE msgType);
 	size_t appendMessage(const BYTE *msg, size_t len);
 	size_t appendMessage(const std::string &msg);
 	size_t appendMessage(const std::vector<BYTE> &msg);
+	void keepEnoughBuf(size_t newLen, COPY_TYPE c);
 	
 	BYTE* getData() {
 	    return _buf;
@@ -137,7 +136,8 @@ namespace chat {
 	
 	private:
 	BYTE *_buf;
-	size_t _len;	
+	size_t _len;
+	size_t _maxLen;
     };
 
     int ChatPacket::parseMessage(MsgId &msgId, UserId &senderId, 
@@ -208,6 +208,10 @@ namespace chat {
     size_t ChatPacket::makeMessage(MsgId &msgId, UserId &senderId,
 				   BYTE reqType, BYTE msgType, 
 				   const char *message) {
+	int newLen = 0;
+	newLen += HEADER_LEN;
+	newLen += strlen(message) + 1;
+	keepEnoughBuf(newLen, NOT_COPY_OLD);
 	_len = 0;
 	for (int i = 0; i < sizeof(MsgId); i++) {
 	    _buf[_len++] = *((BYTE*)&msgId + i);
@@ -237,26 +241,41 @@ namespace chat {
     }
     
     size_t ChatPacket::appendMessage(const BYTE *msg, size_t len) {
+	int newLen = _len + len;
+	keepEnoughBuf(newLen, COPY_OLD);
+	memcpy(_buf + _len, msg, len);
+	_len += len;
+	return len;
+    }
+    
+    size_t ChatPacket::appendMessage(const std::string &msg) {	
+	size_t len = msg.length();
+	int newLen = _len + len;
+	keepEnoughBuf(newLen, COPY_OLD);
+	memcpy(_buf + _len, msg.c_str(), len);
+	_len += len;
+	return len;
+    }
+
+    size_t ChatPacket::appendMessage(const std::vector<BYTE> &msg) {	
+	size_t len = msg.size();
+	int newLen = _len + len;
+	keepEnoughBuf(newLen, COPY_OLD);
 	for (size_t i = 0; i < len; i++) {
 	    _buf[_len++] = msg[i];
 	}
 	return len;
     }
     
-    size_t ChatPacket::appendMessage(const std::string &msg) {
-	size_t len = msg.length();
-	for (size_t i = 0; i < len; i++) {
-	    _buf[_len++] = msg[i];
+    void ChatPacket::keepEnoughBuf(size_t newLen, COPY_TYPE c) {
+	if (_maxLen < newLen) {
+	    BYTE *newBuf = new BYTE[newLen];
+	    if (c == COPY_OLD) {
+		memcpy(newBuf, _buf, _len);
+	    }	    
+	    delete _buf;
+	    _buf = newBuf;
 	}
-	return len;
-    }
-
-    size_t ChatPacket::appendMessage(const std::vector<BYTE> &msg) {
-	size_t len = msg.size();
-	for (size_t i = 0; i < len; i++) {
-	    _buf[_len++] = msg[i];
-	}
-	return len;
     }
 
     int ChatPacket::parseChatInfo(unsigned short &port, ChatId &id, int &cap,

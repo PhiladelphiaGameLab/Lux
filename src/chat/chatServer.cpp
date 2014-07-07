@@ -183,7 +183,7 @@ void ChatServer::sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat) {
 }
 
 void ChatServer::mainRequestHandler(BYTE *buf, size_t len, 
-				    sockaddr_in* tmpAddr) {
+				    sockaddr_in *tmpAddr) {
     // Parse message and handle request
     sockaddr_in cliAddr(*tmpAddr);
     delete tmpAddr;
@@ -226,7 +226,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    if (user) {
 		// Successfully connected
 		msgType = CONFIRM;
-		packet.makeMessage(msgId, senderId, reqType, 
+		packet.makeMessage(msgId, senderId, reqType,
 				   msgType, "Welcome.");
 #ifdef DEBUG
 		cout << "Connected.\n";
@@ -251,9 +251,11 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 #endif
 	    disconnect(*user);
 	    msgType = CONFIRM;
+	    
 	    packet.makeMessage(msgId, senderId, reqType, 
 			       msgType, "Disconnect");
 	    _mainSock->send(packet.getData(), packet.getLen(), &(user->addr));
+
 	    break;
 	}
 	case POLLING: {
@@ -473,6 +475,7 @@ void ChatServer::updateChat(SubServer &subServ) {
 }    
 
 UserInfo* ChatServer::findUser(UserId id) {
+    cout << "Users: " << _userPool.size() << endl;
     map<UserId, UserInfo*>::iterator it = _userPool.find(id);
     if (it == _userPool.end()) {
 	return nullptr;
@@ -509,22 +512,16 @@ bool ChatServer::equalId(const UserId &id0, const UserId &id1) {
 }
 
 ChatServer::~ChatServer() {
-    if (_mainSock) {
-	delete _mainSock;
-    }
+    delete _mainSock;
     for (map<UserId, UserInfo*>::iterator it = _userPool.begin();
 	 it != _userPool.end();
 	 it ++) {
-	if (it->second) {
-	    delete it->second;
-	}
+	delete it->second;	
     }
     for (list<SubServer *>::iterator it = _subServerList.begin();
 	 it != _subServerList.end();
 	 it ++) {
-	if (*it) {
-	    delete *it;
-	}
+	delete *it;	
     }
 }
 

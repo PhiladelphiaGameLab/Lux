@@ -59,7 +59,7 @@ void testConnect(Tester &user) {
     
     MsgId msgId0 = messageId++;
 
-    ChatPacket packet(buf, 0);
+    ChatPacket packet(buf, BUFSIZE);
     packet.makeMessage(msgId0, user.id, CONNECT, PORTS);
     packet.appendMessage((BYTE *)&user.recv, sizeof(user.recv));
     packet.appendMessage((BYTE *)&user.poll, sizeof(user.poll));
@@ -90,15 +90,15 @@ void testDisconnect(Tester &user) {
     
     MsgId msgId0 = messageId++;
 
-    ChatPacket packet(buf, 0);
+    ChatPacket packet(buf, BUFSIZE);
     packet.makeMessage(msgId0, user.id, DISCONNECT, PORTS);
     packet.appendMessage((BYTE *)&user.recv, sizeof(user.recv));
     packet.appendMessage((BYTE *)&user.poll, sizeof(user.poll));
     
     user.sock->send(packet.getData(), packet.getLen(), &serverAddr);
-    
+
     int n = user.sock->receive(buf, BUFSIZE, nullptr);
-    
+
     MsgId msgId;
     UserId senderId;
     REQUEST_TYPE reqType;
@@ -110,6 +110,7 @@ void testDisconnect(Tester &user) {
     assert(senderId == user.id);
     assert(reqType == DISCONNECT);
     assert(msgType == CONFIRM);    
+
 }
 
 int main() {
@@ -117,5 +118,7 @@ int main() {
     while (1) {
 	testConnect(user0);
 	testDisconnect(user0);
+	//boost::posix_time::milliseconds secTime(10);
+	//boost::this_thread::sleep(secTime); 
     }
 }
