@@ -17,7 +17,10 @@ void sigint_handler(int sig) {
 void ChatServer::run() {
     struct sockaddr_in cliAddr;
     BYTE *buf = new BYTE[BUFSIZE];
-
+    
+    // Start update function
+    thread(&ChatServer::updateAll, this).detach();
+    
     while (1) {
 	// Receive data from clients and do whatever need to do.	
 	size_t n = _mainSock->receive(buf, BUFSIZE, &cliAddr);
@@ -42,7 +45,7 @@ UserInfo* ChatServer::connect(UserId &id, sockaddr_in &addr,
     user->addr = addr;
     user->addr.sin_port = htons(port);
     user->pollAddr = addr;
-    user->pollAddr.sin_port = htons(pollPort);
+    user->pollAddr.sin_port = htons(pollPort);       
     _userPool.insert(pair<UserId, UserInfo*>(user->id, user));
     return user;
 }
@@ -55,7 +58,11 @@ bool ChatServer::disconnect(UserInfo &user) {
 Chat* ChatServer::createChat(const UserInfo &user, 
 			     const vector<UserId> &idArray, 
 			     MESSAGE_TYPE &msgType) {
+    // Exclusiva access to sub servers
+    std::lock_guard<std::mutex> lock(_subServerMutex);
+    
     SubServer* serv = findSubServer();
+    
     if (serv == nullptr) {
 	// No server is available
 	msgType = NO_MORE_SERVERS;
@@ -68,49 +75,33 @@ Chat* ChatServer::createChat(const UserInfo &user,
 	delete chat;
 	return nullptr;
     }
-
+    
     chat->setAddress(serv->getAddress());
     chat->setPortNum(serv->getPortNum());
     
-    for (vector<UserId>::const_iterator it = idArray.begin();
-	 it != idArray.end();
-	 it ++) {
-	chat->insertUser(*it);
-    }
-    
+    chat->insertUser(idArray);
+        
     // Insert new chat into sub server
-    serv->inserChat(*chat);
+    serv->insertChat(*chat);
     msgType = CHAT_INFO;
     return chat;
 }
 
 void ChatServer::addUserToChat(Chat &chat, const vector<UserId> &idArray, 
-			       MESSAGE_TYPE &msgType) {
+			       MESSAGE_TYPE &msgType) {    
     if (chat.emptySpace() < idArray.size()) {
 	msgType = EXCEED_CHAT_CAP;
 	return;
-    }
-    
-    for (vector<UserId>::const_iterator it = idArray.begin();
-	 it != idArray.end();
-	 it ++) {
-	chat.insertUser(*it);
-    }
-    
+    }        
+
+    chat.insertUser(idArray);
     msgType = CONFIRM;
 }
 
 void ChatServer::quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType) {
-    for (vector<UserId>::iterator it = chat.getList().begin();
-	 it != chat.getList().end();
-	 it ++) {
-	if (equalId(user.id, (*it))) {
-	    chat.eraseUser(it);
-	    msgType = CONFIRM;
-	    return;
-	}
+    if (!chat.quitChat(user.id, msgType)) {
+	msgType = USER_NOT_IN_CHAT;
     }
-    msgType = USER_NOT_IN_CHAT;
 }
 
 SubServer* ChatServer::findSubServer() {
@@ -148,8 +139,10 @@ SubServer* ChatServer::createNewSubServer() {
 	}
 	return nullptr;
     }
+#ifdef DEBUG
     cout << "============" << endl;
     cout << "Create server: " << server->getPortNum() << endl;
+#endif
     // Start sub server thread
     thread *t = new thread(&ChatServer::startSubServerThread, this, server);
     server->setThread(t);
@@ -158,13 +151,16 @@ SubServer* ChatServer::createNewSubServer() {
 
 void ChatServer::sendToOthers(BYTE *buf, size_t len, LuxSocket *sock, 
 			      Chat &chat, UserId &senderId) {
-    for (vector<UserId>::iterator it = chat.getList().begin();
+    // reader
+    // get upgrade access
+    boost::upgrade_lock<boost::shared_mutex> lock(chat.getReaderMutex());
+
+    for (list<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
 	UserInfo *user = findUser(*it);       
 	if (user != nullptr) {
-	    if (!equalId(senderId, user->id)) {
-		cout << "Send to: " << user->id << endl;
+	    if (user->isOnline && !equalId(senderId, user->id)) {
 		sock->send(buf, len, &(user->addr));
 	    }
 	}
@@ -172,12 +168,18 @@ void ChatServer::sendToOthers(BYTE *buf, size_t len, LuxSocket *sock,
 }
 
 void ChatServer::sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat) {
-    for (vector<UserId>::iterator it = chat.getList().begin();
+    // reader
+    // get upgrade access
+    boost::upgrade_lock<boost::shared_mutex> lock(chat.getReaderMutex());
+
+    for (list<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
 	UserInfo *user = findUser(*it);
 	if (user != nullptr) {
-	    sock->send(buf, len, &(user->addr));
+	    if (user->isOnline) {
+		sock->send(buf, len, &(user->addr));
+	    }
 	}
     }
 }
@@ -405,31 +407,36 @@ void ChatServer::startSubServerThread(SubServer *serv) {
     }
 }
 
+void ChatServer::updateAll() {
+    boost::posix_time::seconds secTime(_updateTime);    
+    while (1) {
+	boost::this_thread::sleep(secTime);
+	thread(&ChatServer::updateUserPool, this).detach();
+	thread(&ChatServer::updateSubServer, this).detach();
+    }
+}
+
 void ChatServer::updateUserPool() {
-    vector<UserInfo> changed;
-    // Get user information from social net work server
-    // Assume all changed users infomation stored in vector<UserInfo> changed
+    if (_updatingUserPool) {
+	return;
+    }
+    IndicatorHelper indicate(_updatingUserPool);
+    // Writer 
+    // access
+    boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
+    // exclusive
+    boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
     
-    for (vector<UserInfo>::iterator it = changed.begin();
-	 it != changed.end();
-	 it ++) {
-	UserId id = (*it).id;
-	map<UserId, UserInfo *>::iterator usrMapIt = _userPool.find(id);	
-	if (usrMapIt != _userPool.end()) {
-	    // User already in pool
-	    UserInfo *user = usrMapIt->second;
-	    user->isOnline = (*it).isOnline;
-	    user->addr = (*it).addr;	 
+    map<UserId, UserInfo *>::iterator usrMapIt =  _userPool.begin(); 
+    while (usrMapIt != _userPool.end()) {
+	if (usrMapIt->second->isOnline) {
+	    ++usrMapIt;
 	}
 	else {
-	    // New user
-	    UserInfo *user = new UserInfo();
-	    user->id = (*it).id;
-	    user->isOnline = (*it).isOnline;
-	    user->addr = (*it).addr;
-	    _userPool.insert(pair<UserId, UserInfo*>(user->id,user));
-	}
-    }    
+	    delete usrMapIt->second;
+	    _userPool.erase(usrMapIt++);
+	}	
+    }
 }
     
 
@@ -445,37 +452,57 @@ void ChatServer::updateUserPorts(UserInfo &user, unsigned short recvPort,
     }    
 }
 
-void ChatServer::updateChat(SubServer &subServ) {
+void ChatServer::updateSubServer() {
+    // Exclusive lock
+    std::lock_guard<std::mutex> lock(_subServerMutex);
+    
+    list<SubServer *>::iterator it = _subServerList.begin();
+    while (it != _subServerList.end()) {
+	updateChats(*(*it));
+	if ((*it)->isEmpty()) {
+	    delete *it;
+	    _subServerList.erase(it++);
+	}
+	else {
+	    ++it;
+	}
+    }
+    
+}
+
+void ChatServer::updateChats(SubServer &subServ) {
+    if (_updatingChats) {
+	return;
+    }
+    // sets _updatingChats back to false when exit scope
+    IndicatorHelper indicate(_updatingChats);
+    // writer 
+    // get upgrade access
+    boost::upgrade_lock<boost::shared_mutex> lock(subServ.getChatPoolMutex());
+    // get exclusive access
+    boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+
     map<ChatId, Chat*>& chatPool = subServ.getChats();
     map<ChatId, Chat*>::iterator chatMapIt = chatPool.begin();
     // Iterating all chats 
     while (chatMapIt != chatPool.end()) {
 	// Check all users in each chat
 	Chat *chat = chatMapIt->second;
-	vector<UserId>::iterator usrVecIt = chat->getList().begin();
-	while(usrVecIt != chat->getList().end()) {
-	    map<UserId, UserInfo *>::iterator usrMapIt = _userPool.find(*usrVecIt);
-	    if (usrMapIt == _userPool.end() || !(usrMapIt->second)->isOnline) {
-		// User not in pool or user is not online
-		chat->eraseUser(usrVecIt);
-	    }
-	    else {
-		usrVecIt ++;
-	    }	    
-	}
 	if (chat->isEmpty()) {
 	    // If no one is in chat, remove chat
-	    delete (chatMapIt->second);
-	    subServ.eraseChat(chatMapIt);
+	    delete chat;
+	    subServ.eraseChat(chatMapIt++);
 	}
 	else {
-	    chatMapIt ++;
+	    ++chatMapIt;
 	}
     }
 }    
 
 UserInfo* ChatServer::findUser(UserId id) {
-    cout << "Users: " << _userPool.size() << endl;
+    // Reader 
+    boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
+    
     map<UserId, UserInfo*>::iterator it = _userPool.find(id);
     if (it == _userPool.end()) {
 	return nullptr;
