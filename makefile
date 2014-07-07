@@ -11,7 +11,7 @@ BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/Sen
 
 Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi -g
 Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi -g
-BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner.cgi -g
+BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner -g
 
 Authen = -c ../src/classes/static/Authenticate.cpp
 FindBGT = -c ../src/classes/static/FindBGT.cpp
@@ -25,10 +25,10 @@ SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp -g
 battleground = -c ../src/processes/battleground.cpp -g
 sendupdate = -c ../src/processes/sendupdate.cpp -g
 
-#Mongo:
-#	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
-
 all: clean build run
+
+Mongo:
+	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
 
 mkdir:
 	mkdir $(PROJ_DIR)/output
@@ -90,9 +90,10 @@ run:
 	chmod -R 777 $(PROJ_DIR)/output
 	chmod -R 777 $(PROJ_DIR)/cgi_bin
 	rm -f $(PROJ_DIR)/lux_pipe*
-	$(PROJ_DIR)/output/BGTSpawner.cgi
+	$(PROJ_DIR)/output/BGTSpawner
 
 # deletes all of the ./cgi_bin/ & ./output/
 clean:
 	rm -rf ./output
 	rm -rf ./cgi_bin
+	rm -f lux_pipe*
