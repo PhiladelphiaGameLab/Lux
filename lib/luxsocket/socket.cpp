@@ -123,7 +123,7 @@ string Socket::getLocalAddress() throw(SocketException) {
 unsigned short Socket::getLocalPort() throw(SocketException) {
 	sockaddr_in addr;
 	unsigned int addr_len = sizeof(addr);
-
+	
 	if (getsockname(sock, (sockaddr *) &addr, (socklen_t *) &addr_len) < 0) {
 		throw SocketException("Fetch of local port failed (getsockname())", true);
 	}
