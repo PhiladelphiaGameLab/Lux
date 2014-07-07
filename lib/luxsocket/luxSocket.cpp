@@ -1,33 +1,31 @@
 #include "luxSocket.h"
 
 namespace socketlibrary {
-    // Server opens a new UDP socket at port
+    // Create new UDP socket server using port
     LuxSocket::LuxSocket(const unsigned short port) {
-	_socket = new UDPSocket(port);
-	initSocketInfo();
+	try {
+	    _socket = new UDPSocket(port);
+	}
+	catch (SocketException e){
+	    throw "Failed to create udp socket.";
+	}
     }
 
-    // Server opens a new UDP socket
-    // Default port is 3000
+    // Create a new UDP socket client
     LuxSocket::LuxSocket() {
-	_socket = new UDPSocket(3000);
-        initSocketInfo();
+	_socket = new UDPSocket();
     }
 
     LuxSocket::~LuxSocket() {
-	delete _socket;
+	if (_socket) {
+	    delete _socket;
+	}
     }
 
     // Dumps error messages when they occur
     void LuxSocket::error(const char *msg) {
 	perror(msg);
 	exit(1);
-    }
-
-    // Gets the port and address from socket
-    void LuxSocket::initSocketInfo() {
-	_port = _socket->getLocalPort();
-	_address = _socket->getLocalAddress();
     }
 
     int LuxSocket::receive(void *buf, size_t len, struct sockaddr_in *cliAddr) {
@@ -75,5 +73,9 @@ namespace socketlibrary {
 	     cliAddr != socketList.end(); cliAddr++) {
 	    send(bsMessage, &(*cliAddr));
 	}
+    }
+
+    void LuxSocket::send(void *buf, size_t len, struct sockaddr_in *cliAddr) {
+	_socket->sendTo(buf, len, cliAddr);
     }
 }
