@@ -18,6 +18,13 @@ namespace chat{
     using socketlibrary::LuxSocket;
     using boost::thread;
 
+    struct UserInfo {
+	UserId id;
+	bool isOnline; // If user is currently online
+	sockaddr_in addr; // User address, including ip, port and other data
+	sockaddr_in pollAddr;
+    };
+
     class Chat {
 	public:
     
