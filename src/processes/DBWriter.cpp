@@ -1,30 +1,44 @@
 #include "DBWriter.h"
 
+#define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 using namespace mongo;
 using namespace std;
 
 
 void *DBWriter::spawn(void* param_in){ // dbWriter thread
-    std::cout << "HELP! DBWriter : 1 " << endl;
-    struct s_dbWriter_params_in *params_in;
-    params_in = (struct s_dbWriter_params_in*)param_in;
+	DEBUG("Starting DB Writer");
+	DEBUG("Converting Struct...");    
+	struct s_dbWriter_params_in *params_in;
+   	params_in = (struct s_dbWriter_params_in*)param_in;
+	DEBUG("Converted Struct");
+    
+	DEBUG("Connecting to database...");
+	DBClientConnection c;
+	c.connect("localhost");
+	DEBUG("Connected to database");
 
-    DBClientConnection c;
-    c.connect("localhost");
+	DEBUG("Opening Pipe...");
+	int FIFO = open(params_in->pipe_r, O_RDONLY);
+	DEBUG("Pipe Opened");
+    
+	BSONObj msg;
 
-    int FIFO = open(params_in->pipe_r, O_RDONLY);
-
-    BSONObj msg;
-
-    while(1){
- 	 std::cout << "HELP! DBWriter : 2 " << std::endl;
-        // get message
-        read(FIFO, &msg, sizeof(BSONObj));
-	if(!msg.isEmpty()){
-		c.update(DATABASE_NAME, BSON("_id" << msg["_id"]), msg);	
-		// last parameter sets upsert to true
-		// c.update(DATABASE_NAME, QUERY ("bgt_id" << BGTDoc.bgt_id), msg, true);
-	}
-    }
+    	while(1){
+        	DEBUG("Entering DBWriter Loop");
+		// get message
+		DEBUG("Waiting to read pipe...");
+        	read(FIFO, &msg, sizeof(BSONObj));
+		DEBUG("Recieved Message on pipe");
+	
+		DEBUG("Checking that message is not empty");	
+		if(!msg.isEmpty()){
+			DEBUG("Inserting Message to Mongo....");
+		//	c.update(DATABASE_NAME, BSON("_id" << msg["_id"]), msg);
+				
+		//	c.update(DATABASE_NAME, QUERY("_id"<<msg["_id"]),msg);//BSON("$set"<<BSON(msg)));
+			DEBUG("Inerted to Mongo");
+		}
+		DEBUG("Checked that message is not empty");
+    	}
     
 }
