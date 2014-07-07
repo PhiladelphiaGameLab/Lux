@@ -1,23 +1,5 @@
-/*
-read the message from the socket
-get the access token & EUID
-Authenticate EUID against Access Token
-	strip access token
-	add timestamp
-	check for _id
-		insert into mongo
-	get location from message
-	check if EU_doc || cli_obj_doc
-		EU_doc:
-			update in HMBL
-		get the bucket 
-		update the bucket in the document
-		get the relevent socket list of the new bucket
-		send to send updates thread
-		append the client_socket
- */
-
 #include "battleground.h"
+#define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 
 using namespace mongo;
 using namespace std;
@@ -25,158 +7,203 @@ using namespace socketlibrary;
 
 template class HMBL<sockaddr_in>;
 
+
 void *BattleGround::spawn(void* param){
-        std::cout << "HELP! Battleground :  " << pthread_self() << std::endl;
+	DEBUG("BGT ID " << pthread_self());      
+
+	// convert parameters
+	DEBUG("Converting params...");
 	struct s_bgt_params_in *param_in;
-	
 	param_in = (struct s_bgt_params_in*)param;
-	
+	DEBUG("Converted params");
+
+
  	//connect to the database
-    	DBClientConnection c;
+    	DEBUG("Connecting to Database...");
+	DBClientConnection c;
     	c.connect("localhost");
+	DEBUG("Connected to Database");
+	
+	// opening socket
+	DEBUG("Opening Socket...");
+	LuxSocket socket(3005);
+	DEBUG("Opned Socket");
+       
+	// open the pipe
+	DEBUG("Opening Pipe...");
+	int pipes = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
+	DEBUG("Opened Pipe");
 
-    // this pipe stuff should be right:
-
-    // create pipe to send updates on
-	LuxSocket socket(3010);
-        int pipe = open(param_in->pipe_w, O_WRONLY); // open  the pipe for writing
-
-
-     // construct a HMBL
-     //locbasedhashmap HMBL;
-     //HMBL<sockaddr_in> Map(mapSizeX,mapSizeY,threadSizeX,threadSizeY, param_in.pipe_hmbl);
-       //	cout << "create map"  << "r u null?" << param_in->pipe_hmbl << endl;
-	if (param_in == NULL) {
-	    cout << "param is null" << endl;
-	    exit(0);
-	}
-	if (param_in->pipe_hmbl == NULL) {
-	    cout << "null" << endl;
-	    exit(0);
-	}	
+	// Created HMBL
+	DEBUG("Creating HMBL...");
 	HMBL<sockaddr_in> Map(100,100,5,5, param_in->pipe_hmbl);
+	DEBUG("Created HMBL");
 
 
-     //These 2 lines have to be uncommented to update the port in MongoDB
-     // uint16_t portNo = getNewPort();
-     // uint16_t socket.getPort();
-     // c.update(DATABASE_NAME, BSON("port"<<0),portNo);
-
-    // will need to pass the socket that was opened back to the
-    // spawn BGT so that it can use that later for redirection
+	//These 2 lines have to be uncommented to update the port in MongoDB
+	// uint16_t portNo = getNewPort();
+	// uint16_t socket.getPort();
+	// c.update(DATABASE_NAME, BSON("port"<<0),portNo);
 
 	while(1){
-	 sockaddr_in cli_addr;
-	 // accept clients, who will send in their update
-	BSONObj message = socket.receive(&cli_addr);
-	cout<<"Battleground received a message"<<endl;
-        // get accessToken from BSONObj message
-        string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
-        // get EUID from BSONObj message
-        string EUID = message["sender"]["EUID"].toString(false);
-
-	
+		sockaddr_in cli_addr;
 		
-	
-        // authenticate message
-        if(Authenticate::authenticateAccessToken(accessToken, EUID)){
-        	
-        	
-            //timestamp (Current time of the system
-	    
-//	    char timestamp[20];
-//	    time_t now = time(0);
-	    const long double sysTime = time(0);
-	    const long double timestamp = sysTime*1000;
-            std::cout << "battlegorund " << timestamp << std::endl; 
-	    string currentTime= to_string(timestamp);
-	    
 
-	    //Strip Access Token
-	    BSONElement strippedEUIDMessage = message["sender"]["EUID"];
+		// accept clients, who will send in their updatei
+		DEBUG("Waiting for clients to connect...");
+		BSONObj message = socket.receive(&cli_addr);
+        	DEBUG("Client Recieved");
+
+		// get accessToken from BSONObj message
+        	string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
+        	// get EUID from BSONObj message
+        	string EUID = message["sender"]["EUID"].String();
+		string tempid = message["tempid"].String();
+		// authenticate message
+		DEBUG("Authenticating Access Token and EUID..." << accessToken << " , " << EUID);
+        	if(Authenticate::authenticateAccessToken(accessToken, EUID)){
+        	DEBUG("Authenticated Access Token and EUID");
+        		// getting system time
+			DEBUG("Getting System Time...");	
+	    		const long double sysTime = time(0);
+	    		const long double timestamp = sysTime*1000;
+	    		string currentTime= to_string(timestamp);
+	    		DEBUG("Got System Time: " << currentTime);
+
+	    		//Strip Access Token
+	    		DEBUG("Stripping token...");
+	    		BSONElement strippedEUIDMessage = message["sender"]["EUID"];
 		
-	    //Strip message header
-	    BSONElement strippedObjectMessage = message["object"];
-	    
-	    BSONObjBuilder builder;
-	    builder.append(strippedEUIDMessage);
-	    builder.append(strippedObjectMessage);
-	    builder.append("time",currentTime);
-	    BSONObj completeMessage = builder.obj();
-	
-	
-	   //get the id of the message
-	   string id;
-	   id = completeMessage["_id"].toString(false);
+	    		//Strip message header
+	    		BSONElement strippedObjectMessage = message["object"];
 	   
-           //Check for id (Maybe cursor is needed)
-           if(!c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty())
-           {
-           	//insert into MongoDB
-           	c.insert(DATABASE_NAME,completeMessage);
-           }
-        	
-            // get location from message
-            int locationX;
-	    locationX = atoi(message["object"]["location"]["x"].String().c_str());
-            int locationY;
-	    locationY  = atoi(message["object"]["location"]["y"].String().c_str());
-            int radius;
-	    radius  = atoi(message["object"]["radius"].String().c_str());
+			// Building Stripped Message
+			DEBUG("Stripped token");
+			BSONObjBuilder builder;
+			// use: builder.genOID().append(....
+	    		builder.append(strippedEUIDMessage);
+			DEBUG("Appending EUID");
+	    		builder.append(strippedObjectMessage);
+			DEBUG("Appending Object");
+	    		builder.append("time",currentTime);
+			DEBUG("Appending Time");
+			builder.append("tempid", tempid);
+			DEBUG("Appending Tempid");
+	   	 	BSONObj completeMessage = builder.obj();
+			DEBUG("Finished Building Message");
+			// Adding Document to Db is none Exists
+	   		string id;
+	   		id = completeMessage["_id"].toString();//toString(false);
+			DEBUG("_id take 1 (""): " << id);
+			DEBUG("id: " << id << " \n Complete Message "<< completeMessage.toString(true));	   
+			DEBUG("Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty());
+			BSONElement id2;
+			if(c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty()){
+	      	        	DEBUG("Inserting Document...");
+				c.insert(DATABASE_NAME,completeMessage);
+				DEBUG("Inserted Document");
+				id = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"].toString();
+				id2 = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"];
+				DEBUG("_id take 2 (jghjddfhj): " << id.substr(5));
+	   		}
+			DEBUG("Finished Checking if the document needed to be added");
+			
+			// Getting Document Location
+			// get location from message
+			DEBUG("Getting Object Location...");
+			int locationX;
+			locationX = atoi(message["object"]["location"]["x"].String().c_str());
+			int locationY;
+			locationY  = atoi(message["object"]["location"]["y"].String().c_str());
+			int radius;
+			radius  = atoi(message["object"]["radius"].String().c_str());
+			std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
+			DEBUG("Got Object Location...");
 
-	    std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
 
-	    //Get the values of EU_DOC and cli_obj_doc
-	    string EU_DOC;
-	    EU_DOC = completeMessage["object"]["EU_DOC"].String();
 
-	    if(EU_DOC.compare("") != 0 && EU_DOC.compare("true")==0){
-	        //Updte clients location in HMBL
-  		std::cout<<"In Battlegound calling Map.update"<<std::endl;
-	        Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
-	    }
-	     	
-	     	
-	    //get bucket ID
-	    //int bgt_id = Map.getBucket(location[0],location[1],mapSizeX,mapSizeY,thredSizeX,threadSizeY);
-	    int bgt_id = 0;
-	    
-	    //Update bucket in the document
-	    c.update(DATABASE_NAME,BSON("_id"<<id),BSON("bgt_id"<< bgt_id));
-	    
-            // query HMBL for socket list
-             std::cout<<"In Battlegound calling Map.get_clients"<<std::endl;
-            vector<Node<sockaddr_in>*> SocketList = Map.get_clients(locationX,locationY,radius);// need to pass in cli_addr, location, and radius
+			// Getting New Bucket Id
+			DEBUG("Getting Bucket Number");
+	    		int bucket_id = Map.findBucket(locationX,locationY);
+	    		DEBUG("Got Bucket Number: " << bucket_id);
 
-            // pass message to undecided server logic class that client will fill in
-            // sadly this might be unavoidable
-            // :-(
-		
-	   std::cout<<"Battleground message to be sent to sendupdate :"<<(SocketList[0])<<std::endl;
 
-	    //Create  structure
-	     std::cout<<"Creating Stucture"<<std::endl;
-	    s_SUTMessage pipeStruct;
-	    pipeStruct.message = completeMessage;
-	    pipeStruct.SocketList = SocketList;
-	    
-	     std::cout<<"Creating pipes sizeof"<<sizeof(pipeStruct) <<std::endl;
-	     std::cout<<"Creating pipes with messsage"<<pipeStruct.message.toString() <<std::endl;
 
-            // pipe updates to send updates thread
-            write(pipe, &pipeStruct, sizeof(pipeStruct));
+			BSONObjBuilder Quer;
+			Quer.append("_id",id);
+			BSONObj xx = c.findOne(DATABASE_NAME,Quer.obj());
+			DEBUG("testing.... query:"<<xx.toString(true));			
+			
+	    		//Update bucket in the document
+	    		DEBUG("Updating document bucket...");
+			//DEBUG("EU_DOC from _id based Query 0: " << c.findOne(DATABASE_NAME,QUERY("_id" << id2.getField("_id")))["EU_DOC"]);
+			//DEBUG("EU_DOC from _id based Query 1: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id2.getField("_id"))))["EU_DOC"]);
+			//DEBUG("EU_DOC from _id based Query 2: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id)))["EU_DOC"]);
+			//DEBUG("EU_DOC from _id based Query 3: " << id.substr(id.find("'"), id.find("'", id.find("'")+1)));
+			//DEBUG("EU_DOC from _id based Query 4: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id.substr(id.find("'"), id.find("'", id.find("'")+1)))))["EU_DOC"]);
+	     		c.update(DATABASE_NAME,QUERY("_id" << id), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id)))); // << "$set" << "tempid" << "null"));
+	    		DEBUG("Updated Document Bucket");
             
-             std::cout<<"Creating BSONobj for Analytics"<<std::endl;
-            //No Use now just for analytics
-            BSONObjBuilder build;
-	    build.appendElements(completeMessage);
-	   // build.append("Socket",cli_addr);
-	    BSONObj AnalyticsMessage;
-	    AnalyticsMessage = build.obj();
 
-        }
+
+			// Checking if the message is a client doci
+			DEBUG("Checking for client Doc");
+			string EU_DOC;
+	    		EU_DOC = completeMessage["object"]["EU_DOC"].String();
+
+	    		if(EU_DOC.compare("") != 0 && EU_DOC.compare("true")==0){			
+				// updating map location
+				DEBUG("Updating Map....");
+				DEBUG("EUID : " << EUID);
+	        		Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
+	     			DEBUG("Map Updated...");
+	     		}
+			DEBUG("Checked for client Doc");
+
+
+			// query HMBL for socket list
+            		DEBUG("Getting Socket List....");
+			vector<Node<sockaddr_in>*> SocketList = Map.get_clients(locationX,locationY,radius);// need to pass in cli_addr, location, and radius
+			DEBUG("Got Socket List");
+            		// pass message to undecided server logic class that client will fill in
+           		// sadly this might be unavoidable
+            		// :-(
+		        
+			if(!SocketList.empty())
+			{
+			DEBUG("Socket List: " << SocketList[0]);
+	    		}
+			else
+			{
+			DEBUG("Socket List is empty");
+			}
+			//Create  structure
+	    		DEBUG("Creating Struct...");
+			s_SUTMessage pipeStruct;
+	    		pipeStruct.message = completeMessage;
+	    		pipeStruct.SocketList = SocketList;
+	    		DEBUG("Created Struct");
+	    
+			// Write to Pipe
+			DEBUG("Writing To pipe.... "<< sizeof(pipeStruct));
+			DEBUG("Message: " << pipeStruct.message);
+            		write(pipes, &pipeStruct, sizeof(pipeStruct));
+			DEBUG("Wrote to Pipe");
+		
+			//sleep(5);	
+			/*
+             		std::cout<<"Creating BSONobj for Analytics"<<std::endl;
+            		
+			// No Use now just for analytics
+            		BSONObjBuilder build;
+	    		build.appendElements(completeMessage);
+	   		// build.append("Socket",cli_addr);
+	    		BSONObj AnalyticsMessage;
+	    		AnalyticsMessage = build.obj();
+			*/
+
+		}
 
 	}
-   	cout<<"COMING OUT OF BATTLEGROUND'S while loop ----------------------------------------------------------------"<<endl;
 }
  

@@ -39,6 +39,7 @@ class SendUpdate
 };
 
 struct s_sut_params_in {
+    int fd[2];
     const char* pipe_r;
     const char* pipe_w;
 };

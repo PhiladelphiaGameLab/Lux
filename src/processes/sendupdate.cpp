@@ -1,57 +1,90 @@
 #include "sendupdate.h"
+#include <arpa/inet.h>
+
+#define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 
 using namespace mongo;
 using namespace std;
 using namespace socketlibrary;
 
 void *SendUpdate::spawn(void*  param_in) {
-	std::cout << "HELP! SendUpdate : 1 " << std::endl;
+	DEBUG("Send Updates Spawned");
 	struct s_sut_params_in *params_in;
 	params_in = (struct s_sut_params_in*)param_in;
 
+        DEBUG("Opening battleground_sut pipe...");
 	int FIFO = open(params_in->pipe_r, O_RDONLY);
-
-	LuxSocket socket;
+	DEBUG("Opened battleground_sut pipe on sut side");
+	//pipe(params_in->fd);
+	
+	DEBUG("Opening sut_db pipe...");
+	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
+	DEBUG("Opened sut_db pipe");
+	
+        LuxSocket socket;
 
 	s_SUTMessage piped;
 	
+
+        //opening pipe for SUT_DB
+	//int sut_db = open(params_in->pipe_w, O_WRONLY);
+	//cout<<"Opened sut_db pipe on sut side"<<std::endl;
+
 	// read parameters from BGTDoc
 	// have BGTSpawner pass in the BGT_id -- add to s_sut_params_in struct
-	//std::vector<Node<sockaddr_in>*> clients = HMBL<sockaddr_in>::get_clients(int xloc, int yloc, int rad);
 	
 	while(true) {
 		
-	std::cout << "HELP! Send update : 2 " << std::endl;
+	DEBUG("Begining loop....");
+	DEBUG("Reading from pipe....");
 	read(FIFO, &piped, sizeof(s_SUTMessage));
-	cout<<"Size of s_SUTMessage : "<<sizeof(s_SUTMessage)<<endl;
-	std::cout<<"Recieved in sendupdate messsage"<<piped.message.toString() <<std::endl;
-
-//	if (piped.SocketList == NULL)
- //	{
-//		std::cout<<<"Error piped.socketList is Null"<<std::endl;
-//	}
-//	else
-//	{
-
-	//	vector<Node<sockaddr_in>*> clis = piped.SocketList;
-	//	for(vector<Node<sockaddr_in>*>::iterator cli = clis.begin();cli!=clis.end();cli++)
-	//	{
-	//		std::cout<<"Sending Messagefrom the 1st for loop"<<std::endl;
-	//	}
-//	}
+	DEBUG("Pipe  has been read");
+	DEBUG("Size of piped message : "<<sizeof(piped));
+		//UDPSocket *test;
 		vector<Node<sockaddr_in>*> clients = piped.SocketList;
-	std::cout<< "Send Update size of list: "<<piped.SocketList.size()<< std::endl;
-		for (vector<Node<sockaddr_in>*>::iterator clientVector = clients.begin();clientVector != clients.end(); clientVector++) {
-			cout<<"Entering 'for' loop of sendupdate " <<clients[0] << endl;
-			pthread_mutex_lock((*clientVector)->Lock);
-			cout<<"After Locking"<<endl;
-			sockaddr_in cli_addr = (*clientVector)->sock;
-			std::cout << "Sending message "<< std::endl;
-			socket.send(piped.message, &cli_addr);
-    			pthread_mutex_unlock((*clientVector)->Lock);
-		}
+	        DEBUG("Send Update size of list: "<< clients.size());
+		if(clients.size() > 0){ 
+			DEBUG("Client recieved : " << clients[0]);
+	//		if(!(clients[0]))
+                	for (vector<Node<sockaddr_in>*>::iterator client = clients.begin(); client != clients.end(); client++) {
+                        	DEBUG("Entering For loop");
+
+				DEBUG("locking....");
+				//pthread_mutex_lock(&((*client)->Lock));
+				DEBUG("Finished locking");	
+      	 			
+			// Temp ignore if seg fault
+			if((*client)){ 
+				DEBUG("Reading Socket...");
+		                //sockaddr_in cli_addr = (*client)->sock;
+				DEBUG("Socket Read");
+	
+				//DEBUG("Client Recieved with port address and ip" <<ntohs(((*client)->sock).sin_port) <<","<<inet_ntoa(((*client)->sock).sin_addr));			
+				try{	
+					DEBUG("Sending message: "<< piped.message.jsonString());
+					if((&(*client)->sock) != NULL){
+						socket.send(piped.message, &(*client)->sock); //&cli_addr);
+					}
+					DEBUG("Message Sent");
+				}catch(exception& e){
+					DEBUG("Socket Failed to send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+					DEBUG("error: " << e.what());
+				}
+			}else{
+				DEBUG("*CLIENT VECTOR IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			}
+    				DEBUG("Unlocking....");
+				//pthread_mutex_unlock(&((*client)->Lock));
+				DEBUG("Unlocked");
+
+	    			DEBUG("Exiting 'for' loop of sendupdate ");
+			}
+		}else{ 
+			DEBUG("CLIENTS[0] IS NULL!!!"); 
+		}		
+		write(FIFO2, &piped.message, sizeof(BSONObj));
 	}
 
-    std::cout<< "Exiting the send upddate thread" <<std::endl;
-	}
+    DEBUG("Exiting the send upddate thread");
+}
 

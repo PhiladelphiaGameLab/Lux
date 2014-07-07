@@ -64,6 +64,7 @@ struct s_BGT{
 struct s_bgt_params_in
 {
     string bgtID;
+    int fd[2];
     const char* pipe_w;
     const char* pipe_hmbl;
 };
