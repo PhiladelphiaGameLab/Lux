@@ -25,8 +25,8 @@ struct Node
 
 	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
 	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
-	pthread_mutex_t Lock;
 
+	pthread_mutex_t Lock;
 };
 
 //Nodes that handle hashmap collisions.
@@ -67,6 +67,7 @@ public:
 	int rows;
 	int bucketTotal;
 	int pipeFD;
+	pthread_mutex_t antiDeadlock;
 	Node<T>** arrMap;
 	CNode<T>** hashTable;
 
@@ -114,6 +115,7 @@ HMBL<T>::HMBL(int mapw, int maph, int col, int row, std::string pipeLocation){
 	columns = col;
 	rows = row;
 	bucketTotal = row * col;
+	pthread_mutex_init(&antiDeadlock, NULL);
 	
 	std::cout<< "Creating HMBL"<<std::endl;
 	arrMap = new Node<T>*[bucketTotal]; //Array of Pointers representing each bucket
@@ -136,9 +138,10 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	pthread_mutex_t colLock;
 	pthread_mutex_init(&colLock, NULL);
-	
+	DEBUG("CollisionLock locking...");
 	pthread_mutex_lock(&colLock);
-
+	DEBUG("CollisionLock locked.");
+	
 	int bucketNum = findBucket(x, y);
 	int hashKey = euid % (bucketTotal / 2);
 
@@ -146,7 +149,13 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	int lastBuck = newNode->currBuck;
 	
 	pthread_mutex_unlock(&colLock);
-
+	DEBUG("CollisionLock released.");
+	
+	DEBUG("Ensuring there are no deadlocks...");
+	pthread_mutex_lock(&antiDeadlock);
+	DEBUG("No deadlocks should be encountered.");
+	
+	
 	DEBUG("Lock 1 locking....");
 	pthread_mutex_lock(&(newNode->Lock));
 	DEBUG("Lock 1 locked");
@@ -173,6 +182,10 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		pthread_mutex_lock(&(nextNode->Lock)); //Lock the node next to the new one
 		DEBUG("Lock 4 locked");
 	}
+	
+	DEBUG("Anti-Deadlock assurance ending...");
+	pthread_mutex_unlock(&antiDeadlock);
+	DEBUG("Anti-Deadlock assurance ended.");
 
 	//Checks to see if there is an old instance in existence, if not this shouldn't occur
 	if (newNode->currBuck != -1){ 
