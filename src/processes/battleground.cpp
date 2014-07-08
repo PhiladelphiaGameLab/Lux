@@ -47,7 +47,7 @@ void *BattleGround::spawn(void* param){
 
 	while(1){
 		sockaddr_in cli_addr;
-		
+		bool id_present = false;
 
 		// accept clients, who will send in their updatei
 		DEBUG("Waiting for clients to connect...");
@@ -95,17 +95,41 @@ void *BattleGround::spawn(void* param){
 	   		string id;
 	   		id = completeMessage["_id"].toString();//toString(false);
 			DEBUG("_id take 1 (""): " << id);
-			DEBUG("id: " << id << " \n Complete Message "<< completeMessage.toString(true));	   
+			DEBUG("id:" << id << "Complete Message "<< completeMessage.toString(true));	   
 			DEBUG("Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty());
-			BSONElement id2;
-			if(c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty()){
+			//BSONElement id2;
+			string id2;
+
+			auto_ptr<DBClientCursor> cursor;
+			DEBUG("Type of id" << typeid(id).name());			
+			if(id.compare("EOO")!=0)
+			{
+			DEBUG("Trying to get cursor");
+			cursor = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			DEBUG("Obtained cursor");
+			id_present = true;
+			}
+
+			//if(c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty()){
+			else{
 	      	        	DEBUG("Inserting Document...");
 				c.insert(DATABASE_NAME,completeMessage);
 				DEBUG("Inserted Document");
-				id = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"].toString();
-				id2 = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"];
-				DEBUG("_id take 2 (jghjddfhj): " << id.substr(5));
-	   		}
+				//id = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"].toString();
+			}
+
+				auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("tempid"<<tempid));
+				if(cursor2->more())
+				{
+				 BSONObj xxx = cursor2->next();
+				 id2 = xxx["_id"].toString();	
+				 DEBUG("Inside cursor loop value od _id is"<<id2);
+				}
+				
+				//DEBUG("_id take 2 (jghjddfhj): " << id.substr(5));
+	   		
+
+			
 			DEBUG("Finished Checking if the document needed to be added");
 			
 			// Getting Document Location
@@ -134,6 +158,8 @@ void *BattleGround::spawn(void* param){
 			BSONObj xx = c.findOne(DATABASE_NAME,Quer.obj());
 			DEBUG("testing.... query:"<<xx.toString(true));			
 			
+
+			if(id_present){
 	    		//Update bucket in the document
 	    		DEBUG("Updating document bucket...");
 			//DEBUG("EU_DOC from _id based Query 0: " << c.findOne(DATABASE_NAME,QUERY("_id" << id2.getField("_id")))["EU_DOC"]);
@@ -141,10 +167,19 @@ void *BattleGround::spawn(void* param){
 			//DEBUG("EU_DOC from _id based Query 2: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id)))["EU_DOC"]);
 			//DEBUG("EU_DOC from _id based Query 3: " << id.substr(id.find("'"), id.find("'", id.find("'")+1)));
 			//DEBUG("EU_DOC from _id based Query 4: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id.substr(id.find("'"), id.find("'", id.find("'")+1)))))["EU_DOC"]);
-	     		c.update(DATABASE_NAME,QUERY("_id" << id), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id)))); // << "$set" << "tempid" << "null"));
+	     	//	c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id)))); // << "$set" << "tempid" << "null"));
+	      		
+	     		c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
 	    		DEBUG("Updated Document Bucket");
-            
+            		}
 
+				
+			else
+			{
+			DEBUG("Updating document bucket");
+			c.update(DATABASE_NAME,QUERY("_id" << OID(id2)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
+                        DEBUG("Updated Document Bucket");
+                        }
 
 			// Checking if the message is a client doci
 			DEBUG("Checking for client Doc");
@@ -202,6 +237,7 @@ void *BattleGround::spawn(void* param){
 	    		AnalyticsMessage = build.obj();
 			*/
 
+			//}
 		}
 
 	}

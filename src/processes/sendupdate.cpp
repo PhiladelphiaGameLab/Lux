@@ -49,9 +49,9 @@ void *SendUpdate::spawn(void*  param_in) {
                 	for (vector<Node<sockaddr_in>*>::iterator client = clients.begin(); client != clients.end(); client++) {
                         	DEBUG("Entering For loop");
 
-				DEBUG("locking....");
+			//	DEBUG("locking....");
 				//pthread_mutex_lock(&((*client)->Lock));
-				DEBUG("Finished locking");	
+			//	DEBUG("Finished locking");	
       	 			
 			// Temp ignore if seg fault
 			if((*client)){ 
@@ -73,9 +73,9 @@ void *SendUpdate::spawn(void*  param_in) {
 			}else{
 				DEBUG("*CLIENT VECTOR IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			}
-    				DEBUG("Unlocking....");
+    			//	DEBUG("Unlocking....");
 				//pthread_mutex_unlock(&((*client)->Lock));
-				DEBUG("Unlocked");
+			//	DEBUG("Unlocked");
 
 	    			DEBUG("Exiting 'for' loop of sendupdate ");
 			}
