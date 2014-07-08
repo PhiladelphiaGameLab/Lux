@@ -1,7 +1,7 @@
 #include "CGI.h"
 
 // done
-std::string CGI::decode_string(const std::string &str) {
+std::string CGI::decodeString(const std::string &str) {
    const char *digits = "0123456789ABCDEF";
    std::string result = "";
    int length = str.length();
@@ -26,111 +26,108 @@ std::string CGI::decode_string(const std::string &str) {
    return result;
 }
 
-CGI::CGI() : argCnt(0){
+CGI::CGI(const std::string contentType) : _argCnt(0){
+    std::cout << "Content-type: " << contentType << " charset=utf-8\n\n";
     // done
     // Initialize private variables
     for (int pos = 0; pos < MAX_ARGS; pos++){
-        names[pos] = values[pos] = "";
+        _names[pos] = _values[pos] = "";
     }
     // Read environment variables
-    std::string request_method = CGI::getEnvStr("REQUEST_METHOD");
-    std::string query_string = CGI::getEnvStr("QUERY_STRING");
-    std::string content_length = CGI::getEnvStr("CONTENT_LENGTH");
-
-    int query_length = 0;
+    std::string requestMethod = CGI::getEnvStr("REQUEST_METHOD");
+    std::string queryString = CGI::getEnvStr("QUERY_STRING");
+    std::string contentLength = CGI::getEnvStr("CONTENT_LENGTH");
+    
+    int queryLength = 0;
 
     // Check request_method variable
-    if (request_method.compare("")  == 0)
+    if (requestMethod.compare("")  == 0)
 	return;
 
-    if (request_method.compare("GET") == 0) {
+    if (requestMethod.compare("GET") == 0) {
 	// Handle GET requests
-	if (query_string != "") {
-	    if (content_length == "") {
-		query_length = query_string.length();
-	    }
-	    else {
-		query_length = atoi(content_length.c_str());
-	    }
-	}
+	queryLength = queryString.length();
     }
-    else if (request_method.compare("POST") == 0) {
+    else if (requestMethod.compare("POST") == 0) {
 	// Handle POST requests
-	if (content_length.compare("") != 0) {
-	    int post_length;
-	    post_length = atoi(content_length.c_str());
-	    // Need to figure out how the content is organized in POST method
-	    return;
-	}
+	queryLength = atoi(contentLength.c_str());
+	
+	char *buf = new char[MAX_LENGTH];	    
+	fread(buf, 1, queryLength, stdin);
+	queryString = buf;
     }
+    else {
+	// Ignore on other requests
+	return;
+    }
+
     /*
     int post_length;
     char *post_string;
     // Handle POST requests
 
-    if (content_length != ""){
-	post_length = atoi(content_length.c_str());
-	post_string = (char *)malloc(post_length);
-	if (post_string != "") {
+    if (contentLength != ""){
+	postLength = atoi(contentLength.c_str());
+	postString = (char *)malloc(postLength);
+	if (postString != "") {
 	    for (int pos = 0; pos < post_length; pos++){
-		post_string[pos] = fgetc(stdin);
+		postString[pos] = fgetc(stdin);
 	    }
-	    JSONin = mongo::fromjson(post_string, post_length);
+	    _jsonIn = mongo::fromjson(postString, postLength);
 	}
-	free(post_string);
+	free(postString);
     }
     */
 
-    // Separate query_string into arguments
-    int start_name, end_name, start_value, end_value = 0;
-    while (end_value < query_length){
-	// Find argument name
-	
-	start_name = end_name = end_value + 1;
-	while ((end_name < query_length) && query_string[end_name] != '=') {
-	    end_name++;
+    // Separate queryString into arguments
+    int startName, endName, startValue, endValue = -1;
+    while (endValue < queryLength){
+	// Find argument name	
+	startName = endName = endValue + 1;
+	while ((endName < queryLength) && queryString[endName] != '=') {
+	    endName++;
 	}
 
 	// Copy and decode name string
-	std::string xd = query_string.substr(start_name, end_name - start_name);
-	names[argCnt] = decode_string(xd);
+	std::string xd = queryString.substr(startName, endName - startName);
+	_names[_argCnt] = decodeString(xd);
 
 	// Find argument value
-	start_value = end_value = end_name + 1;
-	while ((end_value<query_length) && query_string[end_value] != '&'){
-	    end_value++;
+	startValue = endValue = endName + 1;
+	while ((endValue < queryLength) && queryString[endValue] != '&') {
+	    endValue++;
 	}
 
 	// Copy and decode value string
-	std::string md = query_string.substr(start_value, end_value - start_value);
-	values[argCnt] = decode_string(md);
+	std::string md = queryString.substr(startValue, endValue - startValue);
+	_values[_argCnt] = decodeString(md);
 
-	argCnt++;
-    }   
+	_argCnt++;
+    }
 }
 
 // done
 mongo::BSONElement CGI::get(const std::string &name, bool bson) {
-    if (JSONin.hasElement(name.c_str())) {
-	return JSONin[name];
+    if (_jsonIn.hasElement(name.c_str())) {
+	return _jsonIn[name];
     }
     return mongo::BSONElement();
 }
 
 std::string CGI::get(const std::string &name) {
     int i;
-    for (i=0; i < argCnt; i++) {
-	if (name.compare(names[i]) == 0) {
-	    std::string ret = "";
-	    ret.push_back('\"');
-	    ret += values[i];
-	    ret.push_back('\"');
-	    return ret;
+    for (i=0; i < _argCnt; i++) {
+	if (name.compare(_names[i]) == 0) {
+	    return _values[i];
 	}
     }
     
-    if(JSONin.hasElement(name.c_str())) {
-        return JSONin[name].toString();
+    if(_jsonIn.hasElement(name.c_str())) {
+	std::string ele = _jsonIn[name].toString(false);
+	if (ele[0] == '\"') {
+	    ele = ele.substr(1, ele.size() - 2);
+	}
+	return ele;
     }
     return "";
 }
@@ -138,8 +135,8 @@ std::string CGI::get(const std::string &name) {
 // done
 std::string CGI::getName(int index) {
     // Lookup argument by location
-    if ((index >= 0) && (index < argCnt)) {
-	return names[index];
+    if ((index >= 0) && (index < _argCnt)) {
+	return _names[index];
     }
     return "";
 }
@@ -147,15 +144,15 @@ std::string CGI::getName(int index) {
 // done
 std::string CGI::getValue(int index) {
     // Lookup argument by location
-    if ((index >= 0) && (index < argCnt)){
-	return values[index];
+    if ((index >= 0) && (index < _argCnt)){
+	return _values[index];
     }
     return "";
 }
 
 // done
 int CGI::getArgCnt(){
-    return argCnt;
+    return _argCnt;
 }
 
 // done
@@ -176,12 +173,15 @@ std::string CGI::getEnvStr(const std::string &key){
 
 
 void CGI::clearJSON() {
-    json.clear();
+    _json.clear();
 }
 
 int CGI::addJSON(const std::string &key, const std::string &val) {
-    if (val.compare("") == 0) {
+    if (val.compare("") == 0 || key.compare("") == 0) {
 	return -1;
+    }
+    if (_json.size() > 0) {
+	_json += ",\n";
     }
     std::string tmp("");
     tmp += "\"";
@@ -189,16 +189,31 @@ int CGI::addJSON(const std::string &key, const std::string &val) {
     tmp += "\"";
     tmp += " : ";
     tmp += val;
-    if (json.size() > 0) {
-	json += ",\n";
-    }
-    json += tmp;
+    _json += tmp;
     return 0;
+}
+
+int CGI::addJSON(const std::string &object) {
+    if (object.compare("") == 0) {
+	return -1;
+    }
+    if(object.find("{\"") < 2){
+	return -1;
+    }
+    if (_json.size() > 0) {
+	_json += ",\n";
+    }
+    std::string tmp("");
+    tmp += object;    
+    _json += tmp;
+    return 0;
+
+
 }
 
 void CGI::printJSON() {
     std::cout << "{\n";
-    std::cout << json;
+    std::cout << _json;
     std::cout << "\n}";
     std::cout << std::endl;
 }
@@ -206,7 +221,7 @@ void CGI::printJSON() {
 std::string CGI::getJSON() {
     std::string tmp = "";
     tmp += "{\n";
-    tmp += json;
+    tmp += _json;
     tmp += "\n}";
     return tmp;
 }

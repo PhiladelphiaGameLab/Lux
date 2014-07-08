@@ -19,25 +19,60 @@
  */
 #ifndef BATTLEGROUND_H
 #define BATTLEGROUND_H
+#define DATABASE_NAME "Luxdb.gameplay"
+
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+
+#include <string>
+#include <cstdlib>
+#include <iostream>
+
+#include <mutex>
+
+#include <netinet/in.h>
+
+#include "mongo/client/dbclient.h"
+#include "mongo/bson/bson.h"
+#include "mongo/db/json.h"
+
+#include "luxSocket.h"
+
+#include "Authenticate.h"
+
+#include "HMBL.h"
+#include "sendupdate.h"
+#include <time.h>
+
+using namespace mongo;
+using namespace std;
+using namespace socketlibrary;
+
 
 // static class (thread)
 
-typedef struct s_SUT{
-    const char *pipeLocation;
+struct s_SUT{
+    string pipeLocation;
 };
 
-typedef struct s_BGT{
+struct s_BGT{
     int port;
 };
 
-typedef struct s_SUTMessage
+struct s_bgt_params_in
 {
-    BSONobj message;
-    std::list<struct sockaddr_in> SocketList;
-}
+    string bgtID;
+    int fd[2];
+    const char* pipe_w;
+    const char* pipe_hmbl;
+};
+
 class BattleGround{
     public:
-        static void spawn(void *param);
+        static void *spawn(void* params_in);
+        static uint16_t getNewPort();
     protected:
     private:
 };

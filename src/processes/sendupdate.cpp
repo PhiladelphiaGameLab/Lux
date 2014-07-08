@@ -1,47 +1,90 @@
 #include "sendupdate.h"
+#include <arpa/inet.h>
 
-void SendUpdate::spawn(struct sendUpdateArgs params_in) {
+#define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
+
+using namespace mongo;
+using namespace std;
+using namespace socketlibrary;
+
+void *SendUpdate::spawn(void*  param_in) {
+	DEBUG("Send Updates Spawned");
+	struct s_sut_params_in *params_in;
+	params_in = (struct s_sut_params_in*)param_in;
+
+        DEBUG("Opening battleground_sut pipe...");
+	int FIFO = open(params_in->pipe_r, O_RDONLY);
+	DEBUG("Opened battleground_sut pipe on sut side");
+	//pipe(params_in->fd);
 	
-	if(params_in.writeToDb > 0) {
-	    mkfifo("/temp/pipe", 0666); // opens pipe
-	    //int DBW = open(dbWriter, O_WRONLY);
-	    //struct pipe dbP;
-	    //dbP.pipe = DBW;
-	    //pthread_create(&BGTID, NULL, (void *) &SendUpdate::dbWriter, (void *) &dbP); // spawn dbWriter thread
+	DEBUG("Opening sut_db pipe...");
+	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
+	DEBUG("Opened sut_db pipe");
+	
+        LuxSocket socket;
+
+	s_SUTMessage piped;
+	
+
+        //opening pipe for SUT_DB
+	//int sut_db = open(params_in->pipe_w, O_WRONLY);
+	//cout<<"Opened sut_db pipe on sut side"<<std::endl;
+
+	// read parameters from BGTDoc
+	// have BGTSpawner pass in the BGT_id -- add to s_sut_params_in struct
+	
+	while(true) {
+		
+	DEBUG("Begining loop....");
+	DEBUG("Reading from pipe....");
+	read(FIFO, &piped, sizeof(s_SUTMessage));
+	DEBUG("Pipe  has been read");
+	DEBUG("Size of piped message : "<<sizeof(piped));
+		//UDPSocket *test;
+		vector<Node<sockaddr_in>*> clients = piped.SocketList;
+	        DEBUG("Send Update size of list: "<< clients.size());
+		if(clients.size() > 0){ 
+			DEBUG("Client recieved : " << clients[0]);
+	//		if(!(clients[0]))
+                	for (vector<Node<sockaddr_in>*>::iterator client = clients.begin(); client != clients.end(); client++) {
+                        	DEBUG("Entering For loop");
+
+			//	DEBUG("locking....");
+				//pthread_mutex_lock(&((*client)->Lock));
+			//	DEBUG("Finished locking");	
+      	 			
+			// Temp ignore if seg fault
+			if((*client)){ 
+				DEBUG("Reading Socket...");
+		                //sockaddr_in cli_addr = (*client)->sock;
+				DEBUG("Socket Read");
+	
+				//DEBUG("Client Recieved with port address and ip" <<ntohs(((*client)->sock).sin_port) <<","<<inet_ntoa(((*client)->sock).sin_addr));			
+				try{	
+					DEBUG("Sending message: "<< piped.message.jsonString());
+					if((&(*client)->sock) != NULL){
+						socket.send(piped.message, &(*client)->sock); //&cli_addr);
+					}
+					DEBUG("Message Sent");
+				}catch(exception& e){
+					DEBUG("Socket Failed to send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+					DEBUG("error: " << e.what());
+				}
+			}else{
+				DEBUG("*CLIENT VECTOR IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			}
+    			//	DEBUG("Unlocking....");
+				//pthread_mutex_unlock(&((*client)->Lock));
+			//	DEBUG("Unlocked");
+
+	    			DEBUG("Exiting 'for' loop of sendupdate ");
+			}
+		}else{ 
+			DEBUG("CLIENTS[0] IS NULL!!!"); 
+		}		
+		write(FIFO2, &piped.message, sizeof(BSONObj));
 	}
 
-	// establish new sending port
-	Socket sendSocket(params_in.port); // create a socket object
-	sendSocket.init(); // initialize/open the socket
-
-	int FIFO = open("/temp/pipe", O_RDONLY);
-
-	struct s_SUTMessage piped;
-	
-	while(1) {
-		read(FIFO, piped, MAX_BUF);
-		
-		// loops through each bucket in the linkedList of buckets from HMBL
-		for (Bucket currentBucket = piped.Bucket; currentBucket -> Next != null; currentBucket = currentBucket -> Next) {
-			
-			// loops through each node in the linkedList of sockets in each bucket
-			for (Node currentNode = currentBucket.Head; currentNode -> Next != null; currentNode = currentNode -> Next) {
-				// TODO: lock
-				pthread_mutex_lock(currentNode.Lock);
-				sockaddr_in cli_addr = currentNode.socket;
-				Socket::send(&cli_addr, piped.message);
-    				// TODO: unlock
-    				pthread_mutex_unlock(currentNode.Lock);
- 			}
-		}
-
-	} 
-     //   	// break piped into sockets & object
-     //   	// send to socket list via socket class
-     //   	sendSocket.send(piped.SocketList, piped.message);
-     //   	// write message to database thread
-     //   	if(params_in.writeToDb > 0){
-     //       		write(dbWriter, piped.message, sizeof(piped.message));
-     //   	}
-    	// }	
+    DEBUG("Exiting the send upddate thread");
 }
+

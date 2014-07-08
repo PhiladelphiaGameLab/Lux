@@ -1,5 +1,8 @@
 #include "AuthorizationServer.h"
 using namespace std;
+using namespace mongo;
+
+
 int main(int argc, char *argv[]){
 
     CGI environment; // create instance of CGI Class
@@ -9,55 +12,44 @@ int main(int argc, char *argv[]){
 	string RefreshToken = environment.get("RefreshToken");   //Get Refresh Token
 
     string uniqueID = Authenticate::authenticateJWT(JWT, APIKey); // create a unique ID with the Authenticate class
-
+	string EUID = "";
     if(uniqueID != ""){
-		//vector<mongo::BSONObj> bulk_data;
-        
-		try{
-		mongo::DBClientConnection c;
-		 c.connect("localhost");
+	try{
+        	 mongo::DBClientConnection c;
+                 c.connect("localhost");
+
+		 std::cout << "connected ok" << std::endl;  //successfully connect
 		 // Handle new Users
 		//search inside DB if it doesn't match any existing keys, then create a new EUID
-		BSONObj EUIDDoc = c.findOne(DATABASE_NAME, Query("_id"<<uniqueID));
-		if(EUIDDoc == NULL)
-		{
+		BSONObj EUIDDoc = c.findOne(DATABASE_NAME, QUERY("uniqueID"<<uniqueID));
+		if(EUIDDoc.isEmpty()){
 		//I know this is a new user
-		 string newEUID = Authenticate::createNewEUID(uniqueID);
-		 mongo::BSONObj newUser = BSON("_id"<<uniqueID<<"EUID"<<newEUID<<"APIKey"<<APIKey<<"RefreshToken"<<RefreshToken);   // save all the other data passed in from the Query String
-		 c.insert(DATABASE_NAME, newUser);     
-		} 
-		else {// handle false
-		 
-        // query Key-Value store   access MongoDB
-		    
-			// find the relevant documents in the mongo database
-			// find the EUID Document and print it out
+			string newEUID = Authenticate::createNewEUID(uniqueID);
+			EUID = newEUID;
+			mongo::BSONObj newUser = BSON(GENOID << "uniqueID"<<uniqueID<<"EUID"<<newEUID<<"APIKey"<<APIKey<<"RefreshToken"<<RefreshToken);   // save all other data passed in from the Query String
+			c.insert(DATABASE_NAME, newUser);     
+		}else {
+			// handle old Users
 			//take out the EUID from the BSONObj
-			string EUID = EUIDDoc["EUID"].toString();
+			EUID = EUIDDoc["EUID"].toString();
 		}
-
-
-    }catch{
-		
-        // then:
-        string err = c.getLastError();
-        return NULL;
-    }
-
-
-        // get back EUID
-        //string EUID = ; // access via uniqueID from JWT
-
-        // write to database with new access token
-        string accessToken = Authenticate::createAccessToken(EUID);
-        cout << '{\n"EUID":"' << EUID << '",\n"AccessToken":"'<< accessToken << '"}' << endl; // return the value to the user
+        	string accessToken = Authenticate::createAccessToken(EUID);
+                // write to database with new access token, corresponding to the correct unique ID
+                //BSONObj AccessDoc = c.findOne(DATABASE_NAME, QUERY("_id"<<uniqueID));
+                //AccessDoc.put("AccessToken", accessToken);
+      		environment.addJSON("EUID", EUID);
+		environment.addJSON("AccessToken", accessToken);
+                
+	}catch( const mongo::DBException &e ) {
+        	environment.error("Internal Server Error", 500);
+	}
 
     }else{
 		   
             // Handle errors
             // Handle incorrect JWT/APIKey pairs or whatever
-		    CGI::error("Invalid UniqueID!", 5);    //unique integer indicating error
+		    environment.error("Invalid UniqueID!", 5);    //unique integer indicating error
     }
-
+    environment.printJSON();
     return EXIT_SUCCESS;
 }

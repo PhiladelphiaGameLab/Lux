@@ -16,35 +16,48 @@
 
 #include "socket.h"
 
-#define MESSAGE_SIZE 1024
+#define MESSAGE_SIZE 65507 // UDP packet maximum size
 
 namespace socketlibrary {
 
-class LuxSocket{
-    private:
-        UDPSocket *socket;
-        unsigned short port;
-        std::string address;
-    public:
-        /** Default constructor */
+    class LuxSocket{
+	public:
+        //Default constructor
         LuxSocket();
         LuxSocket(const unsigned short port);
-        virtual ~LuxSocket();
+        ~LuxSocket();
 
-        void init();
         void error(const char *msg);
-	void receive(char *buf, struct sockaddr_in *cli_addr);
-	mongo::BSONObj receive(struct sockaddr_in *cli_addr);
-        void send(struct sockaddr_in *cli_addr);
-        void send(const char *message, struct sockaddr_in* cli_addr);
-        void send(const std::string &message, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj *BSMessage, struct sockaddr_in *cli_addr);
-        void send(mongo::BSONObj *BSMessage,
+	int receive(void *buf, size_t len, struct sockaddr_in *cliAddr);
+	mongo::BSONObj receive(struct sockaddr_in *cliAddr);
+        void send(struct sockaddr_in *cliAddr);	
+        void send(const char *message, struct sockaddr_in* cliAddr);
+        void send(const std::string &message, struct sockaddr_in *cliAddr);
+        void send(mongo::BSONObj &bsMessage, struct sockaddr_in *cliAddr);
+        void send(mongo::BSONObj &bsMessage,
 		  std::list<struct sockaddr_in> &socketList);
-	void initSocketInfo();
-    protected:
-};
+	void send(void *buf, size_t len, struct sockaddr_in *cliAddr);
 
+	unsigned short getPortNum() {
+	    if (_socket) {
+		return _socket->getLocalPort();
+	    }
+	    else {
+		return 0;
+	    }
+	};
+	std::string getAddress() {
+	    if (_socket) {
+		return _socket->getLocalAddress();
+	    }
+	    else {
+		return "";
+	    }
+	}
+
+	private:
+        UDPSocket *_socket;
+    };
 }
 
 #endif // LUXSOCKET_H

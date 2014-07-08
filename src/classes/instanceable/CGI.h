@@ -18,13 +18,13 @@
 
 class CGI{
     public:
-        CGI();
+        CGI(const std::string contentType = "application/json");
 
 	// Returns a enviroment string
         static std::string getEnvStr(const std::string &key);
 
 	// Decodes a value field of query string 
-        std::string decode_string(const std::string &str);
+        std::string decodeString(const std::string &str);
 
 	// Returns the value of a field in string format
         std::string get(const std::string &name);
@@ -53,7 +53,11 @@ class CGI{
         // Returns -1 if val is empty
         int addJSON(const std::string &key, const std::string &val);
 
-        // Print json string to stdout
+        // Add a preformated json string to json string.
+        // Returns -1 if val is empty
+        int addJSON(const std::string &object);
+        
+	// Print json string to stdout
         void printJSON();
 
 	// Make a new JSON object from the query list
@@ -63,12 +67,13 @@ class CGI{
 	std::string getJSON();
     protected:
     private:
+	static const int MAX_LENGTH = 2048;
         static const int MAX_ARGS = 10;
-        int argCnt;
-        std::string names[MAX_ARGS];
-        std::string values[MAX_ARGS];
-        mongo::BSONObj JSONin;
-	std::string json;
+        int _argCnt;
+        std::string _names[MAX_ARGS];
+        std::string _values[MAX_ARGS];
+        mongo::BSONObj _jsonIn;
+	std::string _json;
 };
 
 #endif // CGI_H
