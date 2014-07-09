@@ -54,16 +54,17 @@ void *SendUpdate::spawn(void*  param_in) {
 			//	DEBUG("Finished locking");	
       	 			
 			// Temp ignore if seg fault
+			DEBUG("Testing if *client is empty....");
 			if((*client)){ 
-				DEBUG("Reading Socket...");
-		                //sockaddr_in cli_addr = (*client)->sock;
-				DEBUG("Socket Read");
-	
-				//DEBUG("Client Recieved with port address and ip" <<ntohs(((*client)->sock).sin_port) <<","<<inet_ntoa(((*client)->sock).sin_addr));			
-				try{	
-					DEBUG("Sending message: "<< piped.message.jsonString());
+			DEBUG("*client is not empty");
+				try{
+					DEBUG("Message sending...");
 					if((&(*client)->sock) != NULL){
-						socket.send(piped.message, &(*client)->sock); //&cli_addr);
+						DEBUG("Client Recieved with port address and ip" << inet_ntoa(((*client)->sock).sin_addr) << " : " << ntohs(((*client)->sock).sin_port));     
+						socket.send(piped.message, &((*client)->sock)); //&cli_addr);
+						DEBUG("Client Message sent to send socket");
+					}else{
+						DEBUG("Client socket == null Empty");
 					}
 					DEBUG("Message Sent");
 				}catch(exception& e){
@@ -71,7 +72,7 @@ void *SendUpdate::spawn(void*  param_in) {
 					DEBUG("error: " << e.what());
 				}
 			}else{
-				DEBUG("*CLIENT VECTOR IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				DEBUG("*CLIENT IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			}
     			//	DEBUG("Unlocking....");
 				//pthread_mutex_unlock(&((*client)->Lock));

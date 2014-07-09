@@ -7,6 +7,7 @@ import random
 
 #server_ip = "127.0.0.1"
 server_ip = "54.88.133.189" # this would be the server's ip
+#server_ip = "10.1.10.220"
 #server_ip = "192.168.128.39" # this would be the server's ip
 server_name = "ec2-54-85-159-206.compute-1.amazonaws.com"
 JSON_objects = [] # the JSON objects received from the server
@@ -64,7 +65,7 @@ Open socket on port retrieved from JSON object
 port =3005
 #socket.getaddrinfo(server_ip,port)
 sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#sendSocket.bind (("",5000))
+sendSocket.bind (("127.0.0.1",5001))
 # this step will not be necessary when ip of server is known
 #remote_ip = socket.gethostbyname(server_name)
 #retval = sendSocket.sendto("Hello World", server_ip, port))
@@ -76,13 +77,14 @@ Receive all updates from server on same socket used to send
 
 #object
 # location
-#  x
+#  x:
 #  y
 # radius
 # EU_DOC
  
 # fake JSON because google doesn't just send back json objects for no reason
-             
+
+sendSocket.setblocking(0);
 counter = 0
 x = [random.randint(1,99) for x in range(3)]
 y = [random.randint(1,99) for y in range(3)]
@@ -98,8 +100,11 @@ while counter < 1:
 	for i in range(len(msgFromServer)):	
 		print "sending message to server.... "
 		print (msgFromServer[i])
-		retval = sendSocket.sendto(msgFromServer[i], (server_ip, port))
+		retval = sendSocket.sendto(msgFromServer[i], ("127.0.0.1", port))
+		print (server_ip)
 		print "message sent to server"
+		#tmpMsg, tmpAddr = sendSocket.recvfrom(1024)
+		#print "message received: ", tmpMsg
 
 	x = [abs(xp+random.randint(-5,5)) % 100 for xp in x]
 	y = [abs(yp+random.randint(-5,5)) % 100 for yp in y]
@@ -108,12 +113,19 @@ while counter < 1:
 #	time.sleep(1)
 
 	print "Ready to receive..." 
-	for i in range(len(msgFromServer)):
-		print ("Ready to receive message... ") 
-#		msgFromServer[i] = sendSocket.recv(4096)
-		print ("Finished receiving: ")
-		print msgFromServer[i]
-	print "Recieving complete"
+#	for i in range(len(msgFromServer)):
+	tend = time.time()*1000 + 1000;
+	while(time.time()*1000 < tend):
+		try:
+			#print ("Ready to receive message... ") 
+			msg = sendSocket.recvfrom(4096)
+			msgFromServer.append(msg[0])
+			print ("Finished receiving: " + msg[0])
+			#print (server_ip)
+		except socket.error:
+			v = 1
+			#print "no data yet"
+	print "Receiving complete\n"
 
-	raw_input("Press Enter to resend...")
+	#raw_input("Press Enter to resend...")
 print ("end of test program")

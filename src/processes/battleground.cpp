@@ -1,4 +1,6 @@
 #include "battleground.h"
+#include <arpa/inet.h>
+
 #define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 
 using namespace mongo;
@@ -53,7 +55,7 @@ void *BattleGround::spawn(void* param){
 		DEBUG("Waiting for clients to connect...");
 		BSONObj message = socket.receive(&cli_addr);
         	DEBUG("Client Recieved");
-
+                DEBUG("client address " << inet_ntoa(cli_addr.sin_addr) << " : " << ntohs(cli_addr.sin_port) );
 		// get accessToken from BSONObj message
         	string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
         	// get EUID from BSONObj message
