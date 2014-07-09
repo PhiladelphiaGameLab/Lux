@@ -65,7 +65,7 @@ Open socket on port retrieved from JSON object
 port =3005
 #socket.getaddrinfo(server_ip,port)
 sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sendSocket.bind (("127.0.0.1",5000))
+sendSocket.bind (("127.0.0.1",5001))
 # this step will not be necessary when ip of server is known
 #remote_ip = socket.gethostbyname(server_name)
 #retval = sendSocket.sendto("Hello World", server_ip, port))
@@ -84,6 +84,7 @@ Receive all updates from server on same socket used to send
  
 # fake JSON because google doesn't just send back json objects for no reason
 
+sendSocket.setblocking(0);
 counter = 0
 x = [random.randint(1,99) for x in range(3)]
 y = [random.randint(1,99) for y in range(3)]
@@ -112,13 +113,19 @@ while counter < 1:
 #	time.sleep(1)
 
 	print "Ready to receive..." 
-	for i in range(len(msgFromServer)):
-		print ("Ready to receive message... ") 
-		msgFromServer[i], addr = sendSocket.recvfrom(4096)
-		print ("Finished receiving: ")
-		print msgFromServer[i]
-		print (server_ip)
+#	for i in range(len(msgFromServer)):
+	tend = time.time()*1000 + 1000;
+	while(time.time()*1000 < tend):
+		try:
+			#print ("Ready to receive message... ") 
+			msg = sendSocket.recvfrom(4096)
+			msgFromServer.append(msg[0])
+			print ("Finished receiving: " + msg[0])
+			#print (server_ip)
+		except socket.error:
+			v = 1
+			#print "no data yet"
 	print "Receiving complete\n"
 
-	raw_input("Press Enter to resend...")
+	#raw_input("Press Enter to resend...")
 print ("end of test program")

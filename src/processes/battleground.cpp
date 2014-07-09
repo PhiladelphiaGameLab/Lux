@@ -1,4 +1,6 @@
 #include "battleground.h"
+#include <arpa/inet.h>
+
 #define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 
 using namespace mongo;
