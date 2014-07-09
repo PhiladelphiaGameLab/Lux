@@ -60,10 +60,12 @@ void *SendUpdate::spawn(void*  param_in) {
 				DEBUG("Socket Read");
 	
 				//DEBUG("Client Recieved with port address and ip" <<ntohs(((*client)->sock).sin_port) <<","<<inet_ntoa(((*client)->sock).sin_addr));			
-				try{	
-					DEBUG("Sending message: "<< piped.message.jsonString());
+				try{
+					//BSONObj obj;	
+					//DEBUG("Sending message: "<< obj.jsonString());
 					if((&(*client)->sock) != NULL){
-						socket.send(piped.message, &(*client)->sock); //&cli_addr);
+						DEBUG("Client Recieved with port address and ip" << inet_ntoa(((*client)->sock).sin_addr) << " : " << ntohs(((*client)->sock).sin_port));     
+						socket.send(piped.message, &((*client)->sock)); //&cli_addr);
 					}
 					DEBUG("Message Sent");
 				}catch(exception& e){
