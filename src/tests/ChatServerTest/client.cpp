@@ -29,7 +29,7 @@ unsigned short serverPort = 3000;
 struct sockaddr_in serverAddr;
 int sockfd;
 
-const int WIDTH = 40;
+const int WIDTH = 60;
 
 struct ChatRoom {
     struct sockaddr_in addr;
@@ -68,6 +68,9 @@ vector<int> mine;
 stringstream ss;
 
 std::mutex printMutex;
+
+string menuTitle;
+string chatTitle;
 
 int main(int argc, char ** argv) {
     char* hostname = "localhost";
@@ -108,8 +111,25 @@ int main(int argc, char ** argv) {
 
     thread(startReceiving, tmpSock).detach();
 
+    for (int i = 0; i < WIDTH / 2 - 2; i++) {
+	menuTitle.push_back('=');
+    }
+    menuTitle += "Menu";
+    for (int i = 0; i < WIDTH / 2 - 2; i++) {
+	menuTitle.push_back('=');
+    }
+    for (int i = 0; i < WIDTH / 2 - 2; i++) {
+	chatTitle.push_back('=');
+    }
+    chatTitle += "Chat";
+    for (int i = 0; i < WIDTH / 2 - 2; i++) {
+	chatTitle.push_back('=');
+    }
+
+
     int f, n;
-    string input;
+    char input[1024];
+
     while(1) {
 	menu();
 	memset(buf, 0, BUFSIZE);
@@ -122,9 +142,13 @@ int main(int argc, char ** argv) {
 	for (int i = 0; i < EUID.size(); i++) {
 	    buf[p++] = EUID[i];
 	}	
-	cin >> input;
-	if (input[0] >= '0' && input[0] <= '9') {
+	//memset(input, 0, 1024);
+	cin.getline(input, 1024);
+	if (strlen(input) > 0 && input[0] >= '0' && input[0] <= '9') {
 	    f = input[0] - '0';
+	}
+	else if (chatState == IN_CHAT){
+	    f = 1;
 	}
 	else {
 	    continue;
@@ -151,11 +175,11 @@ int main(int argc, char ** argv) {
 	    switch(f) {
 		case 0:
 		    chatState = MENU;
+		    cout << "Bye..." << endl;
+		    exit(0);
 		    break;
 		default: {
-		    char msg[1024];
-		    cin.getline(msg, 1024);
-		    sendMessage(msg);
+		    sendMessage(input);
 		}
 	    }
 	    continue;
@@ -174,18 +198,18 @@ void menu() {
     std::lock_guard<std::mutex> lock(printMutex);
     clearScreen();
     if (chatState == MENU) {
-	cout << "==================Menu==================\n";
+	cout << menuTitle << endl;
 	cout << "Connect to server: 1\n";
 	cout << "Disconnect: 2\n";
 	cout << "Create a chat. 3 number id0 id1 id2 ...\n";
 	cout << "Quit application: 4\n";
-	cout << "========================================\n";
+	cout << menuTitle << endl;
     }
     else {
-	cout << "==================Chat==================\n";
+	cout << chatTitle << endl;
 	cout << "Quit chat 0.\n";
-	cout << "Send text message: 1 message(one line)\n";
-	cout << "========================================\n";
+	cout << "Send text message: message(one line) + [Enter]\n";
+	cout << chatTitle << endl;
     }
 
     for (auto it = display.begin(); it != display.end(); it++) {
@@ -232,7 +256,7 @@ void menu() {
 void connect() {
     buf[p++] = (unsigned char)CONNECT;
     buf[p++] = (unsigned char)PORTS;
-    ss << "Connect port: " << ntohs(serverAddr.sin_port) << endl;
+    ss << "Connecting port: " << ntohs(serverAddr.sin_port) << endl;
     display.push_back(ss.str());
     ss.str("");
     for (int i = 0; i < sizeof(clientPort); i++) {
@@ -244,7 +268,7 @@ void connect() {
 }
 
 void disconnect() {
-    ss << "Disconnect port: " << ntohs(serverAddr.sin_port) << endl;
+    ss << "Disconnecting port: " << ntohs(serverAddr.sin_port) << endl;
     display.push_back(ss.str());
     ss.str("");
     buf[p++] = (unsigned char)DISCONNECT;
@@ -314,7 +338,7 @@ void sendMessage(const string &msg) {
 	exit(0);
     }
     
-    ss << "me:\n" << msg << endl << endl;
+    ss << "me send " << n << ":\n" << msg << endl << endl;
     saveMessage(ss.str(), FLOAT_RIGHT);
     ss.str("");
 }
@@ -349,37 +373,42 @@ void print(unsigned char *buf, int n) {
 	ss << "Connected" << endl;
 	display.push_back(ss.str());
 	ss.str("");	
-    }
-    
-    if (reqType == DISCONNECT && msgType == CONFIRM) {
+    }    
+    else if (reqType == DISCONNECT && msgType == CONFIRM) {
 	ss << "Disconnected" << endl;
 	display.push_back(ss.str());
 	ss.str("");	
     }
+    else if (reqType == CREATE_CHAT) {
+	if (msgType == CHAT_INFO) {
+	    unsigned short port;
+	    ChatId id;
+	    int cap;
+	    int count;
+	    vector<UserId> users;
+	    pack.parseChatInfo(port, id, cap, count, users);
+	    chatRoom = new ChatRoom();
+	    chatRoom->addr = serverAddr;
+	    chatRoom->addr.sin_port = htons(port);
+	    chatRoom->id = id;
 
-    if (reqType == CREATE_CHAT && msgType == CHAT_INFO) {
-	unsigned short port;
-	ChatId id;
-	int cap;
-	int count;
-	vector<UserId> users;
-	pack.parseChatInfo(port, id, cap, count, users);
-	chatRoom = new ChatRoom();
-	chatRoom->addr = serverAddr;
-	chatRoom->addr.sin_port = htons(port);
-	chatRoom->id = id;
-
-	ss << "ChatId " << id << endl;
-	ss << "Number: " << count << " / " << cap << endl;
-	ss << "Port: " << port << endl;
-	ss << "Uesrs: ";
-	for (int i = 0; i < count; i++) {
-	    ss << users[i] << " " << endl;
+	    ss << "ChatId " << id << endl;
+	    ss << "Number: " << count << " / " << cap << endl;
+	    ss << "Port: " << port << endl;
+	    ss << "Uesrs: ";
+	    for (int i = 0; i < count; i++) {
+		ss << users[i] << " " << endl;
+	    }
+	    display.push_back(ss.str());
+	    ss.str("");
+	    chatState = IN_CHAT;
 	}
-	display.push_back(ss.str());
-	ss.str("");
-	chatState = IN_CHAT;
-    }
+	else if (msgType == CREATE_CHAT_INVALID_USER){
+	    ss << "Error creating chat: invalid user." << endl;
+	    display.push_back(ss.str());
+	    ss.str("");
+	}
+    }    
     else if (reqType == SEND_MESSAGE && msgType == TEXT_MSG) {
 	ChatId id;
 	string text;
@@ -397,10 +426,11 @@ void startReceiving(LuxSocket *sock) {
     BYTE *buf = new BYTE[BUFSIZE];
     while (1) {
 	sockaddr_in tmpAddr;
+	memset(buf, 0, BUFSIZE);
 	n = sock->receive(buf, BUFSIZE, &tmpAddr);
-	//ss << "receive" << n << endl;
-	//display.push_back(ss.str());
-	//ss.str("");
+	ss << "receive" << n << endl;
+	display.push_back(ss.str());
+	ss.str("");
 	BYTE *tmp = new BYTE[n];
 	memcpy(tmp, buf, n);
 	print(tmp, n);
@@ -451,7 +481,13 @@ void saveMessage(const string& msg, ALIGN a) {
 	    cnt = 0;
 	}
 	else {
-	    tmp.push_back(msg[i]);
+	    if (msg[i] <= 128) {
+		tmp.push_back(msg[i]);
+	    }
+	    else {
+		tmp.push_back(' ');
+	    }
+
 	    cnt++;
 	    if (cnt == boundary - 1) {
 		if (msg[i + 1] == ' ') {
