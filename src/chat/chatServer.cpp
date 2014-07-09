@@ -214,7 +214,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    return;
 	}
     }
-
+    cout << reqType << endl;
     // Main thread only handles request other chat
     switch (reqType) {	    
 	case CONNECT: {
@@ -273,8 +273,19 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	}
 	case CREATE_CHAT: {
 	    vector<UserId> idArray;
-
 	    packet.parseUserList(idArray);
+	    int num = computeValidUserNumbers(idArray);
+#ifdef DEBUG
+	    cout << "Create chat valid user numbers: " << num << endl;
+#endif	    
+	    if (num < 2) {
+		msgType = CREATE_CHAT_INVALID_USER;
+		packet.makeMessage(msgId, senderId, reqType, msgType, 
+				   "Invalid user.");
+	        _mainSock->send(packet.getData(), packet.getLen(), 
+				&(user->addr));
+		break;
+	    }
 #ifdef DEBUG
 	    cout << "User " << senderId << " creating a chat...\n"; 
 	    cout << "User List:\n";
@@ -284,7 +295,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 		cout << (*it) << endl;
 	    }
 #endif	    
-	    Chat *chat = createChat(*user, idArray, msgType);  
+	    Chat *chat = createChat(*user, idArray, msgType);
 	    packet.makeMessage(msgId, senderId, reqType, msgType);
 	    if (chat != nullptr) {
 	        packet.appendMessage(chat->toBytes());
@@ -293,15 +304,18 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 		     it ++) {
 		    UserInfo *user = findUser(*it);
 		    if (user != nullptr) {
+#ifdef DEBUG
 			cout << "User Id: " << user->id << endl;
-			cout << "User port: " << user->addr.sin_port << endl;
+			cout << "User port: " << ntohs(user->addr.sin_port) << endl;
+#endif
 			_mainSock->send(packet.getData(), packet.getLen(), 
 				       &(user->addr));
 		    }
 		}	
 	    }
 	    else {
-	        _mainSock->send(packet.getData(), packet.getLen(), &(user->addr));
+	        _mainSock->send(packet.getData(), packet.getLen(), 
+				&(user->addr));
 	    }
 	    break;
 	}
@@ -332,7 +346,7 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	// User ip changed, require user to reconnect
 	msgType = RE_CONNECT;
 	packet.makeMessage(msgId, senderId, reqType,
-				msgType, "Not connected");
+			   msgType, "Not connected");
 	sock->send(packet.getData(), packet.getLen(), &cliAddr);
 	return;
     }
@@ -499,7 +513,7 @@ void ChatServer::updateChats(SubServer &subServ) {
     }
 }    
 
-UserInfo* ChatServer::findUser(UserId id) {
+UserInfo* ChatServer::findUser(const UserId &id) {
     // Reader 
     boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
     
@@ -534,6 +548,21 @@ int ChatServer::sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b) {
     return -1;
 }
     
+int ChatServer::computeValidUserNumbers(const vector<UserId> &idArray) {
+    // reader
+    boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
+    
+    int count = 0;
+    for (vector<UserId>::const_iterator it = idArray.begin();
+	 it != idArray.end(); it++) {
+	map<UserId, UserInfo*>::iterator userIt = _userPool.find(*it);
+	if (userIt != _userPool.end()) {
+	    count++;
+	}
+    }
+    return count;
+}
+
 bool ChatServer::equalId(const UserId &id0, const UserId &id1) {
     return (id0.compare(id1) == 0);
 }
@@ -552,8 +581,12 @@ ChatServer::~ChatServer() {
     }
 }
 
-int main() {
-    unsigned short port = 3000;    
+int main(int argc, char **argv) {
+    if (argc != 2) {
+	cout << "usage: " << argv[0] << " <port>" << endl;
+	exit(0);
+    }
+    unsigned short port = atoi(argv[1]); 
     ChatServer server(port);
     signal(SIGINT, sigint_handler);
 

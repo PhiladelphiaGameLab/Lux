@@ -31,7 +31,8 @@ namespace chat {
 	CHAT_INFO,
 	SERVER_INFO,
 	RE_CONNECT,
-	CONFIRM
+	CONFIRM,
+	CREATE_CHAT_INVALID_USER
     };
 
     const int EUID_LEN = 2; // EUID length, not determined yet
@@ -112,7 +113,6 @@ namespace chat {
 	int parseChatInfo(unsigned short &port, ChatId &id, int &cap, int &cnt, 
 			  std::vector<UserId> &list);
 	int parseTextMsg(ChatId &id, std::string &text);
-
 	
 	size_t makeMessage(MsgId &msgId, UserId &senderId, 
 			   BYTE reqType, BYTE msgType, 
@@ -307,9 +307,11 @@ namespace chat {
 	int p = HEADER_LEN;
 	p += parseChatId(id);
 	
-	char *tmp = new char[_len - p + 1];
-	memcpy(tmp, _buf + p, _len - p);
+	char *tmp = new char[_maxLen - p + 1];
+	memcpy(tmp, _buf + p, _maxLen - p);
 	
+	tmp[_maxLen - p] = '\0';
+
 	text = tmp;
 	delete tmp;
 	

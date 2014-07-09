@@ -364,7 +364,7 @@ namespace chat{
 	
 	
 	// Helper functions
-	UserInfo* findUser(UserId id);
+	UserInfo* findUser(const UserId &id);
 	bool verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr);
 	int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
 
@@ -376,7 +376,7 @@ namespace chat{
 	void updateSubServer();
 	void updateChats(SubServer &subServ);
 	
-	
+	int computeValidUserNumbers(const vector<UserId> &idArray);
 
 	static bool equalId(const UserId &id0, const UserId &id1);
     };
