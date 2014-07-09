@@ -73,23 +73,24 @@ string menuTitle;
 string chatTitle;
 
 int main(int argc, char ** argv) {
-    char* hostname = "localhost";
+    string hostname = "10.1.10.220";
     struct hostent *server;
     
-    if (argc != 3) {
-	cout << "usage: " << argv[0] << " <port> <EUID(2byte)>" << endl;
+    if (argc != 5) {
+	cout << "usage: " << argv[0] << "<hostname> <hostPort> <clientPort> <EUID(2byte)>" << endl;
 	exit(0);
     }
     
-    clientPort = pollingPort = atoi(argv[1]);
+    hostname = argv[1];
+    serverPort = atoi(argv[2]);
+    clientPort = pollingPort = atoi(argv[3]);    
+    EUID = argv[4];
     
-    EUID = argv[2];
     
-    
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);    
     
     // gethostbyname: get the server's DNS entry
-    server = gethostbyname(hostname);    
+    server = gethostbyname(hostname.c_str());
     if (server == NULL) {
 	cout << "ERROR, no such host as " << hostname << "\n";
 	exit(0);
@@ -428,9 +429,11 @@ void startReceiving(LuxSocket *sock) {
 	sockaddr_in tmpAddr;
 	memset(buf, 0, BUFSIZE);
 	n = sock->receive(buf, BUFSIZE, &tmpAddr);
+	/*
 	ss << "receive" << n << endl;
 	display.push_back(ss.str());
 	ss.str("");
+	*/
 	BYTE *tmp = new BYTE[n];
 	memcpy(tmp, buf, n);
 	print(tmp, n);
@@ -443,7 +446,7 @@ void clearScreen() {
 	setupterm( NULL, STDOUT_FILENO, &result );
 	if (result <= 0) return;
     }
-    putp( tigetstr( "clear" ) );
+    putp( tigetstr((char *)"clear") );
 }
 
 void saveMessage(const string& msg, ALIGN a) {
@@ -481,13 +484,7 @@ void saveMessage(const string& msg, ALIGN a) {
 	    cnt = 0;
 	}
 	else {
-	    if (msg[i] <= 128) {
-		tmp.push_back(msg[i]);
-	    }
-	    else {
-		tmp.push_back(' ');
-	    }
-
+	    tmp.push_back(msg[i]);
 	    cnt++;
 	    if (cnt == boundary - 1) {
 		if (msg[i + 1] == ' ') {

@@ -581,8 +581,12 @@ ChatServer::~ChatServer() {
     }
 }
 
-int main() {
-    unsigned short port = 3000;    
+int main(int argc, char **argv) {
+    if (argc != 2) {
+	cout << "usage: " << argv[0] << " <port>" << endl;
+	exit(0);
+    }
+    unsigned short port = atoi(argv[1]); 
     ChatServer server(port);
     signal(SIGINT, sigint_handler);
 
