@@ -294,7 +294,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 		    UserInfo *user = findUser(*it);
 		    if (user != nullptr) {
 			cout << "User Id: " << user->id << endl;
-			cout << "User port: " << user->addr.sin_port << endl;
+			cout << "User port: " << ntohs(user->addr.sin_port) << endl;
 			_mainSock->send(packet.getData(), packet.getLen(), 
 				       &(user->addr));
 		    }
@@ -332,7 +332,7 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	// User ip changed, require user to reconnect
 	msgType = RE_CONNECT;
 	packet.makeMessage(msgId, senderId, reqType,
-				msgType, "Not connected");
+			   msgType, "Not connected");
 	sock->send(packet.getData(), packet.getLen(), &cliAddr);
 	return;
     }

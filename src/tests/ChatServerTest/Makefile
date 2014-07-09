@@ -9,7 +9,7 @@ test:
 	$(CC) $(CFLAGS) $(OBJ_FILES) test.cpp -o test.out $(LIB)
 
 client: socklib 
-	$(CC) $(CFLAGS) $(OBJ_FILES) client.cpp -o client.out $(LIB)
+	$(CC) $(CFLAGS) $(OBJ_FILES) client.cpp -o client.out $(LIB) -lcurses
 
 socklib:
 	(cd ../../../lib/luxsocket; make)

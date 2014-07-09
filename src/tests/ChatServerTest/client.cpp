@@ -2,13 +2,16 @@
  * single chat client - can only in one chat at a time
  *
  */
-
+#include <unistd.h>
+#include <term.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <cstring>
 #include "luxSocket.h"
 #include "chatUtility.h"
 #include <boost/thread/thread.hpp>
+#include <mutex>
 
 using namespace std;
 using namespace socketlibrary;
@@ -26,10 +29,24 @@ unsigned short serverPort = 3000;
 struct sockaddr_in serverAddr;
 int sockfd;
 
+const int WIDTH = 40;
+
 struct ChatRoom {
     struct sockaddr_in addr;
     ChatId id;
 };
+
+enum CHAT_STATE {
+    MENU,
+    IN_CHAT    
+};
+
+enum ALIGN {
+    FLOAT_LEFT,
+    FLOAT_RIGHT
+};
+
+CHAT_STATE chatState = MENU;
 
 ChatRoom *chatRoom;
 
@@ -42,7 +59,15 @@ void sendMessage(const string &msg);
 void quit();
 void print(unsigned char *buf, int n);
 void startReceiving(LuxSocket *sock);
+void clearScreen();
+void saveMessage(const string& msg, ALIGN a);
 
+vector<string> display;
+vector<string> history;
+vector<int> mine;
+stringstream ss;
+
+std::mutex printMutex;
 
 int main(int argc, char ** argv) {
     char* hostname = "localhost";
@@ -84,6 +109,7 @@ int main(int argc, char ** argv) {
     thread(startReceiving, tmpSock).detach();
 
     int f, n;
+    string input;
     while(1) {
 	menu();
 	memset(buf, 0, BUFSIZE);
@@ -95,33 +121,44 @@ int main(int argc, char ** argv) {
 	}
 	for (int i = 0; i < EUID.size(); i++) {
 	    buf[p++] = EUID[i];
+	}	
+	cin >> input;
+	if (input[0] >= '0' && input[0] <= '9') {
+	    f = input[0] - '0';
 	}
-	cin >> f;
-	switch (f) {
-	    case 1:
-		connect();
-		break;
-	    case 2:
-		disconnect();
-		break;
-	    case 3:
-		createChat();
-		break;
-	    case 4:
-		quitCurChat();
-		break;
-	    case 5: {
-		string tmp;
-		cin >> tmp;
-		sendMessage(tmp);
-		continue;
-		break;
+	else {
+	    continue;
+	}
+	if (chatState == MENU) {
+	    switch (f) {
+		case 1:
+		    connect();
+		    break;
+		case 2:
+		    disconnect();
+		    break;
+		case 3:
+		    createChat();
+		    break;
+		case 4:
+		    quit();
+		    break;
+		default:
+		    continue;
 	    }
-	    case 6:
-		quit();
-		break;
-	    default:
-		cout << "No such funtion.\n";
+	}
+	else {
+	    switch(f) {
+		case 0:
+		    chatState = MENU;
+		    break;
+		default: {
+		    char msg[1024];
+		    cin.getline(msg, 1024);
+		    sendMessage(msg);
+		}
+	    }
+	    continue;
 	}
 	//print(buf, p);
 	n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&serverAddr, 
@@ -134,19 +171,70 @@ int main(int argc, char ** argv) {
 }
 
 void menu() {
-    cout << "Select a function:\n";
-    cout << "Connect to server: 1\n";
-    cout << "Disconnect: 2\n";
-    cout << "Create a chat. 3 number id0 id1 id2 ...\n";
-    cout << "Quit chat: 4 \n";
-    cout << "Send text message: 5 message....\n";
-    cout << "Quit application: 6\n";
+    std::lock_guard<std::mutex> lock(printMutex);
+    clearScreen();
+    if (chatState == MENU) {
+	cout << "==================Menu==================\n";
+	cout << "Connect to server: 1\n";
+	cout << "Disconnect: 2\n";
+	cout << "Create a chat. 3 number id0 id1 id2 ...\n";
+	cout << "Quit application: 4\n";
+	cout << "========================================\n";
+    }
+    else {
+	cout << "==================Chat==================\n";
+	cout << "Quit chat 0.\n";
+	cout << "Send text message: 1 message(one line)\n";
+	cout << "========================================\n";
+    }
+
+    for (auto it = display.begin(); it != display.end(); it++) {
+	cout << *it;
+    }
+
+    if (chatState == IN_CHAT) {
+	string padding[2];
+	int boundary = WIDTH / 2;
+	for (int i = 0; i < boundary - 2; i++) {
+	    padding[1].push_back(' ');
+	}
+	padding[1] += " | ";
+	for (int i = 0; i < history.size(); i++) {
+	    cout << history[i];
+	    /*
+	    string cur = history[i];
+	    int k = cur.find_first_of('\n');
+	    if (k) {	
+		cout << padding[mine[i]];
+		cout << cur.substr(0, k + 1);
+		cur = cur.substr(k + 1, cur.size() - k);
+	    }
+	    cout << padding[mine[i]];	    
+	    int cnt = 0;
+	    for (int j = 0; j < cur.size(); j++) {
+		if (cnt == boundary - 1 && j != cur.size() - 1) {
+		    cout << " | \n";
+		    cout << padding[mine[i]];
+		    cnt = 0;
+		}
+		else {
+		    cout << cur[j];
+		    cnt++;
+		}
+	    }
+	    */
+	}
+    }	
+    
+    display.clear();
 }
 
 void connect() {
     buf[p++] = (unsigned char)CONNECT;
     buf[p++] = (unsigned char)PORTS;
-    cout << "Connect port: " << ntohs(serverAddr.sin_port) << endl;
+    ss << "Connect port: " << ntohs(serverAddr.sin_port) << endl;
+    display.push_back(ss.str());
+    ss.str("");
     for (int i = 0; i < sizeof(clientPort); i++) {
 	buf[p++] = *((unsigned char*)&clientPort + i);
     }
@@ -156,7 +244,9 @@ void connect() {
 }
 
 void disconnect() {
-    cout << "Disconnect port: " << ntohs(serverAddr.sin_port) << endl;
+    ss << "Disconnect port: " << ntohs(serverAddr.sin_port) << endl;
+    display.push_back(ss.str());
+    ss.str("");
     buf[p++] = (unsigned char)DISCONNECT;
     buf[p++] = (unsigned char)PORTS;
     for (int i = 0; i < sizeof(clientPort); i++) {
@@ -168,6 +258,7 @@ void disconnect() {
 }
 
 void createChat() {
+    cout << "Creating chat" << endl;
     buf[p++] = CREATE_CHAT;
     buf[p++] = USER_LIST;
     int n;
@@ -205,16 +296,27 @@ void sendMessage(const string &msg) {
     for (int i = 0; i < msg.size(); i++) {
 	buf[p++] = msg[i];
     }    
-    cout << "Chat ip :" << chatRoom->addr.sin_addr.s_addr << endl;
-    cout << "Main ip :" << serverAddr.sin_addr.s_addr << endl;
-    cout << "Port :" << chatRoom->addr.sin_port << endl;
+    /*
+    ss << "Chat ip :" << chatRoom->addr.sin_addr.s_addr << endl;
+    display.push_back(ss.str());
+    ss.str("");
+    ss << "Main ip :" << serverAddr.sin_addr.s_addr << endl;
+    display.push_back(ss.str());
+    ss.str("");
+    ss << "Port :" << chatRoom->addr.sin_port << endl;
+    display.push_back(ss.str());
+    ss.str("");
+    */
     int n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&(chatRoom->addr), 
 		   sizeof(serverAddr));
     if (n < 0) {
 	cout << "Error in sendto\n";
 	exit(0);
     }
-
+    
+    ss << "me:\n" << msg << endl << endl;
+    saveMessage(ss.str(), FLOAT_RIGHT);
+    ss.str("");
 }
 
 void quit() {
@@ -236,13 +338,25 @@ void print(unsigned char *buf, int n) {
     MESSAGE_TYPE msgType;
     ChatPacket pack(buf, n);
     pack.parseMessage(msgId, senderId, reqType, msgType);
-
     /*
-    cout << senderId << endl;
-    cout << reqType << endl;
-    cout << msgType << endl;
+    ss << senderId << endl;
+    ss << reqType << endl;
+    ss << msgType << endl;
+    display.push_back(ss.str());
+    ss.str("");
     */
+    if (reqType == CONNECT && msgType == CONFIRM) {
+	ss << "Connected" << endl;
+	display.push_back(ss.str());
+	ss.str("");	
+    }
     
+    if (reqType == DISCONNECT && msgType == CONFIRM) {
+	ss << "Disconnected" << endl;
+	display.push_back(ss.str());
+	ss.str("");	
+    }
+
     if (reqType == CREATE_CHAT && msgType == CHAT_INFO) {
 	unsigned short port;
 	ChatId id;
@@ -254,35 +368,107 @@ void print(unsigned char *buf, int n) {
 	chatRoom->addr = serverAddr;
 	chatRoom->addr.sin_port = htons(port);
 	chatRoom->id = id;
-	/*
-	cout << "ChatId " << id << endl;
-	cout << "Number: " << count << " / " << cap << endl;
-	cout << "Port: " << port << endl;
-	cout << "Uesrs: ";
+
+	ss << "ChatId " << id << endl;
+	ss << "Number: " << count << " / " << cap << endl;
+	ss << "Port: " << port << endl;
+	ss << "Uesrs: ";
 	for (int i = 0; i < count; i++) {
-	    cout << users[i] << " ";
+	    ss << users[i] << " " << endl;
 	}
-	cout << endl;
-	*/	
+	display.push_back(ss.str());
+	ss.str("");
+	chatState = IN_CHAT;
     }
     else if (reqType == SEND_MESSAGE && msgType == TEXT_MSG) {
 	ChatId id;
 	string text;
 	pack.parseTextMsg(id, text);
-	cout << "Chat Room Id: " << id << endl;
-	cout << "From: " << senderId << endl;
-	cout << "Message:" << text << endl;
+	ss << senderId << " says:"<< endl;
+	ss << text << endl << endl;
+	saveMessage(ss.str(), FLOAT_LEFT);
+	ss.str("");
     }
+    menu();
 }
 
 void startReceiving(LuxSocket *sock) {
     int n = 0;
+    BYTE *buf = new BYTE[BUFSIZE];
     while (1) {
 	sockaddr_in tmpAddr;
 	n = sock->receive(buf, BUFSIZE, &tmpAddr);
-	cout << "receive" << n << endl;
+	//ss << "receive" << n << endl;
+	//display.push_back(ss.str());
+	//ss.str("");
 	BYTE *tmp = new BYTE[n];
 	memcpy(tmp, buf, n);
 	print(tmp, n);
     }
+}
+
+void clearScreen() {
+    if (!cur_term) {
+	int result;
+	setupterm( NULL, STDOUT_FILENO, &result );
+	if (result <= 0) return;
+    }
+    putp( tigetstr( "clear" ) );
+}
+
+void saveMessage(const string& msg, ALIGN a) {
+    string tmp;
+    string padding;
+    int boundary = WIDTH / 2 - 1;
+    
+    if (a == FLOAT_RIGHT) {
+	for (int i = 0; i < boundary; i++) {
+	    padding.push_back(' ');
+	}
+	padding.push_back('|');
+	padding.push_back(' ');
+    }
+    int i = 0;
+    while (msg[i] == ' ' && i < msg.size() - 1) {
+	i ++;
+    }
+    int cnt = 0;
+    tmp += padding;
+    while (i < msg.size() - 1) {
+	if (msg[i] == '\n') {
+	    while (cnt < boundary - 1) {
+		tmp.push_back(' ');
+		cnt++;
+	    }
+	    if (a == FLOAT_LEFT) {
+		tmp.push_back(' ');
+		tmp.push_back('|');
+	    }
+	    tmp.push_back('\n');
+	    if (i < msg.size() - 2) {
+		tmp += padding;		
+	    }
+	    cnt = 0;
+	}
+	else {
+	    tmp.push_back(msg[i]);
+	    cnt++;
+	    if (cnt == boundary - 1) {
+		if (msg[i + 1] == ' ') {
+		    i++;
+		}
+		if (a == FLOAT_LEFT) {
+		    tmp.push_back(' ');
+		    tmp.push_back('|');
+		}
+		tmp.push_back('\n');
+		if (i < msg.size() - 2) {
+		    tmp += padding;		
+		}
+		cnt = 0;
+	    }
+	}
+	i++;
+    }
+    history.push_back(tmp);
 }
