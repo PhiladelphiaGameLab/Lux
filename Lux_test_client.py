@@ -5,8 +5,8 @@ import json
 import socket
 import random
 
-#server_ip = "127.0.0.1"
-server_ip = "54.88.133.189" # this would be the server's ip
+server_ip = "127.0.0.1"
+#server_ip = "54.88.133.189" # this would be the server's ip
 #server_ip = "10.1.10.220"
 #server_ip = "192.168.128.39" # this would be the server's ip
 server_name = "ec2-54-85-159-206.compute-1.amazonaws.com"
@@ -105,8 +105,10 @@ while counter < 1:
 		try:
 			#print ("Ready to receive message... ") 
 			msg = sendSocket.recvfrom(4096)
-			msgFromServer.append(msg[0])
-			print ("Finished receiving: " + msg[0])
+			senderInfo = '"sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
+			msg = msg[0][:-1] + senderInfo
+			msgFromServer.append(msg)
+			print ("Finished receiving: " + msg)
 			#print (server_ip)
 		except socket.error:
 			v = 1

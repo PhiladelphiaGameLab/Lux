@@ -147,7 +147,11 @@ void *BattleGround::spawn(void* param){
 	    		DEBUG("Updating document bucket...");	
 	     		c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
 	    		DEBUG("Updated Document Bucket");
-
+			
+			DEBUG("Pulling message from db....");
+			completeMessage = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			
+			
 			// Checking if the message is a client doci
 			DEBUG("Checking for client Doc");
 			string EU_DOC;
