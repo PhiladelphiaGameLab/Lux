@@ -65,7 +65,7 @@ Open socket on port retrieved from JSON object
 port =3005
 #socket.getaddrinfo(server_ip,port)
 sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sendSocket.bind (("127.0.0.1",5001))
+sendSocket.bind (("127.0.0.1",5002))
 # this step will not be necessary when ip of server is known
 #remote_ip = socket.gethostbyname(server_name)
 #retval = sendSocket.sendto("Hello World", server_ip, port))
