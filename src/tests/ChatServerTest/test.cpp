@@ -115,10 +115,12 @@ void testDisconnect(Tester &user) {
 
 int main() {
     initServerSock();
-    while (1) {
+    int i = 0;
+    while (i < 2) {
 	testConnect(user0);
 	testDisconnect(user0);
 	//boost::posix_time::milliseconds secTime(10);
 	//boost::this_thread::sleep(secTime); 
+	i++;
     }
 }
