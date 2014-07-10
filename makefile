@@ -28,7 +28,7 @@ sendupdate = -c ../src/processes/sendupdate.cpp -g
 all: clean build run
 
 Mongo:
-	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
+	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db &
 
 mkdir:
 	mkdir $(PROJ_DIR)/output
