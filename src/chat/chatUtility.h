@@ -1,5 +1,6 @@
 #ifndef CHAT_UTILITY_H
 #define CHAT_UTILITY_H
+#include <cstring>
 #include <string>
 #include <vector>
 #include <iostream>
