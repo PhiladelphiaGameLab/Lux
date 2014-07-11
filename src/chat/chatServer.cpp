@@ -1,4 +1,5 @@
 #include "chatServer.h"
+#include <arpa/inet.h>  // for inet_ntoa
 
 using boost::thread;
 using namespace chat;
@@ -24,12 +25,15 @@ void ChatServer::run() {
     while (1) {
 	// Receive data from clients and do whatever need to do.	
 	size_t n = _mainSock->receive(buf, BUFSIZE, &cliAddr);
-	
+
+	cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << ":" << ntohs(cliAddr.sin_port) << "\n";	
 	BYTE *tmpBuf = new BYTE[n];
 	memcpy(tmpBuf, buf, n);
+	//_mainSock->send(buf, BUFSIZE, &cliAddr);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
 	thread(&ChatServer::mainRequestHandler, this,
 	       tmpBuf, n, tmpAddr).detach();
+	
     }
 }
 
@@ -222,6 +226,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    packet.parsePortNum(recvPort, pollPort);
 #ifdef DEBUG
 	    cout << "User " << senderId << " connecting.";
+	    cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << "\n";
 	    cout << "Ports: " << recvPort << " " << pollPort << "\n";
 #endif	    
 	    user = connect(senderId, cliAddr, recvPort, pollPort);
@@ -244,6 +249,9 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 #endif
 
 	    }
+#ifdef DEBUG
+	    cout << "Send to " << inet_ntoa(user->addr.sin_addr) << ":" << ntohs(user->addr.sin_port) << "\n";
+#endif
 	    _mainSock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    break;
 	}
@@ -505,7 +513,8 @@ void ChatServer::updateChats(SubServer &subServ) {
 	if (chat->isEmpty()) {
 	    // If no one is in chat, remove chat
 	    delete chat;
-	    subServ.eraseChat(chatMapIt++);
+	    subServ.eraseChat(chatMapIt);
+	    chatMapIt++;
 	}
 	else {
 	    ++chatMapIt;
