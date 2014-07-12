@@ -18,7 +18,7 @@ void *SendUpdate::spawn(void*  param_in) {
 	//pipe(params_in->fd);
 	
 	DEBUG("Opening sut_db pipe...");
-	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
+//	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
 	DEBUG("Opened sut_db pipe");
 	
         LuxSocket socket;
@@ -83,7 +83,7 @@ void *SendUpdate::spawn(void*  param_in) {
 		}else{ 
 			DEBUG("CLIENTS[0] IS NULL!!!"); 
 		}		
-		write(FIFO2, &piped.message, sizeof(BSONObj));
+		//write(FIFO2, &piped.message, sizeof(BSONObj));
 	}
 
     DEBUG("Exiting the send upddate thread");
