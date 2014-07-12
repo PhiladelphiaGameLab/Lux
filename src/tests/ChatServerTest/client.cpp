@@ -186,12 +186,28 @@ int main(int argc, char ** argv) {
 	    continue;
 	}
 	//print(buf, p);
+	
+	/*
 	n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&serverAddr, 
 		   sizeof(serverAddr));
+	*/
+	
+	client.send(buf, p, &serverAddr);
+
 	if (n < 0) {
 	    cout << "Error in sendto\n";
 	    exit(0);
 	}
+	cout << "send" << endl;
+	/*
+	memset(buf, 0, BUFSIZE);
+	n = recvfrom(sockfd, buf, BUFSIZE, 0, NULL, 0);
+	if (n < 0) {
+	    cout << "receive error" << endl;
+	    exit(0);
+	}
+	cout << "receive" << endl;
+	*/
     }
 }
 
@@ -332,6 +348,7 @@ void sendMessage(const string &msg) {
     display.push_back(ss.str());
     ss.str("");
     */
+    
     int n = sendto(sockfd, buf, p, 0, (struct sockaddr *)&(chatRoom->addr), 
 		   sizeof(serverAddr));
     if (n < 0) {

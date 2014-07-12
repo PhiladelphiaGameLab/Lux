@@ -54,7 +54,7 @@ namespace chat{
 	    return _userList;
 	};
 
-	void eraseUser(const typename list<UserId>::const_iterator &it) {
+	void eraseUser(typename list<UserId>::iterator &it) {
 	    _userList.erase(it);
 	    _userNum = _userList.size();
 	    _changed = true;
@@ -159,7 +159,7 @@ namespace chat{
 	// get exclusive access
 	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 	    
-	for (list<UserId>::const_iterator it = _userList.begin();
+	for (list<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    if (id == *it) {
@@ -232,7 +232,7 @@ namespace chat{
 	    return _chatPool;
 	};
 
-	void eraseChat(const typename map<ChatId, Chat*>::iterator &it) {
+	void eraseChat(typename map<ChatId, Chat*>::iterator &it) {
 	    _chatPool.erase(it);
 	    _chatNum--;
 	};
