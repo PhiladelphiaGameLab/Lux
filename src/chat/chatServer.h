@@ -379,6 +379,8 @@ namespace chat{
 	int computeValidUserNumbers(const vector<UserId> &idArray);
 
 	static bool equalId(const UserId &id0, const UserId &id1);
+
+	Chat* getTesterLobby();
     };
     
 

@@ -21,6 +21,27 @@ void ChatServer::run() {
     
     // Start update function
     thread(&ChatServer::updateAll, this).detach();
+
+#ifdef DEBUG
+	// create a public char room
+	do {
+	    std::lock_guard<std::mutex> lock(_subServerMutex);    
+	    SubServer* serv = findSubServer();
+	    if (serv == nullptr) {
+		// No server is available
+		cout << "Error: Creating test server.\n";
+		exit(1);
+	    }
+
+	    Chat *chat = new Chat();
+	    vector<UserId> arr{"__"};
+	    chat->insertUser(arr);
+            
+	    // Insert new chat into sub server
+	    serv->insertChat(*chat);
+	} while(0);
+#endif
+
     
     while (1) {
 	// Receive data from clients and do whatever need to do.	
@@ -29,11 +50,9 @@ void ChatServer::run() {
 	cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << ":" << ntohs(cliAddr.sin_port) << "\n";	
 	BYTE *tmpBuf = new BYTE[n];
 	memcpy(tmpBuf, buf, n);
-	//_mainSock->send(buf, BUFSIZE, &cliAddr);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
 	thread(&ChatServer::mainRequestHandler, this,
 	       tmpBuf, n, tmpAddr).detach();
-	
     }
 }
 
@@ -327,6 +346,20 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    }
 	    break;
 	}
+	case TESTER_LOBBY: {
+	    vector<UserId> tester{senderId};
+	    Chat *lobby = getTesterLobby();
+	    if (lobby) {
+		addUserToChat(*lobby, tester, msgType);
+	    }
+	    else {
+		msgType = CHAT_NOT_EXIST;
+	    }
+	    packet.makeMessage(msgId, senderId, TESTER_LOBBY, msgType);
+	    _mainSock->send(packet.getData(), packet.getLen(),
+			    &(user->addr));
+	    break;
+	}
 	default: {
 	    break;
 	}
@@ -575,6 +608,16 @@ int ChatServer::computeValidUserNumbers(const vector<UserId> &idArray) {
 bool ChatServer::equalId(const UserId &id0, const UserId &id1) {
     return (id0.compare(id1) == 0);
 }
+
+Chat* ChatServer::getTesterLobby() {
+    std::lock_guard<std::mutex> lock(_subServerMutex);
+
+    if (_subServerList.begin() != _subServerList.end()) {
+	return (*_subServerList.begin())->getChat(0);
+    }
+    return nullptr;
+}
+
 
 ChatServer::~ChatServer() {
     delete _mainSock;
