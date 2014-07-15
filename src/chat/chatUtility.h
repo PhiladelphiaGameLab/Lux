@@ -8,32 +8,33 @@
 namespace chat {
 
     enum REQUEST_TYPE{
-	CONNECT,
-	DISCONNECT,    
-	POLLING,
-	CREATE_CHAT,
-	QUIT_CHAT,
-	ADD_USER_TO_CHAT,
-	SEND_MESSAGE
+	CONNECT = 0,
+	DISCONNECT = 1,    
+	POLLING = 2,
+	CREATE_CHAT = 3,
+	QUIT_CHAT = 4,
+	ADD_USER_TO_CHAT = 5,
+	SEND_MESSAGE = 6,
+	TESTER_LOBBY = 7
     };
 
     enum MESSAGE_TYPE {    
-	NO_MORE_SERVERS,
-	EXCEED_CHAT_CAP,
-	CHAT_NOT_EXIST,
-	USER_NOT_IN_CHAT,
-	CONNECT_ERROR,
-	USER_LIST,
-	PORTS,
-	CHAT_ID,
-	TEXT_MSG,
-	AUDIO_MSG,
-	VIDEO_MSG,
-	CHAT_INFO,
-	SERVER_INFO,
-	RE_CONNECT,
-	CONFIRM,
-	CREATE_CHAT_INVALID_USER
+	NO_MORE_SERVERS = 0,
+	EXCEED_CHAT_CAP = 1,
+	CHAT_NOT_EXIST = 2,
+	USER_NOT_IN_CHAT = 3,
+	CONNECT_ERROR = 4,
+	USER_LIST = 5,
+	PORTS = 6,
+	CHAT_ID = 7,
+	TEXT_MSG = 8,
+	AUDIO_MSG = 9,
+	VIDEO_MSG = 10,
+	CHAT_INFO = 11,
+	SERVER_INFO = 12,
+	RE_CONNECT = 13,
+	CONFIRM = 14,
+	CREATE_CHAT_INVALID_USER = 15
     };
 
     const int EUID_LEN = 2; // EUID length, not determined yet
@@ -147,7 +148,7 @@ namespace chat {
 	// TODO: Error handling 
 	int p = 0;
 	for (int i = 0; i < sizeof(MsgId); i++) {
-	    *((char*)&msgId + i) = _buf[p++];	    
+	    *((BYTE*)&msgId + i) = _buf[p++];
 	}
 	senderId.clear();
 	for (int i = 0; i < EUID_LEN; i++) {
@@ -190,11 +191,11 @@ namespace chat {
 	int p = HEADER_LEN;
 
 	for (int i = 0; i < sizeof(recvPort); i++) {
-	    *((BYTE*)&recvPort + i) = _buf[p++];
+	    *((BYTE*)&recvPort + i) = _buf[p++] & 0xff;
 	}
 
 	for (int i = 0; i < sizeof(pollPort); i++) {
-	    *((BYTE*)&pollPort + i) = _buf[p++];
+	    *((BYTE*)&pollPort + i) = _buf[p++] & 0xff;
 	}
 	return 1;
     }

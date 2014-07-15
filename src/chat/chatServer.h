@@ -17,6 +17,7 @@ namespace chat{
     using std::vector;
     using std::pair;
     using std::map;
+    using std::set;
     using socketlibrary::LuxSocket;
     using boost::thread;
 
@@ -50,11 +51,11 @@ namespace chat{
 	    return _capacity - _userNum;
 	};
 	
-        const list<UserId>& getList() {
+        const set<UserId>& getList() {
 	    return _userList;
 	};
 
-	void eraseUser(typename list<UserId>::iterator &it) {
+	void eraseUser(typename set<UserId>::iterator &it) {
 	    _userList.erase(it);
 	    _userNum = _userList.size();
 	    _changed = true;
@@ -86,7 +87,7 @@ namespace chat{
 	ChatId _id;
 	int _capacity;
 	int _userNum;
-	list<UserId> _userList;
+	set<UserId> _userList;
 	vector<BYTE> bytes;
 	bool _changed;
 	// Reader and writer lock for _userList
@@ -108,7 +109,9 @@ namespace chat{
 	for (vector<UserId>::const_iterator it = idArray.begin();
 	     it != idArray.end();
 	     it ++) {
-	    _userList.push_back(*it);
+	    if (_userList.count(*it) == 0) {
+		_userList.insert(*it);		   
+	    }
 	}
 	_userNum = _userList.size();
 	_changed = true;
@@ -140,7 +143,7 @@ namespace chat{
 	    bytes.push_back(*((BYTE*)&size + i));
 	}
 		
-	for (list<UserId>::iterator it = _userList.begin();
+	for (set<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    for (int i = 0; i < (*it).length(); i++) {
@@ -159,7 +162,7 @@ namespace chat{
 	// get exclusive access
 	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 	    
-	for (list<UserId>::iterator it = _userList.begin();
+	for (set<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    if (id == *it) {
@@ -379,6 +382,8 @@ namespace chat{
 	int computeValidUserNumbers(const vector<UserId> &idArray);
 
 	static bool equalId(const UserId &id0, const UserId &id1);
+
+	Chat* getTesterLobby();
     };
     
 
