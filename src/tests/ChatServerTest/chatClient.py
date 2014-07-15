@@ -8,6 +8,7 @@ BUFSIZE = 65507
 global gSock
 global gServerAddr
 gChatting = False
+gConnected = False
 gDisplayLock = threading.Lock()
 gHistoryLock = threading.Lock()
 
@@ -21,19 +22,7 @@ global gEuid
 gRecvPort = 0
 gPollPort = 0
 
-class MyThread(threading.Thread):    
-    def __init__(self):
-        threading.Thread.__init__(self)
-
-    def run(self):
-        global gSock
-        global BUFSIZE
-        global gRecent
-        while True:
-            data, addr = gSock.recvfrom(BUFSIZE)
-            gRecent = "receive message\n"
-            parseMessage(data)
-            display()
+global gTestLobby
 
 class REQUEST_TYPE:
     CONNECT = 0
@@ -62,7 +51,60 @@ class MESSAGE_TYPE:
     RE_CONNECT = 13
     CONFIRM = 14
     CREATE_CHAT_INVALID_USER = 15
-                        
+
+class ChatRoom:
+    def __init__(self, chatId, port):
+        self.id = chatId
+        self.port = port
+        self.addr = (gServerAddr[0], port)
+        
+class MyThread(threading.Thread):    
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        global gSock
+        global gRecent
+        while True:
+            data, addr = gSock.recvfrom(BUFSIZE)
+            gRecent = "receiving message"
+            parseMessage(data)
+            display()
+            
+def parseMessage(data):
+    global gRecent
+
+    msgId = bytesToInt32(data[0:4])
+    senderId = data[4:4 + len(gEuid)]
+    reqType = ord(data[4 + len(gEuid)])
+    msgType = ord(data[4 + len(gEuid) + 1])
+
+
+    if reqType == REQUEST_TYPE.CONNECT:
+        if msgType == MESSAGE_TYPE.CONFIRM:
+            global gConnected
+            gConnected = True
+            gRecent = "connected."
+        else:
+            gRecent = "error connecting."
+    elif reqType == REQUEST_TYPE.SEND_MESSAGE:
+        if msgType == MESSAGE_TYPE.CONFIRM:
+            gRecent = "message sent."
+        elif msgType == MESSAGE_TYPE.TEXT_MSG:
+            gRecent = "received message."
+            msg = data[4 + len(gEuid) + 2 + 4 : ]
+            saveMessage(senderId, msg)        
+    elif reqType == REQUEST_TYPE.TESTER_LOBBY:
+        if msgType == MESSAGE_TYPE.CONFIRM:
+            if senderId == gEuid:
+                header = 4 + len(gEuid) + 2
+                port = bytesToInt16(data[header : header + 2])
+                chatId = bytesToInt32(data[header + 2 : header + 6])
+                joinNewChat(chatId, port)
+            else:
+                gRecent = senderId + " joined"
+
+                    
 def display():
     gDisplayLock.acquire()
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -91,9 +133,9 @@ def display():
 
 def formatPrint(data):
     prefix = ''
-    if data[0] == "Me:":
-        prefix = ' ' * (gWidth / 2 - 3) + ' | ';
-    print prefix, data[0]
+    if data[0] == gEuid:
+        prefix = ' ' * (gWidth / 2 - 3) + ' |';
+    print prefix, data[0], ':'
 
     length = len(data[1])
     start = 0
@@ -120,7 +162,7 @@ def mainLoop():
                     exit()
                 elif f == 1:
                     connect()
-                elif f == 2:
+                elif f == 2:                    
                     chat()
             else:
                 if f == 0:
@@ -142,6 +184,20 @@ def int16ToBytes(number):
     arr += chr(number & 0xff)
     arr += chr((number >> 8) & 0xff)
     return arr
+
+def bytesToInt32(arr):
+    num = 0
+    num |= ord(arr[0])
+    num |= ord(arr[1]) << 8
+    num |= ord(arr[2]) << 16
+    num |= ord(arr[3]) << 24
+    return num
+
+def bytesToInt16(arr):
+    num = 0
+    num |= ord(arr[0])
+    num |= ord(arr[1]) << 8
+    return num
                     
 def connect():
     global gRecent
@@ -151,23 +207,44 @@ def connect():
     msg += int16ToBytes(gPollPort)
     packet = makePacket(gEuid, REQUEST_TYPE.CONNECT,
                         MESSAGE_TYPE.PORTS, msg)
-    sendtoServer(packet)
+    sendtoServer(packet, gServerAddr)
 
 def chat():
-    print "chat"
+    global gRecent    
+    if gConnected:
+        gRecent = "conneting to test lobby..."
+        packet = makePacket(gEuid, REQUEST_TYPE.TESTER_LOBBY,
+                            MESSAGE_TYPE.USER_LIST, '')
+        sendtoServer(packet, gServerAddr)
+    else:
+        gRecent = "error: not connected to server."
+
+def joinNewChat(chatId, port):
     global gChatting
+    global gTestLobby
+    global gRecent
+    gRecent = "joined chat room"
+    try:        
+        gTestLobby = ChatRoom(chatId, port)
+    except:
+        gRecent = "creating ChatRoom error"    
     gChatting = True
 
 def sendMessage(data):
     global gRecent
-    gRecent = "sent message" 
-    saveMessage(("Me:", data))
+    gRecent = "sending message" 
+    saveMessage(gEuid, data)
+    msg = int32ToBytes(gTestLobby.id)
+    msg += data
+    packet = makePacket(gEuid, REQUEST_TYPE.SEND_MESSAGE,
+                        MESSAGE_TYPE.TEXT_MSG, msg)
+    sendtoServer(packet, gTestLobby.addr)
 
-def saveMessage(data):
+def saveMessage(euid, data):
     gHistoryLock.acquire()
-
+    
     global gHistory
-    gHistory.append(data)
+    gHistory.append((euid, data))
     
     gHistoryLock.release()
 
@@ -182,8 +259,8 @@ def makePacket(senderId, reqType, msgType, msg):
     packet += msg;
     return packet
     
-def sendtoServer(buf):    
-    gSock.sendto(buf, gServerAddr)
+def sendtoServer(buf, addr):    
+    gSock.sendto(buf, addr)
 
 if __name__ == "__main__":
     argc = len(sys.argv)
