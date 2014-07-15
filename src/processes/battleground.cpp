@@ -56,11 +56,13 @@ void *BattleGround::spawn(void* param){
 		BSONObj message = socket.receive(&cli_addr);
         	DEBUG("Client Recieved");
                 DEBUG("client address " << inet_ntoa(cli_addr.sin_addr) << " : " << ntohs(cli_addr.sin_port) );
+		DEBUG("Msg recieved is"<<message.toString(false));
 		// get accessToken from BSONObj message
         	string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
         	// get EUID from BSONObj message
         	string EUID = message["sender"]["EUID"].String();
 		string tempid = message["tempid"].String();
+		
 		// authenticate message
 		DEBUG("Authenticating Access Token and EUID..." << accessToken << " , " << EUID);
         	if(Authenticate::authenticateAccessToken(accessToken, EUID)){
@@ -94,79 +96,103 @@ void *BattleGround::spawn(void* param){
 	   	 	BSONObj completeMessage = builder.obj();
 			DEBUG("Finished Building Message");
 			// Adding Document to Db is none Exists
-	   		string id;
-	   		id = completeMessage["_id"].toString();//toString(false);
-			DEBUG("_id take 1 (" << "): " << id);
-			DEBUG("id: " << id << " Complete Message "<< completeMessage.toString(true));	   
+	   		//string id;
+	   		//id = completeMessage["_id"].toString();//toString(false);
+			//DEBUG("_id take 1 (" << "): " << id);
+			DEBUG(" Complete Message "<< completeMessage.toString(true));	   
 			//DEBUG("Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<OID(id))).isEmpty());
-			
-			auto_ptr<DBClientCursor> cursor;
-			DEBUG("Type of id" << typeid(id).name());			
-			if(id.compare("EOO")!=0){
-				id = completeMessage["_id"].OID().toString();
-				DEBUG("Trying to get cursor");
-				cursor = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
-				DEBUG("Obtained cursor");
-			}else{
-	      	        	DEBUG("Inserting Document...");
-				c.insert(DATABASE_NAME,completeMessage);
-				DEBUG("Inserted Document");
+		
+	         	 // Getting Document Location
+		      // get location from message
+		      DEBUG("Getting Object Location...");
+		      int locationX;
+		      locationX = message["Location"]["x"].numberInt();
+		//	 locationX = message["Location"]["x"].toString();
 
-				auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("tempid"<<tempid));
-				if(cursor2->more()){
-					BSONObj objectFromTemp  = cursor2->next();
-					id = objectFromTemp["_id"].OID().toString();	
-					DEBUG("Inside cursor loop value od _id is"<<id);
-				}else{
-					id = completeMessage["_id"].toString();
+		      int locationY;
+		      locationY  = message["Location"]["y"].numberInt();
+		      // int locationZ;
+                      //locationZ  = atoi(message["Location"]["z"].String().c_str());
+
+		      int radius;
+		      radius  = message["radius"].numberInt();
+			                                                                                                                                                                                                            std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
+			                                                                                                                                                                                                            DEBUG("Got Object Location...");
+			
+			
+			                                                                                                                                                                                                              // Getting New Bucket Id
+                                                                                                                                                                                                                                    DEBUG("Getting Bucket Number");
+                                                                                                                                                                                                                                    int bucket_id = Map.findBucket(locationX,locationY);
+                                                                                                                                                                                                                                    DEBUG("Got Bucket Number: " << bucket_id);
+			
+
+
+			//Checing if EUID exists
+			 if(EUID.compare("EOO")!=0){
+                                // updating map location
+                                    DEBUG("Updating Map....");
+                                    DEBUG("EUID : " << EUID);
+                                    Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
+                                    DEBUG("Map Updated...");
+			}
+
+			string id;
+			if(message.hasField("_id")){
+                        id = message["_id"].OID().toString();
+                        DEBUG("_id take 1 (" << "): " << id);
+ 			}
+
+			//auto_ptr<DBClientCursor> cursor;
+			//DEBUG("Type of id" << typeid(id).name());			
+			else
+			{
+			//if(id.compare("EOO")==0){
+			//	id = completeMessage["_id"].OID().toString();
+			//	DEBUG("Trying to get cursor");
+			//	cursor = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			//	DEBUG("Obtained cursor");
+			//}else{
+	      	        	DEBUG("Inserting Document...");
+				c.insert(DATABASE_NAME,BSON("tempid"<<3));
+				DEBUG("Inserted Document");
+			//	id = c.findOne(DATABASE_NAME,Query("tempid"<<3))["_id"].OID().toString();
+			       // BSONObj temp = c.findOne(DATABASE_NAME,Query("tempid"<<3));
+			        auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME,QUERY("tempid"<<3));
+				if(cursor->more())
+				{
+				BSONObj temp = cursor->next();
+				id = temp["_id"].OID().toString();
+				//id = temp["_id"].OID().toString();
 				}
 			}
-			
-			DEBUG("_id take 2 (" << "fsdfasdfds" << "): " << id);
-			DEBUG("Finished Checking if the document needed to be added");
-			
-			// Getting Document Location
-			// get location from message
-			DEBUG("Getting Object Location...");
-			int locationX;
-			locationX = atoi(message["object"]["location"]["x"].String().c_str());
-			int locationY;
-			locationY  = atoi(message["object"]["location"]["y"].String().c_str());
-			int radius;
-			radius  = atoi(message["object"]["radius"].String().c_str());
-			std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
-			DEBUG("Got Object Location...");
 
+			//	auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("tempid"<<tempid));
+			//	if(cursor2->more()){
+			///		BSONObj objectFromTemp  = cursor2->next();
+			//		id = objectFromTemp["_id"].OID().toString();	
+			//		DEBUG("Inside cursor loop value od _id is"<<id);
+			//	}else{
+			//		id = completeMessage["_id"].toString();
+			//	}
+		//	}
+		
 
-
-			// Getting New Bucket Id
-			DEBUG("Getting Bucket Number");
-	    		int bucket_id = Map.findBucket(locationX,locationY);
-	    		DEBUG("Got Bucket Number: " << bucket_id);
-
+			 BSONObj testobj = BSON("bucketID" << std::to_string(bucket_id)  << "tempid" << "0" <<"radius" <<radius <<"EUID"<<EUID<<"Location"<<BSON("x"<<locationX<<"y"<<locationY<<"z"<<0)<<"object"<<BSON("animation"<<"none"<<"sound"<<"cool"<<"model"<<"chair"));
+	
 	    		DEBUG("Updating document bucket...");	
-	     		c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
+		//	c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
+			c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << testobj));
 	    		DEBUG("Updated Document Bucket");
 			
 			DEBUG("Pulling message from db....");
-			completeMessage = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			if(cursor2->more())
+			{
+			 DEBUG("Can get BSONObj");
+			 completeMessage = cursor2->next();
+			 DEBUG("Got the message");
+			}
 			
-			
-			// Checking if the message is a client doci
-			DEBUG("Checking for client Doc");
-			string EU_DOC;
-	    		EU_DOC = completeMessage["object"]["EU_DOC"].String();
-
-	    		if(EU_DOC.compare("") != 0 && EU_DOC.compare("true")==0){			
-				// updating map location
-				DEBUG("Updating Map....");
-				DEBUG("EUID : " << EUID);
-	        		Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
-	     			DEBUG("Map Updated...");
-	     		}
-			DEBUG("Checked for client Doc");
-
-
 			// query HMBL for socket list
             		DEBUG("Getting Socket List....");
 			vector<Node<sockaddr_in>*> SocketList = Map.get_clients(locationX,locationY,radius);// need to pass in cli_addr, location, and radius

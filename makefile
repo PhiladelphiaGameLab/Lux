@@ -7,7 +7,8 @@ CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/ou
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 AuthLink= $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/MD5.o $(PROJ_DIR)/output/Authenticate.o
 InitLink= $(AuthLink) $(PROJ_DIR)/output/FindBGT.o $(PROJ_DIR)/output/HMBL.o
-BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o
+BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o 
+#$(PROJ_DIR)/output/temp_battleground.o
 
 Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi -g
 Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi -g
@@ -23,6 +24,7 @@ socketB = -c ../lib/luxsocket/luxSocket.cpp -g
 DBWriter = -c ../src/processes/DBWriter.cpp -g
 SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp -g
 battleground = -c ../src/processes/battleground.cpp -g
+temp_bg = -c ../src/processes/temp_battleground.cpp -g
 sendupdate = -c ../src/processes/sendupdate.cpp -g
 
 all: clean build run
@@ -84,7 +86,8 @@ Init:
 
 BGTSpawner:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB)
-
+temp_bg:
+	 $(CC) $(CFLAGS) $(OBJ_FILES) $(temp_bg) $(LIB)
 # spawn BGT
 run:
 	chmod -R 777 $(PROJ_DIR)/output
@@ -97,3 +100,14 @@ clean:
 	rm -rf ./output
 	rm -rf ./cgi_bin
 	rm -f lux_pipe*
+
+debug:
+	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db &
+	rm run.txt;
+	for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; timeout 120s make run | tail -n 5 | tee -a run.txt; done; 
+	#cat run.txt
+	cat run.txt | awk '{if($$0 ~ /ObjectId/) print $$2 " "  $$3 " "  $$4 " "  $$5 " " $$6; else for (i=2; i<NF; i++) printf $$i " "; print $$NF} ;' | sort | uniq -c -d
+
+debugLook:
+	cat run.txt | awk '{if($$0 ~ /ObjectId/ && $$0 != /[0-9]*/ && NF != 1) print $$2 " "  $$3 " "  $$4 " "  $$5 " " $$6; else for (i=2; i<NF; i++) printf $$i " "; print $$NF } ;' | sort | uniq -c -d
+
