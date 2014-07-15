@@ -34,6 +34,10 @@ void ChatServer::run() {
 	    }
 
 	    Chat *chat = new Chat();
+	    
+	    chat->setAddress(serv->getAddress());
+	    chat->setPortNum(serv->getPortNum());
+
 	    vector<UserId> arr{"__"};
 	    chat->insertUser(arr);
             
@@ -118,7 +122,7 @@ void ChatServer::addUserToChat(Chat &chat, const vector<UserId> &idArray,
     }        
 
     chat.insertUser(idArray);
-    msgType = CONFIRM;
+    msgType = CONFIRM;    
 }
 
 void ChatServer::quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType) {
@@ -178,10 +182,10 @@ void ChatServer::sendToOthers(BYTE *buf, size_t len, LuxSocket *sock,
     // get upgrade access
     boost::upgrade_lock<boost::shared_mutex> lock(chat.getReaderMutex());
 
-    for (list<UserId>::const_iterator it = chat.getList().begin();
+    for (set<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
-	UserInfo *user = findUser(*it);       
+	UserInfo *user = findUser(*it);
 	if (user != nullptr) {
 	    if (user->isOnline && !equalId(senderId, user->id)) {
 		sock->send(buf, len, &(user->addr));
@@ -195,7 +199,7 @@ void ChatServer::sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat) {
     // get upgrade access
     boost::upgrade_lock<boost::shared_mutex> lock(chat.getReaderMutex());
 
-    for (list<UserId>::const_iterator it = chat.getList().begin();
+    for (set<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
 	UserInfo *user = findUser(*it);
@@ -216,11 +220,11 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
     UserId senderId;
     REQUEST_TYPE reqType;
     MESSAGE_TYPE msgType;
-    
+        
     ChatPacket packet(buf, len);
 
     packet.parseMessage(msgId, senderId, reqType, msgType);
-        
+    
     cout << "Receive message from " << senderId << endl;
     UserInfo *user = findUser(senderId);
     if (reqType != CONNECT) {
@@ -237,7 +241,6 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    return;
 	}
     }
-    cout << reqType << endl;
     // Main thread only handles request other chat
     switch (reqType) {	    
 	case CONNECT: {
@@ -351,13 +354,21 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    Chat *lobby = getTesterLobby();
 	    if (lobby) {
 		addUserToChat(*lobby, tester, msgType);
+		packet.makeMessage(msgId, senderId, reqType, msgType);
+		packet.appendMessage(lobby->toBytes());
+		if (msgType == CONFIRM) {
+		    sendToAll(packet.getData(), packet.getLen(), _mainSock, *lobby);
+		}
+		else {
+		    _mainSock->send(packet.getData(), packet.getLen(), &(user->addr));
+		}
 	    }
 	    else {
 		msgType = CHAT_NOT_EXIST;
+		packet.makeMessage(msgId, senderId, TESTER_LOBBY, msgType);
+		_mainSock->send(packet.getData(), packet.getLen(),
+				&(user->addr));
 	    }
-	    packet.makeMessage(msgId, senderId, TESTER_LOBBY, msgType);
-	    _mainSock->send(packet.getData(), packet.getLen(),
-			    &(user->addr));
 	    break;
 	}
 	default: {

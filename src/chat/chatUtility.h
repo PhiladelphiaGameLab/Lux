@@ -148,7 +148,7 @@ namespace chat {
 	// TODO: Error handling 
 	int p = 0;
 	for (int i = 0; i < sizeof(MsgId); i++) {
-	    *((char*)&msgId + i) = _buf[p++];	    
+	    *((BYTE*)&msgId + i) = _buf[p++];
 	}
 	senderId.clear();
 	for (int i = 0; i < EUID_LEN; i++) {
@@ -191,11 +191,11 @@ namespace chat {
 	int p = HEADER_LEN;
 
 	for (int i = 0; i < sizeof(recvPort); i++) {
-	    *((BYTE*)&recvPort + i) = _buf[p++];
+	    *((BYTE*)&recvPort + i) = _buf[p++] & 0xff;
 	}
 
 	for (int i = 0; i < sizeof(pollPort); i++) {
-	    *((BYTE*)&pollPort + i) = _buf[p++];
+	    *((BYTE*)&pollPort + i) = _buf[p++] & 0xff;
 	}
 	return 1;
     }
