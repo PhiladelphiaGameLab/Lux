@@ -105,17 +105,22 @@ void *BattleGround::spawn(void* param){
 	         	 // Getting Document Location
 		      // get location from message
 		      DEBUG("Getting Object Location...");
+		      string locx,locy;
 		      int locationX;
-		      locationX = message["Location"]["x"].numberInt();
+		      locx = message["Location"]["x"].toString();//.numberInt();
+		      locationX = atoi(locx.c_str());
 		//	 locationX = message["Location"]["x"].toString();
 
 		      int locationY;
-		      locationY  = message["Location"]["y"].numberInt();
+		      locy  = message["Location"]["y"].toString();//.numberInt();
+		      locationY = atoi(locy.c_str());
 		      // int locationZ;
                       //locationZ  = atoi(message["Location"]["z"].String().c_str());
 
 		      int radius;
-		      radius  = message["radius"].numberInt();
+		      string rad;
+		      rad  = message["radius"].toString();//.numberInt();
+		      radius = atoi(rad.c_str());
 			                                                                                                                                                                                                            std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
 			                                                                                                                                                                                                            DEBUG("Got Object Location...");
 			

@@ -103,12 +103,29 @@ while counter < 1:
 	tend = time.time()*1000 + 1000;
 	while(time.time()*1000 < tend):
 		try:
+			msg = ""
 			#print ("Ready to receive message... ") 
 			msg = sendSocket.recvfrom(4096)
-			senderInfo = ',"sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
-			msg = msg[0][:-1] + senderInfo
-			msgFromServer.append(msg)
-			print ("Finished receiving: " + msg)
+			print "Message 1: " + msg[0]
+			i = 0
+			msg2 = ""
+			for c in msg[0] :
+        			msg2 += c
+        			#print msg2
+        			if(c == "{"):
+                			i +=1
+        			elif(c == "}"):
+                			i -=1
+        			elif(i==0):
+					print "Message Loop: " + msg2
+                			break	
+					print "Message Loop2: " + msg2
+
+			print "Message 2: " + msg2
+			senderInfo = ', "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
+			msg3 = msg2[:-2] + senderInfo
+			msgFromServer.append(msg3)
+			print ("Message 3: " + msg3)
 			#print (server_ip)
 		except socket.error:
 			v = 1
