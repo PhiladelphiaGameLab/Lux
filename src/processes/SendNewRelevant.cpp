@@ -27,6 +27,7 @@ void *SendNewRelevant::spawn(void*  param_in){
 	struct s_SNRMessage piped;
 
     while(1){
+    try{
 	std::cout << "HELP! SNR : 2 " << std::endl;
         // read socket
         // read(ss_fd[0], &piped, sizeof(s_SNRMessage));
@@ -57,5 +58,9 @@ void *SendNewRelevant::spawn(void*  param_in){
 		DEBUG("Sent Object");
             }
         }
+    }catch(exception& e){
+            cout << e.what() << endl;
+    }
+
     }
 }

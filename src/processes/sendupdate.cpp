@@ -34,7 +34,7 @@ void *SendUpdate::spawn(void*  param_in) {
 	// have BGTSpawner pass in the BGT_id -- add to s_sut_params_in struct
 	
 	while(true) {
-		
+	try{		
 	DEBUG("Begining loop....");
 	DEBUG("Reading from pipe....");
 	read(FIFO, &piped, sizeof(s_SUTMessage));
@@ -86,7 +86,11 @@ void *SendUpdate::spawn(void*  param_in) {
 		}else{ 
 			DEBUG("CLIENTS[0] IS NULL!!!"); 
 		}		
-		//write(FIFO2, &piped.message, sizeof(BSONObj));
+        }catch(exception& e){
+                cout << e.what() << endl;
+        }
+	
+	//write(FIFO2, &piped.message, sizeof(BSONObj));
 	}
 
     DEBUG("Exiting the send upddate thread");

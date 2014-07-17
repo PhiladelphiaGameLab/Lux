@@ -104,8 +104,9 @@ clean:
 debug:
 	#/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db & > run.mongo
 	rm run.txt;
-	for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; timeout 120s make run | tail -n 5 | tee -a run.txt; done; 
+	#for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; timeout 120s make run | tail -n 5 | tee -a run.txt; done; 
 	#cat run.txt
+	for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; make run | tail -n 5 | tee -a run.txt; done; 
 	cat run.txt | awk '{if($$0 ~ /ObjectId/) print $$2 " "  $$3 " "  $$4 " "  $$5 " " $$6; else for (i=2; i<NF; i++) printf $$i " "; print $$NF} ;' | sort | uniq -c -d
 
 debugLook:

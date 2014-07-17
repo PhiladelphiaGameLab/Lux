@@ -55,7 +55,7 @@ Get port number from JSON object
 Open socket on port retrieved from JSON object
 """
 # will use 80 for now
-port =3005
+port =3003
 #socket.getaddrinfo(server_ip,port)
 sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sendSocket.bind (("127.0.0.1",5004))
@@ -88,9 +88,9 @@ while counter < 1:
 	print ("top of while at iteration: "+str(counter))
 #print "x:",x
 #print "y:",y
-	msgFromServer[0] = '{"tempid" : "1", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[0])+'", "y" : "'+str(y[0])+'"}, "radius" : "2", "EU_DOC" : "true", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[0])+'" }}'
-	msgFromServer[1] = '{"tempid" : "2", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[1])+'", "y" : "'+str(y[1])+'"}, "radius" : "2", "EU_DOC" : "false", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[1])+'" }}'
-	msgFromServer[2] = '{"tempid" : "3", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[2])+'", "y" : "'+str(y[2])+'"}, "radius" : "2", "EU_DOC" : "true" , "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
+	msgFromServer[0] = '{"tempid" : "1", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[0])+', "y" : '+str(y[0])+'}, "radius" : 2, "EU_DOC" : "true", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[0])+'" }}'
+	msgFromServer[1] = '{"tempid" : "2", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[1])+', "y" : '+str(y[1])+'}, "radius" : 2, "EU_DOC" : "false", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[1])+'" }}'
+	msgFromServer[2] = '{"tempid" : "3", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[2])+', "y" : '+str(y[2])+'}, "radius" : 2, "EU_DOC" : "true" , "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
 
 	for i in range(len(msgFromServer)):	
 		print "sending message to server.... "
@@ -98,6 +98,7 @@ while counter < 1:
 		retval = sendSocket.sendto(msgFromServer[i], (server_ip, port))
 		print (server_ip)
 		print "message sent to server"
+		time.sleep(1)
 
 	print "Ready to receive..." 
 	tend = time.time()*1000 + 1000;

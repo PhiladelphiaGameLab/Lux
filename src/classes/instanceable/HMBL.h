@@ -148,6 +148,9 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	Node<T> *newNode = checkForCollision(euid, hashKey);
 	int lastBuck = newNode->currBuck;
 	
+
+	bool lock2Flag = false;
+
 	pthread_mutex_unlock(&colLock);
 	DEBUG("CollisionLock released.");
 	
@@ -169,6 +172,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		DEBUG("Lock 2 locking...");
 		pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
 		DEBUG("Lock 2 locked");
+		lock2Flag = true;
 	}
 	if(newNode->Prev != 0){
 		prevNode = newNode->Prev;
@@ -219,7 +223,9 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	}
 
 	//Storing inside of the arrMap/hashTable
-	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
+	if(lock2Flag){
+	lock2Flag = false;
+	//if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
 		Node<T> *tempMap;
 
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
