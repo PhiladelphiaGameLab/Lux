@@ -28,8 +28,8 @@ void *BattleGround::spawn(void* param){
 	
 	// opening socket
 	DEBUG("Opening Socket...");
-	LuxSocket socket(3003);
-	DEBUG("Opned Socket");
+	LuxSocket socket(3013);
+	DEBUG("Opened Socket : " << socket.getLocalPort());
        
 	// open the pipe
 	DEBUG("Opening Pipe...");
@@ -124,7 +124,7 @@ void *BattleGround::spawn(void* param){
 		      radius = stoi(rad);
 			                                                                                                                                                                                                            std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
 			                                                                                                                                                                                                            DEBUG("Got Object Location...");
-		      DEBUG("Location X:" <<  locationX);
+		       DEBUG("Location X:" <<  locationX);
 		       DEBUG("Location Y:" <<  locationY);
 		       DEBUG("radius" <<radius);
 

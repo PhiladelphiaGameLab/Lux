@@ -167,51 +167,21 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	Node<T> *sameNode = 0;
 	Node<T> *prevNode = 0;
 	Node<T> *nextNode = 0;
-        DEBUG("Checking for existance..."); 
-	//if(arrMap[bucketNum] != 0 && arrMap[bucketNum]->euid)// && newNode->euid)
-	//{
-		DEBUG("Existance has been proven.");
-		DEBUG("Value of bucketTotal :" << bucketTotal);
-		DEBUG("Value of bucketNum :" << bucketNum);
-		DEBUG("Value of arrmap[bucketNUM] :" << arrMap[bucketNum]);
 
-		if(bucketNum >= 0 && arrMap[bucketNum]!=0)
-		{
-		DEBUG("Value of arrmap[bucketNum]->euid:" << arrMap[bucketNum]->euid);
-		}
-
-
-		if(bucketTotal >  bucketNum && bucketNum >= 0 && arrMap[bucketNum] != 0 && euid != arrMap[bucketNum]->euid){
-			DEBUG("Existance yet again proven.");
-			sameNode = arrMap[bucketNum];
-			DEBUG("Lock 2 locking...");
-			pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
-			DEBUG("Lock 2 locked");
-			lock2Flag = true;
-		}
-	//}
-	//if(newNode->Prev->euid && sameNode->euid)
-        //{
-		if(newNode->Prev != 0){ 
-			if(sameNode != 0){
-				if(newNode->Prev->euid == sameNode->euid){
-					prevNode = newNode->Prev;
-				}else{
-					prevNode = newNode->Prev;
-					DEBUG("Lock 3 locking...");
-					pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
-					DEBUG("Lock 3 locked");
-					lock3Flag = true;
-				}
-			}else{
-			prevNode = newNode->Prev;
-                        DEBUG("Lock 3 locking...");
-                        pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
-                        DEBUG("Lock 3 locked");
-                        lock3Flag = true;
-			}
-		}
-	//}
+	if(arrMap[bucketNum] != 0 && newNode->euid != arrMap[bucketNum]->euid){
+		sameNode = arrMap[bucketNum];
+		DEBUG("Lock 2 locking...");
+		pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
+		DEBUG("Lock 2 locked");
+		lock2Flag = true;
+	}
+	if(newNode->Prev != 0 && newNode->Prev->euid != sameNode->euid){
+		prevNode = newNode->Prev;
+		DEBUG("Lock 3 locking...");
+		pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
+		DEBUG("Lock 3 locked");
+		lock3Flag = true;
+	}
 	if(newNode->Next != 0){
 		nextNode = newNode->Next;
 		DEBUG("Lock 4 locking...");
@@ -267,7 +237,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	}
 
 	//Storing inside of the arrMap/hashTable
-	if (bucketNum >= 0 && arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
+	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
 		Node<T> *tempMap;
 
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
@@ -286,7 +256,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			DEBUG("Lock 2 released");
 		}
 		//release Lock for sameNode
-	}else if(bucketNum >= 0){
+	}else{
 		arrMap[bucketNum] = newNode;
 		newNode->sock = nsock;
 		newNode->euid = euid;
@@ -297,7 +267,9 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	DEBUG("Lock 1 released");
 	//release the newNode lock
 
-	if (lastBuck != bucketNum && bucketNum >= 0){ //for efficiency, so that it doesn't go through pipe process if client didn't move
+	if (lastBuck == bucketNum){ //for efficiency, so that it doesn't go through pipe process if client didn't move
+
+	}else{
 		DEBUG("Piping to SNR....");
 		pipeInfo(x, y, rad, lastBuck);
 		DEBUG("Piped to SNR");
@@ -492,13 +464,11 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 		for (int i = 0; i < newSurr.size(); i++){
 			addOutstanding = true;
 			for (int j = 0; j < oldSurr.size(); j++){
-				if (newSurr[i] == oldSurr[j]){
+				if (newSurr[i] == oldSurr[j])
 					addOutstanding = false;
-				}
 			}
-			if (addOutstanding){
+			if (addOutstanding)
 				impSurr.push_back(newSurr[i]);
-			}
 		}
 	}
 
@@ -506,10 +476,7 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	newSurrBuck->newBucketList = impSurr;
 	//newSurrBuck->socket = ;
 	cout<<"HMBL trying to pipe to SNR"<<endl;
-	cout << newSurrBuck << endl;
-	if(newSurrBuck != NULL){
-		write(pipeFD, newSurrBuck, sizeof(s_SNRMessage));
-	}
+	write(pipeFD, newSurrBuck, sizeof(s_SNRMessage));
 	cout<<"HMBL piped to SNR"<<endl;
 
 }

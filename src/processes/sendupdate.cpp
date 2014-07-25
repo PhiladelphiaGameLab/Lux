@@ -64,7 +64,7 @@ void *SendUpdate::spawn(void*  param_in) {
 						//DEBUG("(*client)->sock is " << ((*client)->sock).sin_port);
 						//DEBUG("Client Recieved with port address and ip" << inet_ntoa(((*client)->sock).sin_addr) << " : " << ntohs(((*client)->sock).sin_port));     
 						socket.send(piped.message, &((*client)->sock)); //&cli_addr);
-						DEBUG("message sent is" << piped.message.toString());
+						//DEBUG("message sent is" << piped.message.toString());
 						DEBUG("Client Message sent to send socket");
 					}else{
 						DEBUG("Client socket == null Empty");
