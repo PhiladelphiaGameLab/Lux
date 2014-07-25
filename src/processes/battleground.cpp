@@ -28,8 +28,8 @@ void *BattleGround::spawn(void* param){
 	
 	// opening socket
 	DEBUG("Opening Socket...");
-	LuxSocket socket(3005);
-	DEBUG("Opned Socket");
+	LuxSocket socket(3013);
+	DEBUG("Opened Socket : " << socket.getLocalPort());
        
 	// open the pipe
 	DEBUG("Opening Pipe...");
@@ -48,6 +48,7 @@ void *BattleGround::spawn(void* param){
 	// c.update(DATABASE_NAME, BSON("port"<<0),portNo);
 
 	while(1){
+	try{
 		sockaddr_in cli_addr;
 		bool id_present = false;
 
@@ -105,20 +106,28 @@ void *BattleGround::spawn(void* param){
 	         	 // Getting Document Location
 		      // get location from message
 		      DEBUG("Getting Object Location...");
+		      string locx,locy;
 		      int locationX;
-		      locationX = message["Location"]["x"].numberInt();
+		      locx = message["Location"]["x"].toString(false);//.numberInt();
+		      locationX = stoi(locx);
 		//	 locationX = message["Location"]["x"].toString();
 
 		      int locationY;
-		      locationY  = message["Location"]["y"].numberInt();
+		      locy  = message["Location"]["y"].toString(false);//.numberInt();
+		      locationY = stoi(locy);
 		      // int locationZ;
                       //locationZ  = atoi(message["Location"]["z"].String().c_str());
 
 		      int radius;
-		      radius  = message["radius"].numberInt();
+		      string rad;
+		      rad  = message["radius"].toString(false);//.numberInt();
+		      radius = stoi(rad);
 			                                                                                                                                                                                                            std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
 			                                                                                                                                                                                                            DEBUG("Got Object Location...");
-			
+		       DEBUG("Location X:" <<  locationX);
+		       DEBUG("Location Y:" <<  locationY);
+		       DEBUG("radius" <<radius);
+
 			
 			                                                                                                                                                                                                              // Getting New Bucket Id
                                                                                                                                                                                                                                     DEBUG("Getting Bucket Number");
@@ -233,7 +242,9 @@ void *BattleGround::spawn(void* param){
 
 			//}
 		}
-
+	}catch(exception& e){
+		cout << e.what() << endl;
+	}
 	}
 }
  

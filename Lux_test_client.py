@@ -55,25 +55,14 @@ Get port number from JSON object
 Open socket on port retrieved from JSON object
 """
 # will use 80 for now
-port =3005
-#socket.getaddrinfo(server_ip,port)
+s_port =3013
+#socket.getaddrinfo(server_ip, port)
 sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sendSocket.bind (("127.0.0.1",5004))
-# this step will not be necessary when ip of server is known
-#remote_ip = socket.gethostbyname(server_name)
-#retval = sendSocket.sendto("Hello World", server_ip, port))
-#print str(retval) + "bytes sent (Hello World test)"
 
 """
 Receive all updates from server on same socket used to send
 """
-
-#object
-# location
-#  x:
-#  y
-# radius
-# EU_DOC
  
 # fake JSON because google doesn't just send back json objects for no reason
 
@@ -82,42 +71,54 @@ sendSocket.setblocking(0);
 counter = 0
 x = [random.randint(1,99) for x in range(3)]
 y = [random.randint(1,99) for y in range(3)]
-EUID = [random.randint(1,99) for EUID in range(3)]
+EUID = [random.randint(1,3) for EUID in range(3)]
 while counter < 1:
 # Add the IP Address to the below print statement 
-	print ("top of while at iteration: "+str(counter))
-#print "x:",x
-#print "y:",y
-	msgFromServer[0] = '{"tempid" : "1", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[0])+'", "y" : "'+str(y[0])+'"}, "radius" : "2", "EU_DOC" : "true", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[0])+'" }}'
-	msgFromServer[1] = '{"tempid" : "2", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[1])+'", "y" : "'+str(y[1])+'"}, "radius" : "2", "EU_DOC" : "false", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[1])+'" }}'
-	msgFromServer[2] = '{"tempid" : "3", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : "'+str(x[2])+'", "y" : "'+str(y[2])+'"}, "radius" : "2", "EU_DOC" : "true" , "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
+	#print ("top of while at iteration: "+str(counter))
+
+	EUID = [random.randint(1,3) for EUID in range(3)]
+	
+	msgFromServer[0] = '{"tempid" : "1", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[0])+', "y" : '+str(y[0])+'}, "radius" : 2, "EU_DOC" : "true", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[0])+'" }}'
+	msgFromServer[1] = '{"tempid" : "2", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[1])+', "y" : '+str(y[1])+'}, "radius" : 2, "EU_DOC" : "false", "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[1])+'" }}'
+	msgFromServer[2] = '{"tempid" : "3", "object" : {"animation": "none" , "model" : "none" , "sound" : "none"},"Location" : {"x" : '+str(x[2])+', "y" : '+str(y[2])+'}, "radius" : 2, "EU_DOC" : "true" , "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
 
 	for i in range(len(msgFromServer)):	
 		print "sending message to server.... "
 		print (msgFromServer[i])
-		retval = sendSocket.sendto(msgFromServer[i], (server_ip, port))
-		print (server_ip)
+		retval = sendSocket.sendto(msgFromServer[i], (server_ip, s_port))
+		#print (server_ip)
 		print "message sent to server"
+		#time.sleep(1)
 
-	print "Ready to receive..." 
-	tend = time.time()*1000 + 1000;
-	while(time.time()*1000 < tend):
+	tend = time.time() + 1
+	while(time.time() < tend):
 		try:
+			msg = ""
 			#print ("Ready to receive message... ") 
 			msg = sendSocket.recvfrom(4096)
-			senderInfo = ',"sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
-			msg = msg[0][:-1] + senderInfo
-			msgFromServer.append(msg)
-			print ("Finished receiving: " + msg)
-			#print (server_ip)
+			i = 0
+			msg2 = ""
+			if msg != "" :
+				for c in msg[0] :
+        				msg2 += c
+        				#print msg2
+        				if(c == "{"):
+                				i +=1
+        				elif(c == "}"):
+                				i -=1
+        				elif(i==0):
+                				break	
+
+				senderInfo = ', "sender" : { "accessToken" : "abc", "EUID" : "'+str(EUID[2])+'" }}'
+				msg3 = msg2[:-2] + senderInfo
+				msgFromServer.append(msg3)
+				print ("Message 3: " + msg3)
+				#print (server_ip)
 		except socket.error:
 			v = 1
-		#print "no data yet"
-	print "Receiving complete\n"
-
+	
 	x = [abs(xp+random.randint(-5,5)) % 100 for xp in x]
 	y = [abs(yp+random.randint(-5,5)) % 100 for yp in y]
-	EUID = [random.randint(1,99) for EUID in range(3)]
 
 #raw_input("Press Enter to resend...")
 print ("end of test program")

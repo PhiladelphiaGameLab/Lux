@@ -111,5 +111,6 @@ int main(){
             DEBUG("SPAWNING PROCESS COMPLETE.");
 	}
     }
+    DEBUG("Loop Exited");
     return EXIT_SUCCESS; 
 }

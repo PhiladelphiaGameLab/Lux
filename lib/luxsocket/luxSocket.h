@@ -29,6 +29,7 @@ namespace socketlibrary {
 
         void error(const char *msg);
 	int receive(void *buf, size_t len, struct sockaddr_in *cliAddr);
+	unsigned short getLocalPort();
 	mongo::BSONObj receive(struct sockaddr_in *cliAddr);
         void send(struct sockaddr_in *cliAddr);	
         void send(const char *message, struct sockaddr_in* cliAddr);
