@@ -55,7 +55,7 @@ namespace chat{
 	    return _userList;
 	};
 
-	void eraseUser(typename set<UserId>::iterator &it) {
+	void eraseUser(typename set<UserId>::iterator it) {
 	    _userList.erase(it);
 	    _userNum = _userList.size();
 	    _changed = true;
@@ -149,7 +149,6 @@ namespace chat{
 	    for (int i = 0; i < (*it).length(); i++) {
 		bytes.push_back((*it)[i]);
 	    }
-	    std::cout << (*it) << std::endl;
 	}
 
 	return bytes;
@@ -161,12 +160,12 @@ namespace chat{
 	boost::upgrade_lock<boost::shared_mutex> lock(_userListMutex);
 	// get exclusive access
 	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
-	    
+	
 	for (set<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    if (id == *it) {
-		eraseUser(it);
+		eraseUser(it++);
 		msgType = CONFIRM;
 		return true;
 	    }
@@ -188,16 +187,18 @@ namespace chat{
 	    }
 	};
         
-	~SubServer() {
+	~SubServer() {	    
 	    if (_udpSocket) {
 		delete _udpSocket;
 	    }
+
 	    if (_thisThread) {
 		_thisThread->interrupt();
 		if (_thisThread) {
 		    delete _thisThread;
 		}
 	    }
+	    
 	    for (map<ChatId, Chat*>::iterator it = _chatPool.begin();
 		 it != _chatPool.end();
 		 it ++) {
@@ -235,7 +236,7 @@ namespace chat{
 	    return _chatPool;
 	};
 
-	void eraseChat(typename map<ChatId, Chat*>::iterator &it) {
+	void eraseChat(typename map<ChatId, Chat*>::iterator it) {
 	    _chatPool.erase(it);
 	    _chatNum--;
 	};
@@ -327,7 +328,6 @@ namespace chat{
 
 	// Time between two calls of update
 	int _updateTime = 10;
-
 	
 	// Server functions
 	
