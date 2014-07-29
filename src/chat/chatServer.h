@@ -24,6 +24,7 @@ namespace chat{
     struct UserInfo {
 	UserId id;
 	bool isOnline; // If user is currently online
+	bool isAlive; // Connection is alive
 	sockaddr_in addr; // User address, including ip, port and other data
 	sockaddr_in pollAddr;
     };
@@ -326,8 +327,8 @@ namespace chat{
 
 	LuxSocket *_mainSock;
 
-	// Time between two calls of update
-	int _updateTime = 10;
+	// Time between two calls of update (secs)
+	int _updateTime = 30;
 	
 	// Server functions
 	
@@ -367,7 +368,8 @@ namespace chat{
 	
 	
 	// Helper functions
-	UserInfo* findUser(const UserId &id);
+	UserInfo* findUserPtr(const UserId &id);
+	bool findUserInfo(const UserId &id, UserInfo &user);
 	bool verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr);
 	int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
 

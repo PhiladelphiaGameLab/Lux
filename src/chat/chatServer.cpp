@@ -68,22 +68,33 @@ void ChatServer::run() {
 UserInfo* ChatServer::connect(UserId &id, sockaddr_in &addr, 
 			      unsigned short port, 
 			      unsigned short pollPort) {
-    UserInfo *user = findUser(id);
+    bool needInsert = false;
+    UserInfo *user = findUserPtr(id);
     if (user == nullptr) {
 	user = new UserInfo();
+	needInsert = true;
     }
     user->id = id;
     user->isOnline = true;
+    user->isAlive = true;
     user->addr = addr;
     user->addr.sin_port = htons(port);
     user->pollAddr = addr;
-    user->pollAddr.sin_port = htons(pollPort);       
-    _userPool.insert(pair<UserId, UserInfo*>(user->id, user));
+    user->pollAddr.sin_port = htons(pollPort);
+    if (needInsert) {
+	// Writer 
+	// access
+	boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
+	// exclusive
+	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+	_userPool.insert(pair<UserId, UserInfo*>(user->id, user));
+    }
     return user;
 }
 
 bool ChatServer::disconnect(UserInfo &user) {
     user.isOnline = false;
+    user.isAlive = false;
     return true;
 }
 
@@ -187,16 +198,16 @@ SubServer* ChatServer::createNewSubServer() {
 void ChatServer::sendToOthers(BYTE *buf, size_t len, LuxSocket *sock, 
 			      Chat &chat, UserId &senderId) {
     // reader
-    // get upgrade access
+    // get upgrade access to user 
     boost::upgrade_lock<boost::shared_mutex> lock(chat.getReaderMutex());
 
     for (set<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
-	UserInfo *user = findUser(*it);
-	if (user != nullptr) {
-	    if (user->isOnline && !equalId(senderId, user->id)) {
-		sock->send(buf, len, &(user->addr));
+	UserInfo user;
+	if (findUserInfo(*it, user)) {
+	    if (user.isOnline && !equalId(senderId, user.id)) {
+		sock->send(buf, len, &(user.addr));
 	    }
 	}
     }    
@@ -210,10 +221,10 @@ void ChatServer::sendToAll(BYTE *buf, size_t len, LuxSocket *sock, Chat &chat) {
     for (set<UserId>::const_iterator it = chat.getList().begin();
 	 it != chat.getList().end();
 	 it ++) {
-	UserInfo *user = findUser(*it);
-	if (user != nullptr) {
-	    if (user->isOnline) {
-		sock->send(buf, len, &(user->addr));
+	UserInfo user;
+	if (findUserInfo(*it, user)) {
+	    if (user.isOnline) {
+		sock->send(buf, len, &(user.addr));
 	    }
 	}
     }
@@ -235,7 +246,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
         
     DEBUG_RUN(cout << "Receive message from " << senderId << endl;);
 
-    UserInfo *user = findUser(senderId);
+    UserInfo *user = findUserPtr(senderId);
     if (reqType != CONNECT) {
 	if (!verifyUser(user, cliAddr)) {
 	    // User ip changed or isOnline state changed,
@@ -293,6 +304,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    unsigned short recvPort, pollPort;
 	    packet.parsePortNum(recvPort, pollPort);
 	    user->isOnline = true;
+	    user->isAlive = true;
 	    updateUserPorts(*user, recvPort, pollPort);
 	    msgType = CONFIRM;
 	    packet.makeMessage(msgId, senderId, reqType, msgType, "OK");
@@ -330,14 +342,14 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 		for (vector<UserId>::iterator it = idArray.begin();
 		     it != idArray.end();
 		     it ++) {
-		    UserInfo *user = findUser(*it);
-		    if (user != nullptr) {
+		    UserInfo user;
+		    if (findUserInfo(*it, user)) {
                         DEBUG_RUN(
-			    cout << "User Id: " << user->id << endl;
-			    cout << "User port: " << ntohs(user->addr.sin_port) << endl;
+			    cout << "User Id: " << user.id << endl;
+			    cout << "User port: " << ntohs(user.addr.sin_port) << endl;
 			);
 			_mainSock->send(packet.getData(), packet.getLen(), 
-					&(user->addr));
+					&(user.addr));
 		    }
 		}	
 	    }
@@ -391,7 +403,7 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 
     packet.parseMessage(msgId, senderId, reqType, msgType);
 
-    UserInfo *user = findUser(senderId);
+    UserInfo *user = findUserPtr(senderId);
     if (!verifyUser(user, cliAddr)) {
 	// User ip changed, require user to reconnect
 	msgType = RE_CONNECT;
@@ -496,7 +508,8 @@ void ChatServer::updateUserPool() {
     
     map<UserId, UserInfo *>::iterator usrMapIt =  _userPool.begin(); 
     while (usrMapIt != _userPool.end()) {
-	if (usrMapIt->second->isOnline) {
+	if (usrMapIt->second->isAlive) {
+	    usrMapIt->second->isAlive = false;
 	    ++usrMapIt;
 	}
 	else {
@@ -569,7 +582,7 @@ void ChatServer::updateChats(SubServer &subServ) {
     }
 }    
 
-UserInfo* ChatServer::findUser(const UserId &id) {
+UserInfo* ChatServer::findUserPtr(const UserId &id) {
     // Reader 
     boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
     
@@ -577,7 +590,21 @@ UserInfo* ChatServer::findUser(const UserId &id) {
     if (it == _userPool.end()) {
 	return nullptr;
     }
+    // renew alive status, so that userInfo won't be removed
+    it->second->isAlive = true; 
     return it->second;
+}
+
+bool ChatServer::findUserInfo(const UserId &id, UserInfo &user) {
+    // Reader 
+    boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
+    
+    map<UserId, UserInfo*>::iterator it = _userPool.find(id);
+    if (it == _userPool.end()) {	
+	return false;
+    }
+    user = *(it->second);
+    return true;
 }
 
 bool ChatServer::verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr) {

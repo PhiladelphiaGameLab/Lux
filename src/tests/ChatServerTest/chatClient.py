@@ -71,7 +71,22 @@ class MyThread(threading.Thread):
             gRecent = "receiving message"
             parseMessage(data)
             display()
-            
+
+class PollingThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):        
+        msg = bytearray()
+        msg += int16ToBytes(gRecvPort)
+        msg += int16ToBytes(gPollPort)
+        packet = makePacket(gEuid, REQUEST_TYPE.POLLING,
+                            MESSAGE_TYPE.PORTS, msg)
+        while True:
+            if gConnected:
+                sendtoServer(packet, gServerAddr)
+            time.sleep(20) #should be less than server update time interval 
+                        
 def parseMessage(data):
     global gRecent
 
@@ -291,6 +306,10 @@ if __name__ == "__main__":
     receiving = MyThread()
     receiving.daemon = True
     receiving.start()
+
+    polling = PollingThread()
+    polling.daemon = True
+    polling.start()
 
     mainLoop();
 
