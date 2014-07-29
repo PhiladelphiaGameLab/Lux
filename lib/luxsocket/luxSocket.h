@@ -25,7 +25,7 @@ namespace socketlibrary {
         //Default constructor
         LuxSocket();
         LuxSocket(const unsigned short port);
-        ~LuxSocket() {delete _socket;};
+        ~LuxSocket();
 
         void error(const char *msg);
 	int receive(void *buf, size_t len, struct sockaddr_in *cliAddr);
