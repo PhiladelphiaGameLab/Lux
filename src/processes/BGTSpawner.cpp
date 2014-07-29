@@ -79,7 +79,7 @@ bool spawnNewBgt(int bgtID) {
     dbWriter_params_in->pipe_r = sut_db_pipeLocation;
     
     //Spawn  DBWriter thread
-    pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
+    // pthread_create(&DBW_ID,NULL,DBWriter::spawn, dbWriter_params_in);
     
 
     if(mkfifo(hmbl_snr_pipeLocation,0666) < 0){
@@ -92,7 +92,7 @@ bool spawnNewBgt(int bgtID) {
     snr_params_in->pipe_r = hmbl_snr_pipeLocation;    
 
     //Spawn snr thread
-    pthread_create(&SNR_ID,NULL,SendNewRelevant::spawn, snr_params_in);    
+   pthread_create(&SNR_ID,NULL,SendNewRelevant::spawn, snr_params_in);    
 
     DEBUG("Thread spawning complete.");
     
@@ -111,5 +111,6 @@ int main(){
             DEBUG("SPAWNING PROCESS COMPLETE.");
 	}
     }
+    DEBUG("Loop Exited");
     return EXIT_SUCCESS; 
 }

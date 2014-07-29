@@ -25,8 +25,8 @@ struct Node
 
 	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
 	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
-	pthread_mutex_t Lock;
 
+	pthread_mutex_t Lock;
 };
 
 //Nodes that handle hashmap collisions.
@@ -67,6 +67,7 @@ public:
 	int rows;
 	int bucketTotal;
 	int pipeFD;
+	pthread_mutex_t antiDeadlock;
 	Node<T>** arrMap;
 	CNode<T>** hashTable;
 
@@ -114,6 +115,7 @@ HMBL<T>::HMBL(int mapw, int maph, int col, int row, std::string pipeLocation){
 	columns = col;
 	rows = row;
 	bucketTotal = row * col;
+	pthread_mutex_init(&antiDeadlock, NULL);
 	
 	std::cout<< "Creating HMBL"<<std::endl;
 	arrMap = new Node<T>*[bucketTotal]; //Array of Pointers representing each bucket
@@ -136,17 +138,28 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	pthread_mutex_t colLock;
 	pthread_mutex_init(&colLock, NULL);
-	
+	DEBUG("CollisionLock locking...");
 	pthread_mutex_lock(&colLock);
-
+	DEBUG("CollisionLock locked.");
+	
 	int bucketNum = findBucket(x, y);
 	int hashKey = euid % (bucketTotal / 2);
 
 	Node<T> *newNode = checkForCollision(euid, hashKey);
 	int lastBuck = newNode->currBuck;
 	
-	pthread_mutex_unlock(&colLock);
+	bool lock2Flag = false;
+	bool lock3Flag = false;
+	bool lock4Flag = false;
 
+	pthread_mutex_unlock(&colLock);
+	DEBUG("CollisionLock released.");
+	
+	DEBUG("Ensuring there are no deadlocks...");
+	pthread_mutex_lock(&antiDeadlock);
+	DEBUG("No deadlocks should be encountered.");
+	
+	
 	DEBUG("Lock 1 locking....");
 	pthread_mutex_lock(&(newNode->Lock));
 	DEBUG("Lock 1 locked");
@@ -154,25 +167,62 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	Node<T> *sameNode = 0;
 	Node<T> *prevNode = 0;
 	Node<T> *nextNode = 0;
+        DEBUG("Checking for existance..."); 
+	//if(arrMap[bucketNum] != 0 && arrMap[bucketNum]->euid)// && newNode->euid)
+	//{
+		DEBUG("Existance has been proven.");
+		DEBUG("Value of bucketTotal :" << bucketTotal);
+		DEBUG("Value of bucketNum :" << bucketNum);
+		DEBUG("Value of arrmap[bucketNUM] :" << arrMap[bucketNum]);
 
-	if(arrMap[bucketNum] != 0 && euid != arrMap[bucketNum]->euid){
-		sameNode = arrMap[bucketNum];
-		DEBUG("Lock 2 locking...");
-		pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
-		DEBUG("Lock 2 locked");
-	}
-	if(newNode->Prev != 0){
-		prevNode = newNode->Prev;
-		DEBUG("Lock 3 locking...");
-		pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
-		DEBUG("Lock 3 locked");
-	}
+		if(bucketNum >= 0 && arrMap[bucketNum]!=0)
+		{
+		DEBUG("Value of arrmap[bucketNum]->euid:" << arrMap[bucketNum]->euid);
+		}
+
+
+		if(bucketTotal >  bucketNum && bucketNum >= 0 && arrMap[bucketNum] != 0 && euid != arrMap[bucketNum]->euid){
+			DEBUG("Existance yet again proven.");
+			sameNode = arrMap[bucketNum];
+			DEBUG("Lock 2 locking...");
+			pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
+			DEBUG("Lock 2 locked");
+			lock2Flag = true;
+		}
+	//}
+	//if(newNode->Prev->euid && sameNode->euid)
+        //{
+		if(newNode->Prev != 0){ 
+			if(sameNode != 0){
+				if(newNode->Prev->euid == sameNode->euid){
+					prevNode = newNode->Prev;
+				}else{
+					prevNode = newNode->Prev;
+					DEBUG("Lock 3 locking...");
+					pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
+					DEBUG("Lock 3 locked");
+					lock3Flag = true;
+				}
+			}else{
+			prevNode = newNode->Prev;
+                        DEBUG("Lock 3 locking...");
+                        pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
+                        DEBUG("Lock 3 locked");
+                        lock3Flag = true;
+			}
+		}
+	//}
 	if(newNode->Next != 0){
 		nextNode = newNode->Next;
 		DEBUG("Lock 4 locking...");
 		pthread_mutex_lock(&(nextNode->Lock)); //Lock the node next to the new one
 		DEBUG("Lock 4 locked");
+		lock4Flag = true;
 	}
+	
+	DEBUG("Anti-Deadlock assurance ending...");
+	pthread_mutex_unlock(&antiDeadlock);
+	DEBUG("Anti-Deadlock assurance ended.");
 
 	//Checks to see if there is an old instance in existence, if not this shouldn't occur
 	if (newNode->currBuck != -1){ 
@@ -180,33 +230,44 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			arrMap[newNode->currBuck] = newNode->Next;
 			newNode->Next->Prev = 0;
 			newNode->Next = 0;
-			DEBUG("Lock 4 releasing....");
-			pthread_mutex_unlock(&(nextNode->Lock));
-			DEBUG("Lock 4 released");
+			if(lock4Flag){
+				lock4Flag = false;
+				DEBUG("Lock 4 releasing....");
+				pthread_mutex_unlock(&(nextNode->Lock));
+				DEBUG("Lock 4 released");
+			}
 			//release Lock for nextNode
 		}else if (newNode->Prev != 0 && newNode->Next == 0){
 			newNode->Prev->Next = 0;
 			newNode->Prev = 0;
-			DEBUG("Lock 3 releasing...");
-			pthread_mutex_unlock(&(prevNode->Lock));
-			DEBUG("Lock 3 released");
+			if(lock3Flag){
+				lock3Flag = false;
+				DEBUG("Lock 3 releasing...");
+				pthread_mutex_unlock(&(prevNode->Lock));
+				DEBUG("Lock 3 released");
+			}
 		}else if (newNode->Prev != 0 && newNode->Next != 0){
 			newNode->Prev->Next = newNode->Next;
 			newNode->Next->Prev = newNode->Prev;
 			newNode->Next = 0;
 			newNode->Prev = 0;
 			DEBUG("Lock 4 & 3 releasing...");
-			pthread_mutex_unlock(&(nextNode->Lock));
-			pthread_mutex_unlock(&(prevNode->Lock));
+			if(lock4Flag){
+				lock4Flag = false;
+				pthread_mutex_unlock(&(nextNode->Lock));
+			}
+			if(lock3Flag){
+				lock3Flag = false;
+				pthread_mutex_unlock(&(prevNode->Lock));
+			}
 			DEBUG("Lock 4 & 3 released");
-		}
-		else{ //Only occurs is prev and next of Node walk = 0
+		}else{ //Only occurs is prev and next of Node walk = 0
 			arrMap[newNode->currBuck] = 0;			
 		}
 	}
 
 	//Storing inside of the arrMap/hashTable
-	if (arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
+	if (bucketNum >= 0 && arrMap[bucketNum] != 0){ //Occurs when another client is in this bucket
 		Node<T> *tempMap;
 
 		tempMap = arrMap[bucketNum]; // tempMap stores original client in the bucket.
@@ -217,11 +278,15 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		newNode->sock = nsock;
 		newNode->euid = euid;
 		newNode->currBuck = bucketNum;
-		DEBUG("Lock 2 releasing...");
-		pthread_mutex_unlock(&(sameNode->Lock));
-		DEBUG("Lock 2 released");
+		
+		if(lock2Flag){
+			lock2Flag = false;
+			DEBUG("Lock 2 releasing...");
+			pthread_mutex_unlock(&(sameNode->Lock));
+			DEBUG("Lock 2 released");
+		}
 		//release Lock for sameNode
-	}else{
+	}else if(bucketNum >= 0){
 		arrMap[bucketNum] = newNode;
 		newNode->sock = nsock;
 		newNode->euid = euid;
@@ -232,9 +297,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	DEBUG("Lock 1 released");
 	//release the newNode lock
 
-	if (lastBuck == bucketNum){ //for efficiency, so that it doesn't go through pipe process if client didn't move
-
-	}else{
+	if (lastBuck != bucketNum && bucketNum >= 0){ //for efficiency, so that it doesn't go through pipe process if client didn't move
 		DEBUG("Piping to SNR....");
 		pipeInfo(x, y, rad, lastBuck);
 		DEBUG("Piped to SNR");
@@ -429,11 +492,13 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 		for (int i = 0; i < newSurr.size(); i++){
 			addOutstanding = true;
 			for (int j = 0; j < oldSurr.size(); j++){
-				if (newSurr[i] == oldSurr[j])
+				if (newSurr[i] == oldSurr[j]){
 					addOutstanding = false;
+				}
 			}
-			if (addOutstanding)
+			if (addOutstanding){
 				impSurr.push_back(newSurr[i]);
+			}
 		}
 	}
 
@@ -441,7 +506,10 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 	newSurrBuck->newBucketList = impSurr;
 	//newSurrBuck->socket = ;
 	cout<<"HMBL trying to pipe to SNR"<<endl;
-	write(pipeFD, newSurrBuck, sizeof(s_SNRMessage));
+	cout << newSurrBuck << endl;
+	if(newSurrBuck != NULL){
+		write(pipeFD, newSurrBuck, sizeof(s_SNRMessage));
+	}
 	cout<<"HMBL piped to SNR"<<endl;
 
 }

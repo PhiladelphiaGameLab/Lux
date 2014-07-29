@@ -5,9 +5,8 @@ namespace socketlibrary {
     LuxSocket::LuxSocket(const unsigned short port) {
 	try {
 	    _socket = new UDPSocket(port);
-	}
-	catch (SocketException e){
-	    throw "Failed to create udp socket.";
+	}catch(SocketException e){
+		_socket = new UDPSocket();
 	}
     }
 
@@ -31,6 +30,10 @@ namespace socketlibrary {
     int LuxSocket::receive(void *buf, size_t len, struct sockaddr_in *cliAddr) {
 	memset(buf, 0, len);
 	return _socket->recvFrom(buf, len, cliAddr);	
+    }
+
+    unsigned short LuxSocket::getLocalPort(){
+	return _socket->getLocalPort();
     }
 
     // Server receives data from client
@@ -63,7 +66,15 @@ namespace socketlibrary {
 
     // Send a BSON object to client
     void LuxSocket::send(mongo::BSONObj &bsMessage, struct sockaddr_in *cliAddr) {
-	send(bsMessage.jsonString(), cliAddr);
+	try{
+		if(bsMessage.isValid()){
+			send(bsMessage.jsonString(), cliAddr);
+		}
+	}catch(exception& e){
+		std::cout << e.what() << std::endl;
+	}
+	
+
     }
 
     // Broadcast a BSON object to all clients in list

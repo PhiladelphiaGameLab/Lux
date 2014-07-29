@@ -1,0 +1,308 @@
+ 
+1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+2
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+3
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+4
+[08:03:14 : ../src/processes/sendupdate.cpp : 57]Testing if *client is empty....
+[08:03:14 : ../src/processes/sendupdate.cpp : 59]*client is not empty
+[08:03:14 : ../src/processes/sendupdate.cpp : 61]Message sending...
+[08:03:14 : ../src/processes/sendupdate.cpp : 63](*client) is0x7f246401c5d0
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+5
+[08:03:14 : ../src/processes/sendupdate.cpp : 57]Testing if *client is empty....
+[08:03:14 : ../src/processes/sendupdate.cpp : 59]*client is not empty
+[08:03:14 : ../src/processes/sendupdate.cpp : 61]Message sending...
+[08:03:14 : ../src/processes/sendupdate.cpp : 63](*client) is0x7f7efc01b280
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+6
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+7
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+8
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 245]Lock 3 releasing...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 247]Lock 3 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+9
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+10
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+11
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+12
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+13
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+14
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 245]Lock 3 releasing...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 247]Lock 3 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+15
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+16
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+17
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+18
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 245]Lock 3 releasing...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 247]Lock 3 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+19
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 245]Lock 3 releasing...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 247]Lock 3 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+20
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+21
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+22
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+23
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+24
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+25
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 235]Lock 4 releasing....
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 237]Lock 4 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+26
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 235]Lock 4 releasing....
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 237]Lock 4 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+27
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+28
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+29
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+30
+[08:03:14 : ../src/processes/sendupdate.cpp : 57]Testing if *client is empty....
+[08:03:14 : ../src/processes/sendupdate.cpp : 59]*client is not empty
+[08:03:14 : ../src/processes/sendupdate.cpp : 61]Message sending...
+[08:03:14 : ../src/processes/sendupdate.cpp : 63](*client) is0x7f9c2c04a3f0
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+31
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+32
+[08:06:15 : ../src/processes/battleground.cpp : 206]Getting Socket List....
+Entering surroundings in  get_clients
+ Current Bucket: 18
+ Size: 16
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+33
+[08:03:14 : ../src/processes/sendupdate.cpp : 57]Testing if *client is empty....
+[08:03:14 : ../src/processes/sendupdate.cpp : 59]*client is not empty
+[08:03:14 : ../src/processes/sendupdate.cpp : 61]Message sending...
+[08:03:14 : ../src/processes/sendupdate.cpp : 63](*client) is0x7f827c008f80
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+34
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 175]Value of bucketNum :-1
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 176]Value of arrmap[bucketNUM] :0xd5
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+35
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 223]Anti-Deadlock assurance ending...
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 225]Anti-Deadlock assurance ended.
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 235]Lock 4 releasing....
+[08:06:15 : /home/ec2-user/Alpha/src/classes/instanceable/HMBL.h : 237]Lock 4 released
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+36
+[08:03:14 : ../src/processes/sendupdate.cpp : 57]Testing if *client is empty....
+[08:03:14 : ../src/processes/sendupdate.cpp : 59]*client is not empty
+[08:03:14 : ../src/processes/sendupdate.cpp : 61]Message sending...
+[08:03:14 : ../src/processes/sendupdate.cpp : 63](*client) is0x7f010c001140
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+37
+[08:06:15 : ../src/processes/battleground.cpp : 151]_id take 1 (): 53cfba1c22a2c996b9f63d1b
+[08:06:15 : ../src/processes/battleground.cpp : 191]Updating document bucket...
+[08:06:15 : ../src/processes/battleground.cpp : 194]Updated Document Bucket
+[08:06:15 : ../src/processes/battleground.cpp : 196]Pulling message from db....
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+38
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 34]Attempting to read pipe...
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 36]Pipe read.
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 39]Recieved client socket : 32.34.110.111 : 28218
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 42]Bucket List size : 5
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 45]Querying 0...
+ 
+39
+[08:06:15 : ../src/processes/battleground.cpp : 151]_id take 1 (): 53cfba1f22a2c996b9f63d1d
+[08:06:15 : ../src/processes/battleground.cpp : 191]Updating document bucket...
+[08:06:15 : ../src/processes/battleground.cpp : 194]Updated Document Bucket
+[08:06:15 : ../src/processes/battleground.cpp : 196]Pulling message from db....
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+40
+[08:06:15 : ../src/processes/battleground.cpp : 151]_id take 1 (): 53cfba1c22a2c996b9f63d1b
+[08:06:15 : ../src/processes/battleground.cpp : 191]Updating document bucket...
+[08:06:15 : ../src/processes/battleground.cpp : 194]Updated Document Bucket
+[08:06:15 : ../src/processes/battleground.cpp : 196]Pulling message from db....
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+41
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 45]Querying 1...
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 48]Database Queried in bucket 1 .
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 51]Iterating through Objects in 1...
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 45]Querying 2...
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+42
+[08:03:14 : ../src/processes/sendupdate.cpp : 39]Reading from pipe....
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 20]opened pipe in SNR
+HELP! SNR : 2 
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 34]Attempting to read pipe...
+make[1]: Leaving directory `/home/ec2-user/Alpha'
+ 
+43
+[08:03:14 : ../src/processes/sendupdate.cpp : 38]Begining loop....
+[08:03:14 : ../src/processes/sendupdate.cpp : 39]Reading from pipe....
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 20]opened pipe in SNR
+HELP! SNR : 2 
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 34]Attempting to read pipe...
+ 
+44
+[08:03:14 : ../src/processes/sendupdate.cpp : 38]Begining loop....
+[08:03:14 : ../src/processes/sendupdate.cpp : 39]Reading from pipe....
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 20]opened pipe in SNR
+HELP! SNR : 2 
+[08:08:55 : ../src/processes/SendNewRelevant.cpp : 34]Attempting to read pipe...

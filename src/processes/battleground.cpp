@@ -1,4 +1,6 @@
 #include "battleground.h"
+#include <arpa/inet.h>
+
 #define DEBUG(x) do { if(true){ std::cout <<"[" << __TIME__ << " : " << __FILE__ << " : "<< __LINE__ << "]" << x << std::endl; } } while (0) 
 
 using namespace mongo;
@@ -26,8 +28,8 @@ void *BattleGround::spawn(void* param){
 	
 	// opening socket
 	DEBUG("Opening Socket...");
-	LuxSocket socket(3005);
-	DEBUG("Opned Socket");
+	LuxSocket socket(3013);
+	DEBUG("Opened Socket : " << socket.getLocalPort());
        
 	// open the pipe
 	DEBUG("Opening Pipe...");
@@ -46,19 +48,22 @@ void *BattleGround::spawn(void* param){
 	// c.update(DATABASE_NAME, BSON("port"<<0),portNo);
 
 	while(1){
+	try{
 		sockaddr_in cli_addr;
-		
+		bool id_present = false;
 
 		// accept clients, who will send in their updatei
 		DEBUG("Waiting for clients to connect...");
 		BSONObj message = socket.receive(&cli_addr);
         	DEBUG("Client Recieved");
-
+                DEBUG("client address " << inet_ntoa(cli_addr.sin_addr) << " : " << ntohs(cli_addr.sin_port) );
+		DEBUG("Msg recieved is"<<message.toString(false));
 		// get accessToken from BSONObj message
         	string accessToken = message["sender"]["accessToken"].toString(false); // this should be as easy as this- but might not be.
         	// get EUID from BSONObj message
         	string EUID = message["sender"]["EUID"].String();
 		string tempid = message["tempid"].String();
+		
 		// authenticate message
 		DEBUG("Authenticating Access Token and EUID..." << accessToken << " , " << EUID);
         	if(Authenticate::authenticateAccessToken(accessToken, EUID)){
@@ -92,75 +97,111 @@ void *BattleGround::spawn(void* param){
 	   	 	BSONObj completeMessage = builder.obj();
 			DEBUG("Finished Building Message");
 			// Adding Document to Db is none Exists
-	   		string id;
-	   		id = completeMessage["_id"].toString();//toString(false);
-			DEBUG("_id take 1 (""): " << id);
-			DEBUG("id: " << id << " \n Complete Message "<< completeMessage.toString(true));	   
-			DEBUG("Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty());
-			BSONElement id2;
-			if(c.findOne(DATABASE_NAME,QUERY("_id"<<id)).isEmpty()){
+	   		//string id;
+	   		//id = completeMessage["_id"].toString();//toString(false);
+			//DEBUG("_id take 1 (" << "): " << id);
+			DEBUG(" Complete Message "<< completeMessage.toString(true));	   
+			//DEBUG("Query result: "<< !c.findOne(DATABASE_NAME,QUERY("_id"<<OID(id))).isEmpty());
+		
+	         	 // Getting Document Location
+		      // get location from message
+		      DEBUG("Getting Object Location...");
+		      string locx,locy;
+		      int locationX;
+		      locx = message["Location"]["x"].toString(false);//.numberInt();
+		      locationX = stoi(locx);
+		//	 locationX = message["Location"]["x"].toString();
+
+		      int locationY;
+		      locy  = message["Location"]["y"].toString(false);//.numberInt();
+		      locationY = stoi(locy);
+		      // int locationZ;
+                      //locationZ  = atoi(message["Location"]["z"].String().c_str());
+
+		      int radius;
+		      string rad;
+		      rad  = message["radius"].toString(false);//.numberInt();
+		      radius = stoi(rad);
+			                                                                                                                                                                                                            std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
+			                                                                                                                                                                                                            DEBUG("Got Object Location...");
+		       DEBUG("Location X:" <<  locationX);
+		       DEBUG("Location Y:" <<  locationY);
+		       DEBUG("radius" <<radius);
+
+			
+			                                                                                                                                                                                                              // Getting New Bucket Id
+                                                                                                                                                                                                                                    DEBUG("Getting Bucket Number");
+                                                                                                                                                                                                                                    int bucket_id = Map.findBucket(locationX,locationY);
+                                                                                                                                                                                                                                    DEBUG("Got Bucket Number: " << bucket_id);
+			
+
+
+			//Checing if EUID exists
+			 if(EUID.compare("EOO")!=0){
+                                // updating map location
+                                    DEBUG("Updating Map....");
+                                    DEBUG("EUID : " << EUID);
+                                    Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
+                                    DEBUG("Map Updated...");
+			}
+
+			string id;
+			if(message.hasField("_id")){
+                        id = message["_id"].OID().toString();
+                        DEBUG("_id take 1 (" << "): " << id);
+ 			}
+
+			//auto_ptr<DBClientCursor> cursor;
+			//DEBUG("Type of id" << typeid(id).name());			
+			else
+			{
+			//if(id.compare("EOO")==0){
+			//	id = completeMessage["_id"].OID().toString();
+			//	DEBUG("Trying to get cursor");
+			//	cursor = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			//	DEBUG("Obtained cursor");
+			//}else{
 	      	        	DEBUG("Inserting Document...");
-				c.insert(DATABASE_NAME,completeMessage);
+				c.insert(DATABASE_NAME,BSON("tempid"<<3));
 				DEBUG("Inserted Document");
-				id = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"].toString();
-				id2 = c.findOne(DATABASE_NAME,QUERY("tempid"<<tempid))["_id"];
-				DEBUG("_id take 2 (jghjddfhj): " << id.substr(5));
-	   		}
-			DEBUG("Finished Checking if the document needed to be added");
-			
-			// Getting Document Location
-			// get location from message
-			DEBUG("Getting Object Location...");
-			int locationX;
-			locationX = atoi(message["object"]["location"]["x"].String().c_str());
-			int locationY;
-			locationY  = atoi(message["object"]["location"]["y"].String().c_str());
-			int radius;
-			radius  = atoi(message["object"]["radius"].String().c_str());
-			std::cout<<"Location X:"<<locationX<<" Location Y:"<<locationY<<" radius:"<<radius<<std::endl;
-			DEBUG("Got Object Location...");
+			//	id = c.findOne(DATABASE_NAME,Query("tempid"<<3))["_id"].OID().toString();
+			       // BSONObj temp = c.findOne(DATABASE_NAME,Query("tempid"<<3));
+			        auto_ptr<DBClientCursor> cursor = c.query(DATABASE_NAME,QUERY("tempid"<<3));
+				if(cursor->more())
+				{
+				BSONObj temp = cursor->next();
+				id = temp["_id"].OID().toString();
+				//id = temp["_id"].OID().toString();
+				}
+			}
 
+			//	auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("tempid"<<tempid));
+			//	if(cursor2->more()){
+			///		BSONObj objectFromTemp  = cursor2->next();
+			//		id = objectFromTemp["_id"].OID().toString();	
+			//		DEBUG("Inside cursor loop value od _id is"<<id);
+			//	}else{
+			//		id = completeMessage["_id"].toString();
+			//	}
+		//	}
+		
 
-
-			// Getting New Bucket Id
-			DEBUG("Getting Bucket Number");
-	    		int bucket_id = Map.findBucket(locationX,locationY);
-	    		DEBUG("Got Bucket Number: " << bucket_id);
-
-
-
-			BSONObjBuilder Quer;
-			Quer.append("_id",id);
-			BSONObj xx = c.findOne(DATABASE_NAME,Quer.obj());
-			DEBUG("testing.... query:"<<xx.toString(true));			
-			
-	    		//Update bucket in the document
-	    		DEBUG("Updating document bucket...");
-			//DEBUG("EU_DOC from _id based Query 0: " << c.findOne(DATABASE_NAME,QUERY("_id" << id2.getField("_id")))["EU_DOC"]);
-			//DEBUG("EU_DOC from _id based Query 1: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id2.getField("_id"))))["EU_DOC"]);
-			//DEBUG("EU_DOC from _id based Query 2: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id)))["EU_DOC"]);
-			//DEBUG("EU_DOC from _id based Query 3: " << id.substr(id.find("'"), id.find("'", id.find("'")+1)));
-			//DEBUG("EU_DOC from _id based Query 4: " << c.findOne(DATABASE_NAME,QUERY("_id" << OID(id.substr(id.find("'"), id.find("'", id.find("'")+1)))))["EU_DOC"]);
-	     		c.update(DATABASE_NAME,QUERY("_id" << id), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id)))); // << "$set" << "tempid" << "null"));
+			 BSONObj testobj = BSON("bucketID" << std::to_string(bucket_id)  << "tempid" << "0" <<"radius" <<radius <<"EUID"<<EUID<<"Location"<<BSON("x"<<locationX<<"y"<<locationY<<"z"<<0)<<"object"<<BSON("animation"<<"none"<<"sound"<<"cool"<<"model"<<"chair"));
+	
+	    		DEBUG("Updating document bucket...");	
+		//	c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
+			c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << testobj));
 	    		DEBUG("Updated Document Bucket");
-            
-
-
-			// Checking if the message is a client doci
-			DEBUG("Checking for client Doc");
-			string EU_DOC;
-	    		EU_DOC = completeMessage["object"]["EU_DOC"].String();
-
-	    		if(EU_DOC.compare("") != 0 && EU_DOC.compare("true")==0){			
-				// updating map location
-				DEBUG("Updating Map....");
-				DEBUG("EUID : " << EUID);
-	        		Map.update(cli_addr,stoi(EUID),locationX,locationY,radius);
-	     			DEBUG("Map Updated...");
-	     		}
-			DEBUG("Checked for client Doc");
-
-
+			
+			DEBUG("Pulling message from db....");
+			auto_ptr<DBClientCursor> cursor2 = c.query(DATABASE_NAME,QUERY("_id"<<OID(id)));
+			if(cursor2->more())
+			{
+			 DEBUG("Can get BSONObj");
+			 completeMessage = cursor2->next();
+			 DEBUG("Got the message");
+			}
+			
 			// query HMBL for socket list
             		DEBUG("Getting Socket List....");
 			vector<Node<sockaddr_in>*> SocketList = Map.get_clients(locationX,locationY,radius);// need to pass in cli_addr, location, and radius
@@ -169,13 +210,10 @@ void *BattleGround::spawn(void* param){
            		// sadly this might be unavoidable
             		// :-(
 		        
-			if(!SocketList.empty())
-			{
-			DEBUG("Socket List: " << SocketList[0]);
-	    		}
-			else
-			{
-			DEBUG("Socket List is empty");
+			if(!SocketList.empty()){
+				DEBUG("Socket List: " << SocketList[0]);
+	    		}else{
+				DEBUG("Socket List is empty");
 			}
 			//Create  structure
 	    		DEBUG("Creating Struct...");
@@ -202,8 +240,11 @@ void *BattleGround::spawn(void* param){
 	    		AnalyticsMessage = build.obj();
 			*/
 
+			//}
 		}
-
+	}catch(exception& e){
+		cout << e.what() << endl;
+	}
 	}
 }
  

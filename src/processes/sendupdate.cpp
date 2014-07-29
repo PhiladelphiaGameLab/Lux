@@ -18,7 +18,7 @@ void *SendUpdate::spawn(void*  param_in) {
 	//pipe(params_in->fd);
 	
 	DEBUG("Opening sut_db pipe...");
-	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
+//	int FIFO2 = open(params_in->pipe_w, O_WRONLY);
 	DEBUG("Opened sut_db pipe");
 	
         LuxSocket socket;
@@ -34,7 +34,7 @@ void *SendUpdate::spawn(void*  param_in) {
 	// have BGTSpawner pass in the BGT_id -- add to s_sut_params_in struct
 	
 	while(true) {
-		
+	try{		
 	DEBUG("Begining loop....");
 	DEBUG("Reading from pipe....");
 	read(FIFO, &piped, sizeof(s_SUTMessage));
@@ -49,21 +49,25 @@ void *SendUpdate::spawn(void*  param_in) {
                 	for (vector<Node<sockaddr_in>*>::iterator client = clients.begin(); client != clients.end(); client++) {
                         	DEBUG("Entering For loop");
 
-				DEBUG("locking....");
+			//	DEBUG("locking....");
 				//pthread_mutex_lock(&((*client)->Lock));
-				DEBUG("Finished locking");	
+			//	DEBUG("Finished locking");	
       	 			
 			// Temp ignore if seg fault
+			DEBUG("Testing if *client is empty....");
 			if((*client)){ 
-				DEBUG("Reading Socket...");
-		                //sockaddr_in cli_addr = (*client)->sock;
-				DEBUG("Socket Read");
-	
-				//DEBUG("Client Recieved with port address and ip" <<ntohs(((*client)->sock).sin_port) <<","<<inet_ntoa(((*client)->sock).sin_addr));			
-				try{	
-					DEBUG("Sending message: "<< piped.message.jsonString());
-					if((&(*client)->sock) != NULL){
-						socket.send(piped.message, &(*client)->sock); //&cli_addr);
+			DEBUG("*client is not empty");
+				try{
+					DEBUG("Message sending...");
+					if((&(*client)) && (&(*client)->sock) && (&(*client)->sock) != NULL){// && ((*client)->sock).sin_port != NULL){
+						DEBUG("(*client) is" << (*client));
+						//DEBUG("(*client)->sock is " << ((*client)->sock).sin_port);
+						//DEBUG("Client Recieved with port address and ip" << inet_ntoa(((*client)->sock).sin_addr) << " : " << ntohs(((*client)->sock).sin_port));     
+						socket.send(piped.message, &((*client)->sock)); //&cli_addr);
+						//DEBUG("message sent is" << piped.message.toString());
+						DEBUG("Client Message sent to send socket");
+					}else{
+						DEBUG("Client socket == null Empty");
 					}
 					DEBUG("Message Sent");
 				}catch(exception& e){
@@ -71,18 +75,22 @@ void *SendUpdate::spawn(void*  param_in) {
 					DEBUG("error: " << e.what());
 				}
 			}else{
-				DEBUG("*CLIENT VECTOR IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				DEBUG("*CLIENT IS NULL ON THIS RUN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			}
-    				DEBUG("Unlocking....");
+    			//	DEBUG("Unlocking....");
 				//pthread_mutex_unlock(&((*client)->Lock));
-				DEBUG("Unlocked");
+			//	DEBUG("Unlocked");
 
 	    			DEBUG("Exiting 'for' loop of sendupdate ");
 			}
 		}else{ 
 			DEBUG("CLIENTS[0] IS NULL!!!"); 
 		}		
-		write(FIFO2, &piped.message, sizeof(BSONObj));
+        }catch(exception& e){
+                cout << e.what() << endl;
+        }
+	
+	//write(FIFO2, &piped.message, sizeof(BSONObj));
 	}
 
     DEBUG("Exiting the send upddate thread");

@@ -3,15 +3,20 @@ PROJ_DIR = /home/ec2-user/Alpha
 Warnings =
 #-Wall -pedantic -W -Wextra -v
 OBJ_FILES = $(patsubst %.cpp,%.o, $(wildcard ../../../lib/luxsocket/*.cpp))
-CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/output -I$(PROJ_DIR)/cgi_bin -I$(PROJ_DIR)/src/cgi_bin -I$(PROJ_DIR)/src/classes/static -I$(PROJ_DIR)/src/classes/instanceable -I$(PROJ_DIR)/src/processes $(Warnings)
+CFLAGS = -m64 -std=c++11 -std=c++11 -I$(PROJ_DIR)/lib/luxsocket -I$(PROJ_DIR)/output -I$(PROJ_DIR)/cgi_bin -I$(PROJ_DIR)/src/cgi_bin -I$(PROJ_DIR)/src/classes/static -I$(PROJ_DIR)/src/classes/instanceable -I$(PROJ_DIR)/src/processes -I$(PROJ_DIR)/src/mongodb $(Warnings)
 LIB = -pthread -lmongoclient -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lcurlpp
 AuthLink= $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/MD5.o $(PROJ_DIR)/output/Authenticate.o
 InitLink= $(AuthLink) $(PROJ_DIR)/output/FindBGT.o $(PROJ_DIR)/output/HMBL.o
-BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o
+BGTSpawnerLink= $(AuthLink) $(PROJ_DIR)/output/DBWriter.o $(PROJ_DIR)/output/SendNewRelevant.o $(PROJ_DIR)/output/HMBL.o $(PROJ_DIR)/output/battleground.o $(PROJ_DIR)/output/sendupdate.o $(PROJ_DIR)/output/socket.o $(PROJ_DIR)/output/luxSocket.o 
+#$(PROJ_DIR)/output/temp_battleground.o
+transactionLink = $(PROJ_DIR)/output/CGI.o $(PROJ_DIR)/output/mongoWrapper.o
+
 
 Auth = ../src/cgi_bin/AuthorizationServer.cpp $(AuthLink) -o $(PROJ_DIR)/cgi_bin/AuthorizationServer.cgi -g
 Init = ../src/cgi_bin/Initialize.cpp $(InitLink) -o $(PROJ_DIR)/cgi_bin/Initialize.cgi -g
 BGTSpawner = ../src/processes/BGTSpawner.cpp $(BGTSpawnerLink) -o $(PROJ_DIR)/output/BGTSpawner -g
+transaction = ../src/cgi_bin/transactionServer.cpp $(transactionLink) -o /var/www/cgi-bin/transaction.cgi -g 
+
 
 Authen = -c ../src/classes/static/Authenticate.cpp
 FindBGT = -c ../src/classes/static/FindBGT.cpp
@@ -23,12 +28,15 @@ socketB = -c ../lib/luxsocket/luxSocket.cpp -g
 DBWriter = -c ../src/processes/DBWriter.cpp -g
 SendNewRelevant = -c ../src/processes/SendNewRelevant.cpp -g
 battleground = -c ../src/processes/battleground.cpp -g
+#temp_bg = -c ../src/processes/temp_battleground.cpp -g
 sendupdate = -c ../src/processes/sendupdate.cpp -g
+mongoWrapper = -c ../src/mongodb/mongoWrapper.cpp -g
 
 all: clean build run
 
+
 Mongo:
-	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db
+	/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db &
 
 mkdir:
 	mkdir $(PROJ_DIR)/output
@@ -41,6 +49,8 @@ apache:
 build: mkdir MD5 CGI socketB socket Authen HMBL FindBGT DBWriter sendupdate battleground SendNewRelevant Init BGTSpawner Auth
 
 cgi-exec: Init BGTSpawner Auth
+
+transactionServer: CGI mongoWrapper transaction
 
 # Working:
 MD5:
@@ -85,6 +95,14 @@ Init:
 BGTSpawner:
 	$(CC) $(CFLAGS) $(OBJ_FILES) $(BGTSpawner) $(LIB)
 
+transaction:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(transaction) $(LIB)
+
+mongoWrapper:
+	$(CC) $(CFLAGS) $(OBJ_FILES) $(mongoWrapper) $(LIB)
+ 
+#temp_bg:
+	 #$(CC) $(CFLAGS) $(OBJ_FILES) $(temp_bg) $(LIB)
 # spawn BGT
 run:
 	chmod -R 777 $(PROJ_DIR)/output
@@ -97,3 +115,15 @@ clean:
 	rm -rf ./output
 	rm -rf ./cgi_bin
 	rm -f lux_pipe*
+
+debug:
+	#/home/ec2-user/mongodb/mongodb-linux-x86_64-2.6.1/bin/mongod --dbpath /home/ec2-user/data/db & > run.mongo
+	rm run.txt;
+	for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; make run | tail -n 5 | tee -a run.txt; done; 
+	#cat run.txt
+	#for ((a=1; a <= 1000000 ; a++)); do  echo " "; echo $$a; echo " " >>run.txt; echo $$a >> run.txt; timeout 280s make run | tail -n 5 | tee -a run.txt; done; 
+	cat run.txt | awk '{if($$0 ~ /ObjectId/) print $$2 " "  $$3 " "  $$4 " "  $$5 " " $$6; else for (i=2; i<NF; i++) printf $$i " "; print $$NF} ;' | sort | uniq -c -d
+
+debugLook:
+	cat run.txt | awk '{if($$0 ~ /ObjectId/ && $$0 != /[0-9]*/ && NF != 1) print $$2 " "  $$3 " "  $$4 " "  $$5 " " $$6; else for (i=2; i<NF; i++) printf $$i " "; print $$NF } ;' | sort | uniq -c -d
+
