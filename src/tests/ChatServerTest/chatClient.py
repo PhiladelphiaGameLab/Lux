@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 
+EUID_LEN = 10
 BUFSIZE = 65507
 global gSock
 global gServerAddr
@@ -265,7 +266,7 @@ def sendtoServer(buf, addr):
 if __name__ == "__main__":
     argc = len(sys.argv)
     if argc != 4:
-        print "usage:", sys.argv[0], "<hostname> <hostport> <EUID>(2byte)"
+        print "usage:", sys.argv[0], "<hostname> <hostport> <EUID>(", EUID_LEN, "byte )"
         sys.exit(1)
 
     global gEuid
@@ -276,6 +277,10 @@ if __name__ == "__main__":
     hostName = sys.argv[1]
     hostPort = sys.argv[2]
     gEuid = sys.argv[3]
+    if len(gEuid) != 10:
+        print "euid length is not", EUID_LEN
+        sys.exit(1)
+    
     gServerAddr = (hostName, int(hostPort))
     gSock = socket.socket(socket.AF_INET, # Internet
                          socket.SOCK_DGRAM) # UDP

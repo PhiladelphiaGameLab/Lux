@@ -10,6 +10,12 @@ using std::endl;
 
 #define DEBUG
 
+#ifdef DEBUG
+#define DEBUG_RUN(x) do { x } while (0)
+#else
+#define DEBUG_RUN(x) ((void)0)
+#endif
+
 void sigint_handler(int sig) {
     cout << "exiting..." << endl;
     exit(0);
@@ -22,7 +28,7 @@ void ChatServer::run() {
     // Start update function
     thread(&ChatServer::updateAll, this).detach();
 
-#ifdef DEBUG
+    DEBUG_RUN(
 	// create a public char room
 	do {
 	    std::lock_guard<std::mutex> lock(_subServerMutex);    
@@ -44,14 +50,13 @@ void ChatServer::run() {
 	    // Insert new chat into sub server
 	    serv->insertChat(*chat);
 	} while(0);
-#endif
-
+    );
     
     while (1) {
 	// Receive data from clients and do whatever need to do.	
 	size_t n = _mainSock->receive(buf, BUFSIZE, &cliAddr);
-
-	cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << ":" << ntohs(cliAddr.sin_port) << "\n";	
+	
+	DEBUG_RUN(cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << ":" << ntohs(cliAddr.sin_port) << "\n";);
 	BYTE *tmpBuf = new BYTE[n];
 	memcpy(tmpBuf, buf, n);
 	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
@@ -129,6 +134,9 @@ void ChatServer::quitChat(UserInfo &user, Chat &chat, MESSAGE_TYPE &msgType) {
     if (!chat.quitChat(user.id, msgType)) {
 	msgType = USER_NOT_IN_CHAT;
     }
+    else {
+	msgType = CONFIRM;
+    }
 }
 
 SubServer* ChatServer::findSubServer() {
@@ -166,10 +174,10 @@ SubServer* ChatServer::createNewSubServer() {
 	}
 	return nullptr;
     }
-#ifdef DEBUG
-    cout << "============" << endl;
-    cout << "Create server: " << server->getPortNum() << endl;
-#endif
+    DEBUG_RUN(
+	cout << "============" << endl;
+	cout << "Create server: " << server->getPortNum() << endl;
+    );
     // Start sub server thread
     thread *t = new thread(&ChatServer::startSubServerThread, this, server);
     server->setThread(t);
@@ -224,16 +232,16 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
     ChatPacket packet(buf, len);
 
     packet.parseMessage(msgId, senderId, reqType, msgType);
-    
-    cout << "Receive message from " << senderId << endl;
+        
+    DEBUG_RUN(cout << "Receive message from " << senderId << endl;);
+
     UserInfo *user = findUser(senderId);
     if (reqType != CONNECT) {
 	if (!verifyUser(user, cliAddr)) {
 	    // User ip changed or isOnline state changed,
 	    // requires user to reconnect
-#ifdef DEBUG
-	    cout << "User request not valid\n";
-#endif
+            DEBUG_RUN(cout << "User request not valid\n";);
+
 	    msgType = RE_CONNECT;
 	    packet.makeMessage(msgId, senderId, reqType,
 			       msgType, "Not connected.");
@@ -246,41 +254,32 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	case CONNECT: {
 	    unsigned short recvPort, pollPort;
 	    packet.parsePortNum(recvPort, pollPort);
-#ifdef DEBUG
-	    cout << "User " << senderId << " connecting.";
-	    cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << "\n";
-	    cout << "Ports: " << recvPort << " " << pollPort << "\n";
-#endif	    
+	    DEBUG_RUN(
+		cout << "User " << senderId << " connecting.";
+		cout << "IP: " << inet_ntoa(cliAddr.sin_addr) << "\n";
+		cout << "Ports: " << recvPort << " " << pollPort << "\n";
+	    );
 	    user = connect(senderId, cliAddr, recvPort, pollPort);
 	    if (user) {
 		// Successfully connected
 		msgType = CONFIRM;
 		packet.makeMessage(msgId, senderId, reqType,
 				   msgType, "Welcome.");
-#ifdef DEBUG
-		cout << "Connected.\n";
-#endif
-
+		DEBUG_RUN(cout << "Connected.\n";);
 	    }		
 	    else {
 		msgType = CONNECT_ERROR;
 		packet.makeMessage(msgId, senderId, reqType,
 				   msgType, "Connection error.");
-#ifdef DEBUG
-		cout << "Error while connecting.\n";
-#endif
-
+		DEBUG_RUN(cout << "Error while connecting.\n";);
 	    }
-#ifdef DEBUG
-	    cout << "Send to " << inet_ntoa(user->addr.sin_addr) << ":" << ntohs(user->addr.sin_port) << "\n";
-#endif
+	    DEBUG_RUN(cout << "Send to " << inet_ntoa(user->addr.sin_addr) << ":" << ntohs(user->addr.sin_port) << "\n";);
 	    _mainSock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    break;
 	}
 	case DISCONNECT: {
-#ifdef DEBUG
-	    cout << "User " << senderId << " disconnecting...\n"; 
-#endif
+            DEBUG_RUN(cout << "User " << senderId << " disconnecting...\n";); 
+
 	    disconnect(*user);
 	    msgType = CONFIRM;
 	    
@@ -305,9 +304,7 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 	    vector<UserId> idArray;
 	    packet.parseUserList(idArray);
 	    int num = computeValidUserNumbers(idArray);
-#ifdef DEBUG
-	    cout << "Create chat valid user numbers: " << num << endl;
-#endif	    
+	    DEBUG_RUN(cout << "Create chat valid user numbers: " << num << endl;);
 	    if (num < 2) {
 		msgType = CREATE_CHAT_INVALID_USER;
 		packet.makeMessage(msgId, senderId, reqType, msgType, 
@@ -316,15 +313,16 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 				&(user->addr));
 		break;
 	    }
-#ifdef DEBUG
-	    cout << "User " << senderId << " creating a chat...\n"; 
-	    cout << "User List:\n";
-	    for (vector<UserId>::iterator it = idArray.begin();
-		 it != idArray.end();
-		 it ++) {
-		cout << (*it) << endl;
-	    }
-#endif	    
+	    DEBUG_RUN(
+		cout << "User " << senderId << " creating a chat...\n"; 
+		cout << "User List:\n";
+		for (vector<UserId>::iterator it = idArray.begin();
+		     it != idArray.end();
+		     it ++) {
+		    cout << (*it) << endl;
+		}
+		cout << "end." << endl;
+	    );
 	    Chat *chat = createChat(*user, idArray, msgType);
 	    packet.makeMessage(msgId, senderId, reqType, msgType);
 	    if (chat != nullptr) {
@@ -334,12 +332,12 @@ void ChatServer::mainRequestHandler(BYTE *buf, size_t len,
 		     it ++) {
 		    UserInfo *user = findUser(*it);
 		    if (user != nullptr) {
-#ifdef DEBUG
-			cout << "User Id: " << user->id << endl;
-			cout << "User port: " << ntohs(user->addr.sin_port) << endl;
-#endif
+                        DEBUG_RUN(
+			    cout << "User Id: " << user->id << endl;
+			    cout << "User port: " << ntohs(user->addr.sin_port) << endl;
+			);
 			_mainSock->send(packet.getData(), packet.getLen(), 
-				       &(user->addr));
+					&(user->addr));
 		    }
 		}	
 	    }
@@ -402,6 +400,7 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
 	sock->send(packet.getData(), packet.getLen(), &cliAddr);
 	return;
     }
+    DEBUG_RUN(cout << "Sub server receive from: "<< user->id << endl;);
 	
     ChatId chatId;
     packet.parseChatId(chatId);
@@ -416,18 +415,13 @@ void ChatServer::chatRequestHandler(BYTE *buf, size_t len, sockaddr_in *tmpAddr,
     }
     switch (reqType) {
 	case QUIT_CHAT: {
-#ifdef DEBUG
-	    cout << "Quit chat: "<< user->id << endl;
-#endif
-
+	    DEBUG_RUN(cout << "Quit chat: "<< user->id << endl;);
 	    quitChat(*user, *chat, msgType);
 	    packet.makeMessage(msgId, senderId, reqType, msgType);
 	    if (msgType == CONFIRM) {
 		sendToAll(packet.getData(), packet.getLen(), sock, *chat);
 	    }
-	    else {
-		sock->send(packet.getData(), packet.getLen(), &(user->addr));
-	    }
+	    sock->send(packet.getData(), packet.getLen(), &(user->addr));
 	    break;
 	}
 	case ADD_USER_TO_CHAT: {
@@ -464,12 +458,19 @@ void ChatServer::startSubServerThread(SubServer *serv) {
     struct sockaddr_in cliAddr;	
     BYTE *buf = new BYTE[BUFSIZE];
     while (1) {	    
-	int n = sock->receive(buf, BUFSIZE, &cliAddr);
-	BYTE *tmpBuf = new BYTE[n];
-	memcpy(tmpBuf, buf, n);
-	sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
-	thread(&ChatServer::chatRequestHandler, this, 
-	       tmpBuf, n, tmpAddr, serv).detach();
+        try {
+            int n = sock->receive(buf, BUFSIZE, &cliAddr);
+	    BYTE *tmpBuf = new BYTE[n];
+	    memcpy(tmpBuf, buf, n);
+	    sockaddr_in *tmpAddr = new sockaddr_in(cliAddr);
+	    thread(&ChatServer::chatRequestHandler, this, 
+	           tmpBuf, n, tmpAddr, serv).detach();
+        }
+	catch(socketlibrary::SocketException e) {
+	    // sub server socket been deleted,
+	    // socket throws exception, just terminate this thread
+	    return;
+        }
     }
 }
 
@@ -499,6 +500,7 @@ void ChatServer::updateUserPool() {
 	    ++usrMapIt;
 	}
 	else {
+	    DEBUG_RUN(cout << "Deleted user id: " << usrMapIt->second->id << endl;);
 	    delete usrMapIt->second;
 	    _userPool.erase(usrMapIt++);
 	}	
@@ -526,8 +528,9 @@ void ChatServer::updateSubServer() {
     while (it != _subServerList.end()) {
 	updateChats(*(*it));
 	if ((*it)->isEmpty()) {
-	    delete *it;
+            delete *it;
 	    _subServerList.erase(it++);
+	    DEBUG_RUN(cout << "Deleted empty sub server\n";);
 	}
 	else {
 	    ++it;
@@ -556,9 +559,9 @@ void ChatServer::updateChats(SubServer &subServ) {
 	Chat *chat = chatMapIt->second;
 	if (chat->isEmpty()) {
 	    // If no one is in chat, remove chat
+	    DEBUG_RUN(cout << "Deleted empty chat, id: "<< chat->getId() << endl;);
 	    delete chat;
-	    subServ.eraseChat(chatMapIt);
-	    chatMapIt++;
+	    subServ.eraseChat(chatMapIt++);
 	}
 	else {
 	    ++chatMapIt;
