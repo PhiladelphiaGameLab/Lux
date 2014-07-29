@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <mutex>
@@ -16,7 +17,6 @@ namespace chat{
     using std::string;
     using std::vector;
     using std::pair;
-    using std::map;
     using std::set;
     using socketlibrary::LuxSocket;
     using boost::thread;
@@ -303,6 +303,14 @@ namespace chat{
 
     class ChatServer {
 	public:
+	typedef map<UserId, UserInfo*> UserPoolType;	
+	// an alternative container is unordered_map<UserId, UserInfo*> 	
+	// map's search complexity is O(logn)
+	// map requires the key has < operator 
+	// unordered_map's search complexity is O(1)
+	// unordered_map requires a hash function for key
+	// Since the UserId is string, there is default hash function for it
+	
 	ChatServer(unsigned short port = 3000) 
 	    : _updatingUserPool(false), _updatingChats(false) {
 	    _mainSock = new LuxSocket(port);
@@ -312,7 +320,7 @@ namespace chat{
 	
 	private:
 	// Stores all online user information here
-	map<UserId, UserInfo*> _userPool;
+	UserPoolType _userPool;
 	// Reader/Writer mutex for _userPool
 	boost::shared_mutex _userPoolMutex;
 	// Indicate whether _userPool is been updating
