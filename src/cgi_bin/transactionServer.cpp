@@ -12,7 +12,7 @@
 
 #include "../classes/static/Authenticate.h"
 #include "../classes/instanceable/CGI.h"
-#include "../mongodb/MongoWrapper.h"
+#include "../mongodb/mongoWrapper.h"
 #include "mongo/bson/bson.h"
 #include <string>
 #include <thread>         // std::this_thread::sleep_for
@@ -68,6 +68,37 @@ enum AccRelation {
     ADMIN,    
 };
 
+// Tree structure
+//                  Root
+//   |---------------|--------------|
+// User Root    Group Root     Global Root
+//  |               |              |
+// Acc ...       Acc ...         Acc...
+// |               |              |
+// Sub acc...    Sub acc ...    Sub Acc..
+
+// Root structure
+// {
+//   "_id" : ...,
+//   "root_type" : "TRANSACTION_ROOT",
+//   "User_Root" : ObjectId(),
+//   "Group_Root" : ObjectId(),
+//   "Global_Root" : ObjectId()
+// }
+
+// User/Group/Global Root Structure
+// {
+//   "_id" : ...,
+//   "root_type" : "USER/GROUP/GLOBAL_ROOT",
+//   "accounts" : [ ] // array of accounts ObjectIds
+// }
+
+const string ROOT_TYPE_FIELD("root_type");
+const string TRANSACTION_ROOT("Transaction_Root");
+const string USER_ROOT("User_Root");
+const string GROUP_ROOT("Group_Root");
+const string GLOBAL_ROOT("Global_Root");
+const string CHILD_ARRAY_FILED("accounts");
 
 // Account structure
 // e.g.
@@ -200,6 +231,14 @@ void removeItemFromSubAccount(const string &subId, const string &itemId);
 void error(const string &msg);
 void sendJson(const string &jsonString);
 
+void initTreeStruct();
+void ensureInitTree();
+void getTreeRootInfo();
+void getUserRootInfo();
+void getGroupRootInfo();
+void getGlobalRootInfo();
+
+
 // Helper function to get rid of "" of a filed value of string
 inline string getFieldValue(const BSONObj &obj, const string &field) {
     // get rid of "" surrounding a string
@@ -256,6 +295,8 @@ int main(int argc, char **argv) {
 }
 
 int handleRequest() {
+    ensureInitTree();
+
     string method = environment->get("method");
 
     if(method.compare("transaction") == 0) {
@@ -887,8 +928,12 @@ void addAccount(const string &username) {
     acc.append(GROUP_ACC_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
+    string oid(obj["_id"].OID().toString());
 
     conn->insert(db_ns, obj);
+    // add account oid into user root
+    conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << USER_ROOT), 
+		    CHILD_ARRAY_FILED, oid);
 
     BSONObjBuilder result;
     result.append("message", "Added account.");
@@ -918,6 +963,9 @@ void removeAccount(const string &id) {
 	}
     }
 
+    conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << USER_ROOT),
+		    CHILD_ARRAY_FILED, id);
+
     conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
     
     BSONObjBuilder result;
@@ -934,8 +982,12 @@ void addGlobalAccount(const string &name) {
     acc.append(SUB_ACC_ARRAY_FILED, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
+    string oid(obj["_id"].OID().toString());
 
     conn->insert(db_ns, obj);
+    // add global account oid into global root
+    conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << GLOBAL_ROOT), 
+		    CHILD_ARRAY_FILED, oid);
 
     BSONObjBuilder result;
     result.append("message", "Added global account.");
@@ -963,6 +1015,9 @@ void removeGlobalAccount(const string &id) {
 	    conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
 	}
     }
+
+    conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << GLOBAL_ROOT),
+		    CHILD_ARRAY_FILED, id);
 
     conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
     
@@ -1052,6 +1107,10 @@ void createGroup(const string &id) {
 
     conn->arrayPush(db_ns, BSON(ACC_ID_FIELD << OID(id)), GROUP_ACC_ARRAY_FIELD, gid);
 
+    // Insert group id into group root
+    conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << GROUP_ROOT), 
+		    CHILD_ARRAY_FILED, gid);
+
     BSONObjBuilder result;
     result.append("message", "Created group.");
     result.append(OBJ_ID, gid);
@@ -1089,6 +1148,10 @@ void destroyGroup(const string &gid) {
 			    GROUP_ACC_ARRAY_FIELD, gid);
 	}
     }
+
+    // remove group id from group root
+    conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << GROUP_ROOT),
+		    CHILD_ARRAY_FILED, gid);
     
     conn->remove(db_ns, QUERY(GROUP_ID_FIELD << OID(gid)));
 
@@ -1180,3 +1243,72 @@ void error(const string &msg) {
 void sendJson(const string &jsonString) {
     cout << "{status:\"success\",content:" << jsonString << "}\n";
 }
+
+void initTreeStruct(bool force) {
+    if (force) {
+	conn->remove(db_ns, "");
+    }
+    else {
+	BSONObj root = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << TRANSACTION_ROOT));
+	if (!root.isEmpty()) {
+	    error("Tree root already exists.");
+	}
+    }
+    BSONObjBuilder userRootBuilder;
+    userRootBuilder.genOID();
+    userRootBuilder.append(ROOT_TYPE_FIELD, USER_ROOT);
+    userRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);    
+    BSONObj userRoot = userRootBuilder.obj();
+    
+    BSONObjBuilder groupRootBuilder;
+    groupRootBuilder.genOID();
+    groupRootBuilder.append(ROOT_TYPE_FIELD, GROUP_ROOT);
+    groupRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);    
+    BSONObj groupRoot = groupRootBuilder.obj();
+    
+    BSONObjBuilder globalRootBuilder;
+    globalRootBuilder.genOID();
+    globalRootBuilder.append(ROOT_TYPE_FIELD, GLOBAL_ROOT);
+    globalRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);
+    BSONObj globalRoot = globalRootBuilder.obj();
+    
+    BSONObjBuilder treeRootBuilder;
+    treeRootBuilder.append(ROOT_TYPE_FIELD, TRANSACTION_ROOT);
+    treeRootBuilder.append(USER_ROOT, userRoot["_id"].OID().toString());
+    treeRootBuilder.append(GROUP_ROOT, groupRoot["_id"].OID().toString());
+    treeRootBuilder.append(GLOBAL_ROOT, globalRoot["_id"].OID().toString());
+    
+    BSONObj treeRoot = treeRootBuilder.obj();
+
+    conn->insert(db_ns, userRoot);
+    conn->insert(db_ns, groupRoot);
+    conn->insert(db_ns, globalRoot);
+    conn->insert(db_ns, treeRoot);
+    
+    sendJson(treeRoot.jsonString());
+}
+
+void ensureInitTree() {
+    BSONObj root = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << TRANSACTION_ROOT));
+    if (root.isEmpty()) {
+	error("Transaction tree streucture not initialized.");
+    }    
+}
+
+void getTreeRootInfo() {
+    BSONObj root = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << TRANSACTION_ROOT));
+    sendJson(root.jsonString());
+}
+void getUserRootInfo() {
+    BSONObj userRoot = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << USER_ROOT));  
+    sendJson(userRoot.jsonString());    
+}
+void getGroupRootInfo() {
+    BSONObj groupRoot = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << GROUP_ROOT));  
+    sendJson(groupRoot.jsonString());    
+}
+void getGlobalRootInfo() {
+    BSONObj globalRoot = conn->findOne(db_ns, QUERY(ROOT_TYPE_FIELD << GLOBAL_ROOT));
+    sendJson(globalRoot.jsonString());
+}
+
