@@ -329,7 +329,7 @@ int handleRequest() {
 	// Self transaction
 	if (info.id0.compare(info.id1) == 0) {
 	    executeTransaction(info);
-	    string result = "{message:\"Transaction successfully finished.\"}";
+	    string result = "{\"message\":\"Transaction successfully finished.\"}";
 	    sendJson(result);		    
 	    return 0;	    
 	}
@@ -337,7 +337,7 @@ int handleRequest() {
 	// Player to global
 	if (isGlobalAccount(info.id1)) {
 	    executeTransaction(info);
-	    string result = "{message:\"Global Transaction successfully finished.\"}";
+	    string result = "{\"message\":\"Global Transaction successfully finished.\"}";
 	    sendJson(result);
 	    return 0;	    
 	}	
@@ -362,7 +362,7 @@ int handleRequest() {
 		error("Transaction failed.");
 	    }
 	    else {
-		string result = "{message:\"Transaction successfully finished.\"}";
+		string result = "{\"message\":\"Transaction successfully finished.\"}";
 		sendJson(result);
 	    }
 	    return 0;
@@ -376,7 +376,7 @@ int handleRequest() {
 	    
 	    if (checkMatch(info, subAcc0, subAcc1)) {
 		executeTransaction(info);
-		string result = "{message:\"Transaction successfully finished.\"}";
+		string result = "{\"message\":\"Transaction successfully finished.\"}";
 		sendJson(result);		    
 		return 0;
 	    }
@@ -843,7 +843,7 @@ void getTransactionHistory(const string &id) {
     string history = getFieldValue(accInfo, TRANSACTION_HISTORY);
     
     // TODO: send history back to client
-    string result("{message:\"");
+    string result("{\"history\":\"");
     result += history;
     result += "\"}";
     sendJson(result);
@@ -1252,12 +1252,12 @@ void removeItemFromSubAccount(const string &subId, const string &itemId) {
 
 // Send back error message
 void error(const string &msg) {
-    cout << "{status:\"error\",message:\"" << msg << "\"}\n";
+    cout << "{\"status\":\"error\",\"message\":\"" << msg << "\"}\n";
     exit(0);
 }
 
 void sendJson(const string &jsonString) {
-    cout << "{status:\"success\",content:" << jsonString << "}\n";
+    cout << "{\"status\":\"success\",\"content\":" << jsonString << "}\n";
 }
 
 void initTreeStruct(bool force) {
