@@ -58,5 +58,7 @@ struct s_SNRMessage
 {
 	std::vector<int> newBucketList;
 	sockaddr_in socket;
+	// add reciever EUID here 
+
 };
 #endif // SENDNEWRELEVANT_H

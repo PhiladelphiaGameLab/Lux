@@ -54,6 +54,9 @@ void *SendNewRelevant::spawn(void*  param_in){
                 // strip sender access token & such
 		BSONObj obj = cursor->next();
                 // send both client and message to the socket Class
+                
+		// append the reciever 
+
                 socket.send(obj,&piped.socket);
 		DEBUG("Sent Object");
             }

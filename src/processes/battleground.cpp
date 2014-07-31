@@ -186,11 +186,11 @@ void *BattleGround::spawn(void* param){
 		//	}
 		
 
-			 BSONObj testobj = BSON("bucketID" << std::to_string(bucket_id)  << "tempid" << "0" <<"radius" <<radius <<"EUID"<<EUID<<"Location"<<BSON("x"<<locationX<<"y"<<locationY<<"z"<<0)<<"object"<<BSON("animation"<<"none"<<"sound"<<"cool"<<"model"<<"chair"));
+			 BSONObj testobj = BSON("bucketID" << std::to_string(bucket_id)  << "tempid" << "0" <<"radius" <<radius <<"EUID"<<EUID<<"Location"<<BSON("x"<<locationX<<"y"<<locationY<<"z"<<0)<<"object"<< strippedObjectMessage);
 	
 	    		DEBUG("Updating document bucket...");	
 		//	c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
-			c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << testobj));
+			c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << completeMessage));
 	    		DEBUG("Updated Document Bucket");
 			
 			DEBUG("Pulling message from db....");

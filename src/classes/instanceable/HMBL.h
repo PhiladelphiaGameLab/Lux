@@ -23,6 +23,8 @@ struct Node
 	struct Node<T> *Next; //Pointer to the next node if this is in a linked list of nodes
 	struct Node<T> *Prev; //Pointer to the previous noe if this is in a linked list of nodes
 
+	// add int for reciever EUID
+
 	// TODO: My attepmt at a lock (Paul -- used in sendUpdate.cpp)
 	// TODO: need to initilize the lock still...maybe something like this: pthread_mutex_init(Lock, NULL)
 
@@ -161,7 +163,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	
 	
 	DEBUG("Lock 1 locking....");
-	pthread_mutex_lock(&(newNode->Lock));
+	//pthread_mutex_lock(&(newNode->Lock));
 	DEBUG("Lock 1 locked");
 
 	Node<T> *sameNode = 0;
@@ -185,7 +187,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			DEBUG("Existance yet again proven.");
 			sameNode = arrMap[bucketNum];
 			DEBUG("Lock 2 locking...");
-			pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
+			//pthread_mutex_lock(&(sameNode->Lock)); //Lock the node in target bucket
 			DEBUG("Lock 2 locked");
 			lock2Flag = true;
 		}
@@ -199,14 +201,14 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 				}else{
 					prevNode = newNode->Prev;
 					DEBUG("Lock 3 locking...");
-					pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
+					//pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
 					DEBUG("Lock 3 locked");
 					lock3Flag = true;
 				}
 			}else{
 			prevNode = newNode->Prev;
                         DEBUG("Lock 3 locking...");
-                        pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
+                        //pthread_mutex_lock(&(prevNode->Lock)); //Lock the node previous to the new on
                         DEBUG("Lock 3 locked");
                         lock3Flag = true;
 			}
@@ -215,7 +217,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 	if(newNode->Next != 0){
 		nextNode = newNode->Next;
 		DEBUG("Lock 4 locking...");
-		pthread_mutex_lock(&(nextNode->Lock)); //Lock the node next to the new one
+		//pthread_mutex_lock(&(nextNode->Lock)); //Lock the node next to the new one
 		DEBUG("Lock 4 locked");
 		lock4Flag = true;
 	}
@@ -233,7 +235,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			if(lock4Flag){
 				lock4Flag = false;
 				DEBUG("Lock 4 releasing....");
-				pthread_mutex_unlock(&(nextNode->Lock));
+		//		pthread_mutex_unlock(&(nextNode->Lock));
 				DEBUG("Lock 4 released");
 			}
 			//release Lock for nextNode
@@ -243,7 +245,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			if(lock3Flag){
 				lock3Flag = false;
 				DEBUG("Lock 3 releasing...");
-				pthread_mutex_unlock(&(prevNode->Lock));
+		//		pthread_mutex_unlock(&(prevNode->Lock));
 				DEBUG("Lock 3 released");
 			}
 		}else if (newNode->Prev != 0 && newNode->Next != 0){
@@ -254,11 +256,11 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 			DEBUG("Lock 4 & 3 releasing...");
 			if(lock4Flag){
 				lock4Flag = false;
-				pthread_mutex_unlock(&(nextNode->Lock));
+		//		pthread_mutex_unlock(&(nextNode->Lock));
 			}
 			if(lock3Flag){
 				lock3Flag = false;
-				pthread_mutex_unlock(&(prevNode->Lock));
+		//		pthread_mutex_unlock(&(prevNode->Lock));
 			}
 			DEBUG("Lock 4 & 3 released");
 		}else{ //Only occurs is prev and next of Node walk = 0
@@ -282,7 +284,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		if(lock2Flag){
 			lock2Flag = false;
 			DEBUG("Lock 2 releasing...");
-			pthread_mutex_unlock(&(sameNode->Lock));
+		//	pthread_mutex_unlock(&(sameNode->Lock));
 			DEBUG("Lock 2 released");
 		}
 		//release Lock for sameNode
@@ -293,7 +295,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 		newNode->currBuck = bucketNum;
 	}
 	DEBUG("Lock 1 releasing...");
-	pthread_mutex_unlock(&(newNode->Lock));
+//	pthread_mutex_unlock(&(newNode->Lock));
 	DEBUG("Lock 1 released");
 	//release the newNode lock
 
@@ -390,7 +392,7 @@ std::vector<Node<T>*> HMBL<T>::get_clients(int xloc, int yloc, int rad){
 	std::vector<Node<T>*> clients; //will be returned by this function and contain pointers to affected clients
 	std::vector<int> proxBucks; //contains the list of buckets in the items proximity
 
-	 std::cout<<"Entering surroundings in  get_clients"<<std::endl;
+	std::cout<<"Entering surroundings in  get_clients"<<std::endl;
 	proxBucks = HMBL_HELPER::surroundings(xloc, yloc, rad, mapwidth, mapheight, columns, rows);
 
 	int thresh = proxBucks.size();
