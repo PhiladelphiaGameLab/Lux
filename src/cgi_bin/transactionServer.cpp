@@ -956,7 +956,7 @@ void addAccount(const string &username) {
 
     BSONObjBuilder result;
     result.append("message", "Added account.");
-    result.append(obj[OBJ_ID]);
+    result.append(OBJ_ID, oid);
     sendJson(result.obj().jsonString());
 }
 
@@ -989,7 +989,7 @@ void removeAccount(const string &id) {
     
     BSONObjBuilder result;
     result.append("message", "Removed account.");
-    result.append(OBJ_ID, OID(id));
+    result.append(OBJ_ID, id);
     sendJson(result.obj().jsonString());
 }
 
@@ -1010,7 +1010,7 @@ void addGlobalAccount(const string &name) {
 
     BSONObjBuilder result;
     result.append("message", "Added global account.");
-    result.append(obj[OBJ_ID]);
+    result.append(OBJ_ID, oid);
     sendJson(result.obj().jsonString());    
 }
 void removeGlobalAccount(const string &id) {
@@ -1042,7 +1042,7 @@ void removeGlobalAccount(const string &id) {
     
     BSONObjBuilder result;
     result.append("message", "Removed global account.");
-    result.append(OBJ_ID, OID(id));
+    result.append(OBJ_ID, id);
     sendJson(result.obj().jsonString());    
 }
 
