@@ -467,6 +467,22 @@ int handleRequest() {
 	string id = environment->get("id0");
 	removeGlobalAccount(id);
     } 
+    else if (method.compare("initTreeStruct") == 0) {
+	string force = environment->get("force");
+	initTreeStruct(force == "");
+    }
+    else if (method.compare("getTreeRootInfo") == 0) {
+	getTreeRootInfo();
+    }
+    else if (method.compare("getUserRootInfo") == 0) {
+	getUserRootInfo();
+    }
+    else if (method.compare("getGroupRootInfo") == 0) {
+	getGroupRootInfo();
+    }
+    else if (method.compare("getGlobalRootInfo") == 0) {
+	getGlobalRootInfo();
+    }
     else if (method.compare("get") == 0) {
         //getAsset
 	
