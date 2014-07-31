@@ -295,9 +295,12 @@ int main(int argc, char **argv) {
 }
 
 int handleRequest() {
-    ensureInitTree();
 
     string method = environment->get("method");
+    
+    if (method.compare("initTreeStruct") != 0) {
+	ensureInitTree();
+    }
 
     if(method.compare("transaction") == 0) {
         string id0 = environment->get("id0"); //verify id0 == EUID or use EUID directly?
