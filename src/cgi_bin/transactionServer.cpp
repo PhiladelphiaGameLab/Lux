@@ -472,7 +472,7 @@ int handleRequest() {
     } 
     else if (method.compare("initTreeStruct") == 0) {
 	string force = environment->get("force");
-	initTreeStruct(force == "");
+	initTreeStruct(force == "true");
     }
     else if (method.compare("getTreeRootInfo") == 0) {
 	getTreeRootInfo();
