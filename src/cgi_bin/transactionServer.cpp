@@ -231,7 +231,7 @@ void removeItemFromSubAccount(const string &subId, const string &itemId);
 void error(const string &msg);
 void sendJson(const string &jsonString);
 
-void initTreeStruct();
+void initTreeStruct(bool force);
 void ensureInitTree();
 void getTreeRootInfo();
 void getUserRootInfo();
