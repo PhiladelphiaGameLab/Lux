@@ -506,7 +506,7 @@ void ChatServer::updateUserPool() {
     // exclusive
     boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
     
-    map<UserId, UserInfo *>::iterator usrMapIt =  _userPool.begin(); 
+    UserPoolType::iterator usrMapIt =  _userPool.begin(); 
     while (usrMapIt != _userPool.end()) {
 	if (usrMapIt->second->isAlive) {
 	    usrMapIt->second->isAlive = false;
@@ -586,7 +586,7 @@ UserInfo* ChatServer::findUserPtr(const UserId &id) {
     // Reader 
     boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
     
-    map<UserId, UserInfo*>::iterator it = _userPool.find(id);
+    UserPoolType::iterator it = _userPool.find(id);
     if (it == _userPool.end()) {
 	return nullptr;
     }
@@ -599,7 +599,7 @@ bool ChatServer::findUserInfo(const UserId &id, UserInfo &user) {
     // Reader 
     boost::upgrade_lock<boost::shared_mutex> lock(_userPoolMutex);
     
-    map<UserId, UserInfo*>::iterator it = _userPool.find(id);
+    UserPoolType::iterator it = _userPool.find(id);
     if (it == _userPool.end()) {	
 	return false;
     }
@@ -638,7 +638,7 @@ int ChatServer::computeValidUserNumbers(const vector<UserId> &idArray) {
     int count = 0;
     for (vector<UserId>::const_iterator it = idArray.begin();
 	 it != idArray.end(); it++) {
-	map<UserId, UserInfo*>::iterator userIt = _userPool.find(*it);
+	UserPoolType::iterator userIt = _userPool.find(*it);
 	if (userIt != _userPool.end()) {
 	    count++;
 	}
@@ -662,7 +662,7 @@ Chat* ChatServer::getTesterLobby() {
 
 ChatServer::~ChatServer() {
     delete _mainSock;
-    for (map<UserId, UserInfo*>::iterator it = _userPool.begin();
+    for (UserPoolType::iterator it = _userPool.begin();
 	 it != _userPool.end();
 	 it ++) {
 	delete it->second;	

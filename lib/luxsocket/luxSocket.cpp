@@ -6,11 +6,11 @@ namespace socketlibrary {
 	try {
 	    _socket = new UDPSocket(port);
 	}catch(SocketException e){
-		_socket = new UDPSocket();
+	    _socket = new UDPSocket(0);
 	}
     }
 
-    // Create a new UDP socket client
+    // Create a new UDP socket client without binding to a port
     LuxSocket::LuxSocket() {
 	_socket = new UDPSocket();
     }
