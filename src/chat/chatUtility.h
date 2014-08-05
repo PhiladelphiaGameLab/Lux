@@ -37,7 +37,9 @@ namespace chat {
 	CREATE_CHAT_INVALID_USER = 15
     };
 
-    const int EUID_LEN = 2; // EUID length, not determined yet
+    // IMPORTANT every user's euid should be this long
+    const int EUID_LEN = 10; // EUID length, not determined yet
+    
 
     // Maximum size of UDP packet
     // 0xffff - (sizeof(IP Header) + sizeof(UDP Header)) = 65535-(20+8) = 65507
@@ -124,6 +126,7 @@ namespace chat {
 	size_t appendMessage(const BYTE *msg, size_t len);
 	size_t appendMessage(const std::string &msg);
 	size_t appendMessage(const std::vector<BYTE> &msg);
+	size_t appendUserList(const std::vector<UserId> &userArr);
 	void keepEnoughBuf(size_t newLen, COPY_TYPE c);
 	
 	BYTE* getData() {
@@ -267,6 +270,18 @@ namespace chat {
 	    _buf[_len++] = msg[i];
 	}
 	return len;
+    }
+    
+    size_t ChatPacket::appendUserList(const std::vector<UserId> &userArr) {
+	int num = userArr.size();
+	size_t len = sizeof(num) + num * EUID_LEN;
+	int newLen = _len + len;
+	keepEnoughBuf(newLen, COPY_OLD);
+	appendMessage((BYTE*)&num, sizeof(num));
+	for (int i = 0; i < num; i++) {
+	    appendMessage(userArr[i]);
+	}
+	return len;	
     }
     
     void ChatPacket::keepEnoughBuf(size_t newLen, COPY_TYPE c) {

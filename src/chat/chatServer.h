@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <mutex>
@@ -16,7 +17,6 @@ namespace chat{
     using std::string;
     using std::vector;
     using std::pair;
-    using std::map;
     using std::set;
     using socketlibrary::LuxSocket;
     using boost::thread;
@@ -24,6 +24,7 @@ namespace chat{
     struct UserInfo {
 	UserId id;
 	bool isOnline; // If user is currently online
+	bool isAlive; // Connection is alive
 	sockaddr_in addr; // User address, including ip, port and other data
 	sockaddr_in pollAddr;
     };
@@ -55,7 +56,7 @@ namespace chat{
 	    return _userList;
 	};
 
-	void eraseUser(typename set<UserId>::iterator &it) {
+	void eraseUser(typename set<UserId>::iterator it) {
 	    _userList.erase(it);
 	    _userNum = _userList.size();
 	    _changed = true;
@@ -149,7 +150,6 @@ namespace chat{
 	    for (int i = 0; i < (*it).length(); i++) {
 		bytes.push_back((*it)[i]);
 	    }
-	    std::cout << (*it) << std::endl;
 	}
 
 	return bytes;
@@ -161,12 +161,12 @@ namespace chat{
 	boost::upgrade_lock<boost::shared_mutex> lock(_userListMutex);
 	// get exclusive access
 	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
-	    
+	
 	for (set<UserId>::iterator it = _userList.begin();
 	     it != _userList.end();
 	     it ++) {
 	    if (id == *it) {
-		eraseUser(it);
+		eraseUser(it++);
 		msgType = CONFIRM;
 		return true;
 	    }
@@ -188,16 +188,18 @@ namespace chat{
 	    }
 	};
         
-	~SubServer() {
+	~SubServer() {	    
 	    if (_udpSocket) {
 		delete _udpSocket;
 	    }
+
 	    if (_thisThread) {
 		_thisThread->interrupt();
 		if (_thisThread) {
 		    delete _thisThread;
 		}
 	    }
+	    
 	    for (map<ChatId, Chat*>::iterator it = _chatPool.begin();
 		 it != _chatPool.end();
 		 it ++) {
@@ -235,7 +237,7 @@ namespace chat{
 	    return _chatPool;
 	};
 
-	void eraseChat(typename map<ChatId, Chat*>::iterator &it) {
+	void eraseChat(typename map<ChatId, Chat*>::iterator it) {
 	    _chatPool.erase(it);
 	    _chatNum--;
 	};
@@ -301,6 +303,14 @@ namespace chat{
 
     class ChatServer {
 	public:
+	typedef map<UserId, UserInfo*> UserPoolType;	
+	// an alternative container is unordered_map<UserId, UserInfo*> 	
+	// map's search complexity is O(logn)
+	// map requires the key has < operator 
+	// unordered_map's search complexity is O(1)
+	// unordered_map requires a hash function for key
+	// Since the UserId is string, there is default hash function for it
+	
 	ChatServer(unsigned short port = 3000) 
 	    : _updatingUserPool(false), _updatingChats(false) {
 	    _mainSock = new LuxSocket(port);
@@ -310,7 +320,7 @@ namespace chat{
 	
 	private:
 	// Stores all online user information here
-	map<UserId, UserInfo*> _userPool;
+	UserPoolType _userPool;
 	// Reader/Writer mutex for _userPool
 	boost::shared_mutex _userPoolMutex;
 	// Indicate whether _userPool is been updating
@@ -325,9 +335,8 @@ namespace chat{
 
 	LuxSocket *_mainSock;
 
-	// Time between two calls of update
-	int _updateTime = 10;
-
+	// Time between two calls of update (secs)
+	int _updateTime = 30;
 	
 	// Server functions
 	
@@ -367,7 +376,8 @@ namespace chat{
 	
 	
 	// Helper functions
-	UserInfo* findUser(const UserId &id);
+	UserInfo* findUserPtr(const UserId &id);
+	bool findUserInfo(const UserId &id, UserInfo &user);
 	bool verifyUser(UserInfo *userPtr, sockaddr_in &cliAddr);
 	int sockAddrCmp(const sockaddr_in &a, const sockaddr_in &b);
 
