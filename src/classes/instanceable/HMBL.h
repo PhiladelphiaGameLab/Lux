@@ -79,7 +79,7 @@ public:
 	void update(T nsock, int euid, int x, int y, int rad);
 	void clearHMBL();
 	void revealHMBL();
-	void pipeInfo(int x, int y, int rad, int currBuck);
+	void pipeInfo(Node<T>* selectedNode, int x, int y, int rad, int currBuck);
 	Node<T>* checkForCollision(int euid, int hashKey);
 	std::vector<Node<T>*> get_clients(int xloc, int yloc, int rad);
 	std::vector<int> surroundingsFromCurrBucket(int currBuck, int rad, int mapx, int mapy, int xbuck, int ybuck);
@@ -301,7 +301,7 @@ void HMBL<T>::update(T nsock, int euid, int x, int y, int rad){
 
 	if (lastBuck != bucketNum && bucketNum >= 0){ //for efficiency, so that it doesn't go through pipe process if client didn't move
 		DEBUG("Piping to SNR....");
-		pipeInfo(x, y, rad, lastBuck);
+		pipeInfo(newNode, x, y, rad, lastBuck);
 		DEBUG("Piped to SNR");
 	}
 }
@@ -480,7 +480,7 @@ std::vector<int> HMBL<T>::surroundingsFromCurrBucket(int currentBucket, int rad,
 
 //Method that pipes to the SNR thread
 template <class T>
-void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
+void HMBL<T>::pipeInfo(Node<T>* selectedNode, int x, int y, int rad, int lastBuck){
 	std::vector<int> impSurr;
 	std::vector<int> newSurr = HMBL_HELPER::surroundings(x, y, rad, mapwidth, mapheight, columns, rows);
 
@@ -506,7 +506,8 @@ void HMBL<T>::pipeInfo(int x, int y, int rad, int lastBuck){
 
 	s_SNRMessage *newSurrBuck = new s_SNRMessage;
 	newSurrBuck->newBucketList = impSurr;
-	//newSurrBuck->socket = ;
+	newSurrBuck->socket = selectedNode->sock;
+	newSurrBuck->euid = selectedNode->euid;
 	cout<<"HMBL trying to pipe to SNR"<<endl;
 	cout << newSurrBuck << endl;
 	if(newSurrBuck != NULL){

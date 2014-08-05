@@ -54,9 +54,15 @@ void *SendNewRelevant::spawn(void*  param_in){
                 // strip sender access token & such
 		BSONObj obj = cursor->next();
                 // send both client and message to the socket Class
-                
-		// append the reciever 
-
+		int euid = piped.euid;                
+		// append the reciever
+		// {....receiver: { euid: 123431}}
+		 BSONObj recieverEuid = BSON("euid"<<euid);
+		 BSONObjBuilder builder;
+		 builder.appendElements(obj);
+		 builder.append("reciever",(recieverEuid));
+		 obj = builder.obj();
+	
                 socket.send(obj,&piped.socket);
 		DEBUG("Sent Object");
             }
