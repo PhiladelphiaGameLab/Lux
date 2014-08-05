@@ -81,6 +81,8 @@ void *BattleGround::spawn(void* param){
 		
 	    		//Strip message header
 	    		BSONElement strippedObjectMessage = message["object"];
+
+			//BSONObj receiverEUID = BSON("receiver"<<EUID);
 	   
 			// Building Stripped Message
 			DEBUG("Stripped token");
@@ -94,6 +96,8 @@ void *BattleGround::spawn(void* param){
 			DEBUG("Appending Time");
 			builder.append("tempid", tempid);
 			DEBUG("Appending Tempid");
+			//DEBUG("Appending reciever");
+			//builder.append("receiver",receiverEUID);
 	   	 	BSONObj completeMessage = builder.obj();
 			DEBUG("Finished Building Message");
 			// Adding Document to Db is none Exists
@@ -186,8 +190,6 @@ void *BattleGround::spawn(void* param){
 		//	}
 		
 
-			 BSONObj testobj = BSON("bucketID" << std::to_string(bucket_id)  << "tempid" << "0" <<"radius" <<radius <<"EUID"<<EUID<<"Location"<<BSON("x"<<locationX<<"y"<<locationY<<"z"<<0)<<"object"<< strippedObjectMessage);
-	
 	    		DEBUG("Updating document bucket...");	
 		//	c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << BSON("bucketID" << std::to_string(bucket_id) << "tempid" << 0))); // << "$set" << "tempid" << "null"));
 			c.update(DATABASE_NAME,QUERY("_id" << OID(id)), BSON("$set" << completeMessage));

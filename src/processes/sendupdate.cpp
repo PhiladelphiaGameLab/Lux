@@ -63,13 +63,27 @@ void *SendUpdate::spawn(void*  param_in) {
 						DEBUG("(*client) is" << (*client));
 						//DEBUG("(*client)->sock is " << ((*client)->sock).sin_port);
 						//DEBUG("Client Recieved with port address and ip" << inet_ntoa(((*client)->sock).sin_addr) << " : " << ntohs(((*client)->sock).sin_port));     
-						
+						if(piped.message.isValid()){	
+							BSONObj obj;
+							DEBUG("Accessing EUID!");
+							int euid = 0;
+							if((&(*client)->euid) != NULL){
+								DEBUG("EUID is not NULL");
+								euid = *(&(*client)->euid);
+							}
+							DEBUG("EUID is " << euid);
+						 	BSONObj recieverEuid = BSON("euid"<<euid);
+				                 	BSONObjBuilder builder;
+				                 	builder.appendElements(piped.message);
+				                 	builder.append("reciever",(recieverEuid));
+				                 	obj = builder.obj();
+	
 
-						// append the reciever field .....reciever: 132131}
-
-						socket.send(piped.message, &((*client)->sock)); //&cli_addr);
-						//DEBUG("message sent is" << piped.message.toString());
-						DEBUG("Client Message sent to send socket");
+							// append the reciever field .....reciever: 132131}
+							socket.send(obj, &((*client)->sock)); //&cli_addr);
+							//DEBUG("message sent is" << piped.message.toString());
+							DEBUG("Client Message sent to send socket");
+						}
 					}else{
 						DEBUG("Client socket == null Empty");
 					}
