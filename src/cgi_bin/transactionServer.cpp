@@ -828,7 +828,7 @@ void getAccountInfo(const string &id) {
     if (accInfo.isEmpty()) {
 		error("Account doesn't exist");
     }
-    else if (!accInfo.hasField(ACC_TYPE_FIELD) {
+    else if (!accInfo.hasField(ACC_TYPE_FIELD)) {
     	error("Incorrect account type");
     } 
     int type = atoi(getFieldValue(accInfo, ACC_TYPE_FIELD).c_str());
