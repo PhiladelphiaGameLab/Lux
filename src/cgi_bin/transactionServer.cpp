@@ -54,7 +54,7 @@ const string db_ns("db.transaction");
 const string OBJ_ID("_id");
 
 // Account type
-const string ACC_TYPE_FILED("type");
+const string ACC_TYPE_FIELD("type");
 enum AccType{
     TYPE_ACCOUNT = 1,
     TYPE_SUB_ACCOUNT = 2,
@@ -98,7 +98,8 @@ const string TRANSACTION_ROOT("Transaction_Root");
 const string USER_ROOT("User_Root");
 const string GROUP_ROOT("Group_Root");
 const string GLOBAL_ROOT("Global_Root");
-const string CHILD_ARRAY_FILED("accounts");
+const string CHILD_ARRAY_FIELD("accounts");
+const string TRANSACTION_ID_FIELD("_id");
 
 // Account structure
 // e.g.
@@ -112,12 +113,12 @@ const string CHILD_ARRAY_FILED("accounts");
 //  }
 // the field name for account id
 const string ACC_ID_FIELD("_id"); 
-// filed name for username in account document
+// field name for username in account document
 const string USER_NAME_FIELD("name");
-// filed name for group account
+// field name for group account
 const string GROUP_ACC_ARRAY_FIELD("group");
 // sub account array in account
-const string SUB_ACC_ARRAY_FILED("sub_acc_array");
+const string SUB_ACC_ARRAY_FIELD("sub_acc_array");
 // transaction history array in account
 const string TRANSACTION_HISTORY("completed_array");
 
@@ -206,6 +207,7 @@ void getAsset();
 void getAccountInfo(const string &id);
 void getSubAccountInfo(const string &id, const string &subId);
 void getTransactionHistory(const string &id);
+void getTransactionDetail(const string &accId, const string &transId);
 
 void ensureAccountType(const BSONObj &acc, int accType);
 void ensureRelationship(const BSONObj &acc0, const BSONObj &acc1, int relation);
@@ -239,7 +241,7 @@ void getGroupRootInfo();
 void getGlobalRootInfo();
 
 
-// Helper function to get rid of "" of a filed value of string
+// Helper function to get rid of "" of a field value of string
 inline string getFieldValue(const BSONObj &obj, const string &field) {
     // get rid of "" surrounding a string
     // e.g. ""hello"" -> "hello"
@@ -441,6 +443,11 @@ int handleRequest() {
     else if (method.compare("getTransactionHistory") == 0) {
 	string id = environment->get("id0");
 	getTransactionHistory(id);
+    }
+    else if (method.compare("getTransactionDetail") == 0) {
+    string id = environment->get("id0");
+    string transId = environment->get("transId");
+	getTransactionDetail(id, transId);	
     }
     else if (method.compare("getAccountInfo") == 0) {
 	string id = environment->get("id0");
@@ -807,7 +814,7 @@ void updateItemArray(const string method, const string &accID,
 bool isGlobalAccount(const string &id) {
     BSONObj acc = conn->findOne(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
     
-    int type = atoi(getFieldValue(acc, ACC_TYPE_FILED).c_str());
+    int type = atoi(getFieldValue(acc, ACC_TYPE_FIELD).c_str());
     if (type == TYPE_GLOBAL_ACCOUNT) {
 	return true;
     }
@@ -817,27 +824,35 @@ bool isGlobalAccount(const string &id) {
 void getAccountInfo(const string &id) {
     BSONObjBuilder query;
     query.append(ACC_ID_FIELD, OID(id));
-    BSONObj accInfo = conn->findOne(db_ns, query.obj());
-    
+    BSONObj accInfo = conn->findOne(db_ns, query.obj());  
     if (accInfo.isEmpty()) {
-	error("Account doesn't exist");
+		error("Account doesn't exist");
+    }
+    else if (!accInfo.hasField(ACC_TYPE_FIELD) {
+    	error("Incorrect account type");
+    } 
+    int type = atoi(getFieldValue(accInfo, ACC_TYPE_FIELD).c_str());
+    if (type == TYPE_GLOBAL_ACCOUNT || type == TYPE_ACCOUNT ||
+    	type == TYPE_GROUP_ACCOUNT) {
+		sendJson(accInfo.jsonString());
     }
     else {
-	sendJson(accInfo.jsonString());
+		error("Incorrect account type");
     }
 }
+
 
 void getSubAccountInfo(const string &id, const string &subId) {    
     BSONObj subInfo = conn->findOne(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
     
-    int type = atoi(getFieldValue(subInfo, ACC_TYPE_FILED).c_str());
+    int type = atoi(getFieldValue(subInfo, ACC_TYPE_FIELD).c_str());
     if (type == TYPE_SUB_ACCOUNT) {
-	string pId = getFieldValue(subInfo, SUB_PARENT_FIELD);
-	if (pId.compare(id) != 0) {
-	    error("Sub account doesn't belong to account.");
-	}
-	sendJson(subInfo.jsonString());
-	return;
+		string pId = getFieldValue(subInfo, SUB_PARENT_FIELD);
+		if (pId.compare(id) != 0) {
+	    	error("Sub account doesn't belong to account.");
+		}
+		sendJson(subInfo.jsonString());
+		return;
     }
     error("Sub account doesn't exist.");
 }
@@ -856,8 +871,23 @@ void getTransactionHistory(const string &id) {
     sendJson(result);
 }
 
+void getTransactionDetail(const string &accId, const string &transId) {
+	BSONObj transInfo = conn->findOne(db_ns, QUERY(TRANSACTION_ID_FIELD << OID(transId)));
+	if (transInfo.isEmpty()) {
+		error("Transaction doesn't exist");
+		return;
+    }
+	string id0 = getFieldValue(transInfo, PLAYER0);
+	if (accId.compare(id0) != 0) {
+	    error("Incorrect account ID.");
+	    return;
+	}
+	sendJson(transInfo.jsonString());
+	return;
+}
+
 void ensureAccountType(const BSONObj &acc, int accType) {
-    int type = atoi(getFieldValue(acc, ACC_TYPE_FILED).c_str());
+    int type = atoi(getFieldValue(acc, ACC_TYPE_FIELD).c_str());
     if ((type & accType) == 0) {
 	error("Account type error.");
     }
@@ -872,7 +902,7 @@ void ensureRelationship(const BSONObj &acc0, const BSONObj &acc1, int relation) 
 	    if (id0.compare(getFieldValue(acc1, SUB_PARENT_FIELD)) != 0) {
 		error("Sub account doesn't belong to account.");
 	    }
-	    vector<BSONElement> subArray = acc0[SUB_ACC_ARRAY_FILED].Array();
+	    vector<BSONElement> subArray = acc0[SUB_ACC_ARRAY_FIELD].Array();
 	    if (!findStringInArray(subArray, id1)) {
 		error("Sub account doesn't belong to account.");
 	    }	    
@@ -946,8 +976,8 @@ void addAccount(const string &username) {
     BSONObjBuilder acc;
     acc.genOID();
     acc.append(USER_NAME_FIELD, username);
-    acc.append(ACC_TYPE_FILED, TYPE_ACCOUNT);
-    acc.append(SUB_ACC_ARRAY_FILED, EMPTY_JSON_ARRAY);
+    acc.append(ACC_TYPE_FIELD, TYPE_ACCOUNT);
+    acc.append(SUB_ACC_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     acc.append(GROUP_ACC_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
@@ -956,7 +986,7 @@ void addAccount(const string &username) {
     conn->insert(db_ns, obj);
     // add account oid into user root
     conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << USER_ROOT), 
-		    CHILD_ARRAY_FILED, oid);
+		    CHILD_ARRAY_FIELD, oid);
 
     BSONObjBuilder result;
     result.append("message", "Added account.");
@@ -971,7 +1001,7 @@ void removeAccount(const string &id) {
 	error("Account doesn't exist.");
     }
 
-    BSONElement subArray = accInfo[SUB_ACC_ARRAY_FILED];
+    BSONElement subArray = accInfo[SUB_ACC_ARRAY_FIELD];
     
     if (subArray.ok()) {
 	vector<BSONElement> elem = subArray.Array();
@@ -987,7 +1017,7 @@ void removeAccount(const string &id) {
     }
 
     conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << USER_ROOT),
-		    CHILD_ARRAY_FILED, id);
+		    CHILD_ARRAY_FIELD, id);
 
     conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
     
@@ -1001,8 +1031,8 @@ void addGlobalAccount(const string &name) {
     BSONObjBuilder acc;
     acc.genOID();
     acc.append(USER_NAME_FIELD, name);
-    acc.append(ACC_TYPE_FILED, TYPE_GLOBAL_ACCOUNT);
-    acc.append(SUB_ACC_ARRAY_FILED, EMPTY_JSON_ARRAY);
+    acc.append(ACC_TYPE_FIELD, TYPE_GLOBAL_ACCOUNT);
+    acc.append(SUB_ACC_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     acc.append(TRANSACTION_HISTORY, EMPTY_JSON_ARRAY);
     BSONObj obj = acc.obj();
     string oid(obj["_id"].OID().toString());
@@ -1010,7 +1040,7 @@ void addGlobalAccount(const string &name) {
     conn->insert(db_ns, obj);
     // add global account oid into global root
     conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << GLOBAL_ROOT), 
-		    CHILD_ARRAY_FILED, oid);
+		    CHILD_ARRAY_FIELD, oid);
 
     BSONObjBuilder result;
     result.append("message", "Added global account.");
@@ -1024,7 +1054,7 @@ void removeGlobalAccount(const string &id) {
 	error("Account doesn't exist.");
     }
 
-    BSONElement subArray = accInfo[SUB_ACC_ARRAY_FILED];
+    BSONElement subArray = accInfo[SUB_ACC_ARRAY_FIELD];
     
     if (subArray.ok()) {
 	vector<BSONElement> elem = subArray.Array();
@@ -1040,7 +1070,7 @@ void removeGlobalAccount(const string &id) {
     }
 
     conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << GLOBAL_ROOT),
-		    CHILD_ARRAY_FILED, id);
+		    CHILD_ARRAY_FIELD, id);
 
     conn->remove(db_ns, QUERY(ACC_ID_FIELD << OID(id)));
     
@@ -1060,7 +1090,7 @@ void addSubAccount(const string &id) {
     // Create a sub account
     BSONObjBuilder sub;
     sub.genOID();    
-    sub.append(ACC_TYPE_FILED, TYPE_SUB_ACCOUNT);
+    sub.append(ACC_TYPE_FIELD, TYPE_SUB_ACCOUNT);
     sub.append(SUB_PARENT_FIELD, id);
     sub.append(ITEM_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     sub.append(PENDING_ARRAY, EMPTY_JSON_ARRAY);
@@ -1070,7 +1100,7 @@ void addSubAccount(const string &id) {
     // Insert subid into sub acc array
     string subId(obj["_id"].OID().toString());
 
-    conn->arrayPush(db_ns, BSON(ACC_ID_FIELD << OID(id)), SUB_ACC_ARRAY_FILED, subId);
+    conn->arrayPush(db_ns, BSON(ACC_ID_FIELD << OID(id)), SUB_ACC_ARRAY_FIELD, subId);
     
     BSONObjBuilder result;
     result.append("message", "Added sub account");
@@ -1092,7 +1122,7 @@ void removeSubAccount(const string &id, const string &subId) {
     conn->remove(db_ns, QUERY(SUB_ACC_ID_FIELD << OID(subId)));
     // remove from user's group array
     conn->arrayPull(db_ns, BSON(ACC_ID_FIELD << OID(id)),
-		    SUB_ACC_ARRAY_FILED, subId);
+		    SUB_ACC_ARRAY_FIELD, subId);
 
     BSONObjBuilder result;
     result.append("message", "Removed sub account");
@@ -1118,7 +1148,7 @@ void clearSubAccount(const string &subId) {
 void createGroup(const string &id) {
     BSONObjBuilder group;
     group.genOID();
-    group.append(ACC_TYPE_FILED, TYPE_GROUP_ACCOUNT);
+    group.append(ACC_TYPE_FIELD, TYPE_GROUP_ACCOUNT);
     group.append(ADMIN_ARRAY_FIELD, BSON_ARRAY("array" << id));
     group.append(MEMBER_ARRAY_FIELD, EMPTY_JSON_ARRAY);
 
@@ -1132,7 +1162,7 @@ void createGroup(const string &id) {
 
     // Insert group id into group root
     conn->arrayPush(db_ns, BSON(ROOT_TYPE_FIELD << GROUP_ROOT), 
-		    CHILD_ARRAY_FILED, gid);
+		    CHILD_ARRAY_FIELD, gid);
 
     BSONObjBuilder result;
     result.append("message", "Created group.");
@@ -1174,7 +1204,7 @@ void destroyGroup(const string &gid) {
 
     // remove group id from group root
     conn->arrayPull(db_ns, BSON(ROOT_TYPE_FIELD << GROUP_ROOT),
-		    CHILD_ARRAY_FILED, gid);
+		    CHILD_ARRAY_FIELD, gid);
     
     conn->remove(db_ns, QUERY(GROUP_ID_FIELD << OID(gid)));
 
@@ -1280,19 +1310,19 @@ void initTreeStruct(bool force) {
     BSONObjBuilder userRootBuilder;
     userRootBuilder.genOID();
     userRootBuilder.append(ROOT_TYPE_FIELD, USER_ROOT);
-    userRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);    
+    userRootBuilder.append(CHILD_ARRAY_FIELD, EMPTY_JSON_ARRAY);    
     BSONObj userRoot = userRootBuilder.obj();
     
     BSONObjBuilder groupRootBuilder;
     groupRootBuilder.genOID();
     groupRootBuilder.append(ROOT_TYPE_FIELD, GROUP_ROOT);
-    groupRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);    
+    groupRootBuilder.append(CHILD_ARRAY_FIELD, EMPTY_JSON_ARRAY);    
     BSONObj groupRoot = groupRootBuilder.obj();
     
     BSONObjBuilder globalRootBuilder;
     globalRootBuilder.genOID();
     globalRootBuilder.append(ROOT_TYPE_FIELD, GLOBAL_ROOT);
-    globalRootBuilder.append(CHILD_ARRAY_FILED, EMPTY_JSON_ARRAY);
+    globalRootBuilder.append(CHILD_ARRAY_FIELD, EMPTY_JSON_ARRAY);
     BSONObj globalRoot = globalRootBuilder.obj();
     
     BSONObjBuilder treeRootBuilder;
