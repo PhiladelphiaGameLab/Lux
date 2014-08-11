@@ -724,6 +724,7 @@ void addCompletedTransaction(const TransactionInfo &info, int flag) {
     query.append(ACC_ID_FIELD, OID(tmp.id0));
 
     BSONObjBuilder t;
+    t.genOID();
     t.append(PLAYER0, tmp.id0);
     t.append(PLAYER1, tmp.id1);
     t.append(SUBACC0, tmp.subId0);
@@ -731,8 +732,11 @@ void addCompletedTransaction(const TransactionInfo &info, int flag) {
     t.append(ITEMLIST0, fromjson(tmp.itemsId0));
     t.append(ITEMLIST1, fromjson(tmp.itemsId1));
     t.append(CREATE_TIME, getCurrentTime());
+    BSONObj obj = t.obj();
+    string oid(obj["_id"].OID().toString());
 
-    conn->arrayPush(db_ns, query.obj(), TRANSACTION_HISTORY, t.obj());
+    conn->insert(db_ns, obj);
+    conn->arrayPush(db_ns, query.obj(), TRANSACTION_HISTORY, oid);
 }
 
 // Reverse ids in info 
