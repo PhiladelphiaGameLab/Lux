@@ -1,8 +1,8 @@
 <?php
 // seems functionally complete
 include_once("lux-functions.php");
-//include_once("auth.php");
 include_once("output.php");
+include_once("db.php");
 
 class Db{
 
@@ -14,7 +14,7 @@ class Db{
 		if(class_exists("MongoClient")){
 			$MON = new MongoClient("mongodb://localhost/");
 		}else{
-			$OUTPUT->error("Lux is not Properly Set-up, can not find MongoClient");
+			$this->OUTPUT->error("Lux is not Properly Set-up, can not find MongoClient");
 		}
 		$this->db = $MON->Lux2;
 	}
@@ -42,7 +42,6 @@ class Db{
 }
 
 
-$DB = new Db();
 ?>
 
 

@@ -1,8 +1,9 @@
 <?php
 // This is also probably done
-require('../core/db.php');
-require('../core/output.php');
-require('../core/lux-functions.php');
+include_once("lux-functions.php");
+include_once("output.php");
+include_once("db.php");
+
 /*
 Params in:
 	$_POST = array(
@@ -77,3 +78,11 @@ function upsert($params){
 		$OUTPUT->error("User does not have permission to required group", $group);
 	}
 }
+
+//$params = array();
+//$params["collectionName"] = "Assets";
+//$params["doc"] = "this is a test";
+//$params["query"] = "test";
+
+//upsert($params);
+?>

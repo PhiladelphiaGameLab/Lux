@@ -1,5 +1,7 @@
 <?php
 include_once("output.php");
+include_once("db.php");
+include_once("output.php");
 
 // functionally working
 class LuxFunctions{
@@ -7,7 +9,7 @@ class LuxFunctions{
 	private $OUTPUT;
 	private $parameters;
 	private $docSet;
-	function __construct(){
+	function LuxFunctions(){
 		$this->OUTPUT = new Output();
 		$this->parameters = array();
 		$this->setArray();
@@ -88,6 +90,5 @@ class LuxFunctions{
 	}
 }
 
-$LuxFunctions = new LuxFunctions();
 
 ?>

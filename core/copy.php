@@ -1,19 +1,18 @@
 <?php
-
-require('auth.php');
-require('db.php');
-require('output.php');
+include_once("lux-functions.php");
+include_once("output.php");
+include_once("db.php");
 
 /*
 Params in:
 	$params = array(
 		updates
-		collection
+		collectionName
 		enQueue, put into a queue
 		R
 			newGroup
 			updates
-			collection
+			collectionName
 			enQueue
 			query
 			id
@@ -31,7 +30,7 @@ TODO:
 */
 function copyDocument($params){
 	$DB = new Db();
-	$collection = $DB->selectCollection($params["collection"]);
+	$collection = $DB->selectCollection($params["collectionName"]);
 	$OUTPUT = new Output();
 	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();

@@ -2,13 +2,13 @@
 include_once('../core/query.php');
 query(
         array(
-                "collectionName" => "Assets"
+                "collectionName" => "Users"
                 ,"enqueue" => false
-                ,"pubsub" => true
+                ,"pubsub" => false
 		,"aggregate" => false
 		,"distinct" => false
-                ,"priority" => "High"
-		,"resolve" => false
+                ,"priority" => "Low"
+		,"resolve" => true
         )
 );
 ?>

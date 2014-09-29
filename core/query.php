@@ -1,16 +1,19 @@
 <?php
-require('../core/Auth.php');
-require('../core/db.php');
-require('../core/output.php');
+include_once("lux-functions.php");
+include_once("output.php");
+include_once("db.php");
 
 /*
 Params in: 
 	$params = array(
-		collectionName: the name of the collection you would like to change
-		_id: id of the document you would like to aquire
-		or
-		query: the Query you would like to run
+		collectionName
+		distinct
+		aggregate
+		pubsub
+		enqueue
+		resolve
 	)
+
         
 Ouput: 
         Outputs an array of documents
@@ -30,11 +33,41 @@ TODO:
 	Use Grouping where availiable
 */
 function query($params){
+	$db = new Db();
+        $OUTPUT = new Output();
+        $coll = $db->selectCollection($params["collectionName"]);
+        $PubSub = $db->selectCollection("PubSub");
+	$AUTH = new Auth();
+	$LuxFunctions = new LuxFunctions();
+	if($LuxFunctions->is_avail("id")){
+		$query = array("_id" => new MongoID($LuxFunctions->fetch_avail("id")));
+		$result = $coll->findOne($query);
+	
+	}else if($LuxFunctions->is_avail("query")){
+		$query = $LuxFunctions->fetch_avail("query");
+		// change to is_avail	
+		if(isset($params["distinct"]) && $params["distinct"]){
+                	$result = $coll->distinct($query);
+	
+		}else if(isset($params["aggregate"]) && $params["aggregate"]){
+                	$result = $coll->aggregate($query);
+		}
+	}
+	
+	if(isset($params["pubsub"]) && $params["pubsub"] == true){
+		$check = $PubSub->findOne($query);
+	
+		if(isset($check)){
+			$PubSub->update(array("_id" => $check["id"]) , array('$addToSet' => array("subscribers" => array("clientId" => $AUTH->getClientId(), "subscribetime" => microtime()))));
+			$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
+		}else{
+			$newdoc = array("query" => $query, "subscribers" => array("clientId" => $AUTH->getClientId(), "subscribetime" => microtime()), "timestamp" => microtime(), "parent-sub" => null);
+			$PubSub->insert($newdoc);
+		}
+	}
 
-	if(isset($params["distinct"]) && $params["distinct"]){
-		// use distinct instead of find
-	}else if(isset($params["aggregate"]) && $params["aggregate"])){
-		// use aggregate instead of  find
+	if(isset($params["enqueue"]) && $params["enqueue"] == true){
+		 $db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $LuxFunctions->fetch_avail("doc", false), $params["priority"]);	
 	}
 	
 	if(isset($params["resolve"]) && $params["resolve"]){
@@ -44,29 +77,4 @@ function query($params){
 	
 }
 
-
-function query($params){
-	// open the neccisary functions
-	$db = new Db();	
-	$OUTPUT = new Output();
-	$coll = $db->selectCollection($params["collectionName"]);
-	$AUTH = new Auth();	
-	// switch based on if _id or Query is set
-	if(isset($params["_id"])){
-		// Query based on _id
-		// should pobably use findOne here
-		$cursor = $coll->find($params["_id"]);
-	}else if(isset($params["query"])){
-		// Query based on a Query that is passed in
-		$cursor = $coll->find($params["query"]);
-	}
-	
-	// Convert iterator to an array for output
-	$result = iterator_to_array($cursor);
-	// $output the iterator array
-	$OUTPUT->success("The Mongo query was successful",$result);
-	
-	// TODO:
-	// add to pub/sub for this user
-}
 ?>

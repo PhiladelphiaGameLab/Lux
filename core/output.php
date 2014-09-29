@@ -1,27 +1,37 @@
 <?php
 // Good enough for now
+include_once("lux-functions.php");
+include_once("output.php");
+include_once("db.php");
 
 class Output{
 	
-	private $array = array();	
+	private $array;	
+
+	function __construct(){
+		$this->array = array();
+	}	
 
 	function success(){
-		print_r(func_get_args());	
+		echo "<pre>";
+		echo json_encode(func_get_args());	
+		echo "\n\n</pre>";
 	}
 
 	function error(){
-		print_r(func_get_args());	
+		echo "<pre>";
+		echo json_encode(func_get_args());	
+		echo "\n\n</pre>";
 		die();
 	}
 
 	function addToPrintArray(){
-		array_push($array, func_get_args());
+		array_push($this->array, func_get_args());
 	}
 
 	function printArray(){
-		$this->success(json_encode($array));
+		$this->success($this->array);
 	}
 }
 
-$OUTPUT = new Output();
 ?>

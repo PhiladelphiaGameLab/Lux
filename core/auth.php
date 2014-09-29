@@ -10,40 +10,68 @@ class Auth{
 
 	function __construct(){
 		// test to make sure that access code is legit
-		$access_token = is_avail("access_token");
+		$LuxFunctions = new LuxFunctions();
+		$OUTPUT = new Output(); 
+		$access_token = $LuxFunctions->is_avail("access_token");
 		$DB = new db();
 		$clientInfo = $DB->selectCollection("ClientInfo");
-		$client_doc = $clientInfo->findOne(array("access_token" => $access_token));
-		if(!isset($client_doc)){
+		$this->client_doc = $clientInfo->findOne(array("access_token" => $access_token));
+		if(!isset($this->client_doc)){
 			$OUTPUT->error("Access Code is invalid or has Expired");
 		}
 	}
 	function getClientId(){
-		return $client_doc["_id"];
+		return $this->client_doc["_id"];
 	}
 	function getClientInfo(){
-		return $client_doc;
+		return $this->client_doc;
 	}
 	function getClientGroups(){
-		return $client_doc["groups"];
+		return $this->client_doc["groups"];
 	}
 }
 
-$AUTH = new Auth();
+class AuthLogin{
+
+	private $client_doc;
+	
+	function __construct($identifier){
+
+		$OUTPUT = new Output();
+		$DB = new db();
+		$clientInfo = $DB->selectCollection("ClientInfo");
+		
+		// find user by the identifier
+		// if the user is found
+		// return the users current access token if one exists
+		// otherwise, create a new access token and return that
+		// do other stuff
+	}
+
+
+}
+
+class OAuth{
+
+	static private $client_id;
+	static private $client_secret;
+	static private $redirect_url;
+	static private $grant_type;
+
+
+	static function getURL($service){
+		switch($service){
+			case "Google":
+				return "";
+		}
+	}
+
+	static function saveToDb(){
+		// do stuff to save the user to the database
+	}
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+}
 ?>
