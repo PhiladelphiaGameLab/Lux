@@ -15,7 +15,7 @@ class LuxFunctions{
 		$this->setArray();
 		$this->docSet = false;
 	}
-	function checkGroups($clientGroups, $documentGroup){
+	function checkGroups($documentGroup, $clientGroups){
 		return array_search($documentGroup, $clientGroups);
 		// check that the group permission includes "copyable"
 	}

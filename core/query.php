@@ -2,6 +2,7 @@
 include_once("lux-functions.php");
 include_once("output.php");
 include_once("db.php");
+include_once("auth.php");
 
 /*
 Params in: 
@@ -39,12 +40,14 @@ function query($params){
         $PubSub = $db->selectCollection("PubSub");
 	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
+	$LuxFunctions->setDocument($params);
 	if($LuxFunctions->is_avail("id")){
 		$query = array("_id" => new MongoID($LuxFunctions->fetch_avail("id")));
 		$result = $coll->findOne($query);
 	
 	}else if($LuxFunctions->is_avail("query")){
 		$query = $LuxFunctions->fetch_avail("query");
+		var_dump($query);
 		// change to is_avail	
 		if(isset($params["distinct"]) && $params["distinct"]){
                 	$result = $coll->distinct($query);
@@ -55,13 +58,15 @@ function query($params){
 	}
 	
 	if(isset($params["pubsub"]) && $params["pubsub"] == true){
-		$check = $PubSub->findOne($query);
-	
-		if(isset($check)){
-			$PubSub->update(array("_id" => $check["id"]) , array('$addToSet' => array("subscribers" => array("clientId" => $AUTH->getClientId(), "subscribetime" => microtime()))));
-			$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
+		$key = array_keys($query);
+		$value = array_values($query); 
+		$cursor = $PubSub->findOne(array("query.".$key[0] => $value[0]));		var_dump($cursor);
+		if(isset($cursor)){
+			$PubSub->update(array("_id" => $cursor["_id"]) , array('$addToSet' => array("subscribers.clientId" => $AUTH->getClientId())));
+			//$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
 		}else{
-			$newdoc = array("query" => $query, "subscribers" => array("clientId" => $AUTH->getClientId(), "subscribetime" => microtime()), "timestamp" => microtime(), "parent-sub" => null);
+			echo"new doc!";
+			$newdoc = array("query" => $query, "subscribers" => array("clientId" => array($AUTH->getClientId())), "timestamp" => microtime(), "parent-sub" => null);
 			$PubSub->insert($newdoc);
 		}
 	}

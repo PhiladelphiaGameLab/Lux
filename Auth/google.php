@@ -15,7 +15,8 @@ if ( !isset($_GET['code'])) {
         $call = 'http://'. $_SERVER['HTTP_HOST'] . '/Auth/google.php';
         $scope = 'email%20profile%20https://www.googleapis.com/auth/admin.directory.user';
         $url = "https://accounts.google.com/o/oauth2/auth?state=$state&scope=$scope&redirect_uri=$call&response_type=code&client_id=$cli_id&approval_prompt=force&access_type=offline";
-      	echo $url;
+	echo "<div class='btn-group' style='padding-left:10px; padding-top:10px'><a href=$url class='btn btn-primary'>Log In With Google</a></div>";
+
 	if(isset($_GET['href'])){
 		$_SESSION['href'] = $_GET['href'];
 	}else{

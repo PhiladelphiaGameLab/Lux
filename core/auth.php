@@ -16,18 +16,21 @@ class Auth{
 		$DB = new db();
 		$clientInfo = $DB->selectCollection("ClientInfo");
 		$this->client_doc = $clientInfo->findOne(array("access_token" => $access_token));
-		if(!isset($this->client_doc)){
-			$OUTPUT->error("Access Code is invalid or has Expired");
-		}
+		//if(!isset($this->client_doc)){
+		//	$OUTPUT->error("Access Code is invalid or has Expired");
+		//}
 	}
 	function getClientId(){
-		return $this->client_doc["_id"];
+		return 105;
+		//return $this->client_doc["_id"];
 	}
 	function getClientInfo(){
-		return $this->client_doc;
+		return 1000;
+		//return $this->client_doc;
 	}
 	function getClientGroups(){
-		return $this->client_doc["groups"];
+		return array("0"=>"555", "1"=>"333", "2"=>"444");
+		//return $this->client_doc["groups"];
 	}
 }
 
