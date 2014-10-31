@@ -1,22 +1,50 @@
 <?php
 
 	include 'Transaction.php';
+	//include '/core/auth.php'; //When authorization class utilized
+
+	// $auth = new Auth();
+	// $euid = $auth->getClientId();
+	//Temporary auth bypass
+	$euid = NULL;
+	if(isset($_GET["acc_token"])) {
+		$euid = $_GET["acc_token"];
+	} else {
+		echo "Invalid acc_token";
+		return;
+	}
+
+	$dbName = "Lux";
+	$COLL_NAME = "transaction";
+	$MONGO_SERVER = "mongodb://54.88.133.189/api/"; //If connecting remotely
+	$TYPE_ACCOUNT = 1;
+	$TYPE_SUBACCOUNT = 2;
+	$TYPE_GLOBAL_ACCOUNT = 4;
+	$TYPE_GROUP_ACCOUNT = 8;
+	if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
+		$dbName = "LuxTest";
+	}
+	$m = new MongoClient();
+	$db = $m->selectDB($dbName);
+	$collection = $db->selectCollection($COLL_NAME);
 
 	if(!isset($_GET["method"])) {
 		echo "No method specified.";
 		return;
 	}
+
 	switch ($_GET["method"]) {
 
 		case "initTreeStruct":
-			if(isset($_GET["force"]) && strcmp($_GET["force"], "true") == 0) {
-				initTreeStruct(true);
+			if (NULL == $collection->findOne() || forceInit()) {
+				initTreeStruct();
 			} else {
-				initTreeStruct(false);
+				echo "Collection not reinitialized. Enter query 
+					'force=true' to override.";
 			}
 			break;
 		case "transaction":
-			transaction();
+			requestTransaction();
 			break;
 		case "addAccount":
 			addAccount();
@@ -88,33 +116,93 @@
 			echo "Requested method does not exist.";
 	}
 
-	function initTreeStruct($force) {
-		if($force) {
-			echo "force";
+	/**
+	 * TODO: Sets up hierarchical account branches
+	 */
+	function initTreeStruct() {
+		echo "init";
+	}
+
+	/**
+	 * Checks if query string includes override to remove
+	 * existing records and reinitialze hierarchical 
+	 * account branches.
+	 */
+	function forceInit() {
+		return isset($_GET["force"]) && 
+			strcmp($_GET["force"], "true") == 0;
+	}
+
+	function requestTransaction() {
+		$query = createTransactionQuery($euid);
+		printQuery($query);
+	}
+
+	function isGlobalAccount($id) {
+		$globalRoot = getGlobalRootInfo();
+		return /*$globalRoot members contains $id*/;
+	}
+
+	function searchPending($transaction) {
+		return /*pending exists*/;
+	}
+
+	/**
+	 * Adds account record for given $euid if one doesn't 
+	 * already exist.
+	 */
+	function addAccount() {
+		global $euid, $collection, $TYPE_ACCOUNT, $TYPE_GLOBAL_ACCOUNT;
+		$query = array("euid" => $euid);
+		if (NULL == $collection->findOne($query)) {
+			$account = array("euid" => $euid, "type" => $TYPE_ACCOUNT,
+				"subaccounts" => array(), "groups" => array(), 
+				"transactions" => array());
+			$collection->insert($account);
+			echo "addAccount: success";
 		} else {
-			echo "don't force";
+			echo "addAccount: failure (Account already exists)";
 		}
 	}
 
-	function transaction() {
-		$trans = Transaction::constructFromQuery();
-		$trans->printDetails();
-	}
-
-	function addAccount() {
-
-	}
-
+	/**
+	 * Removes account record for given $euid if it exists.
+	 */
 	function removeAccount() {
-		
+		global $euid, $collection;
+		$query = array("euid" => $euid);
+		if (NULL != $collection->findOne($query)) {
+			$collection->remove($query);
+			echo "removeAccount: success";
+		} else {
+			echo "removeAccount: failure (Could not find account)";
+		}	
 	}
 
+	/**
+	 * Adds a new subaccount for the account with the given $euid.
+	 * It creates a subaccount record and adds its _id to the account's
+	 * subaccount array.
+	 */
 	function addSubaccount() {
-		
+		global $euid, $collection, $TYPE_SUBACCOUNT;
+		$query = array("euid" => $euid);
+		if (NULL != $collection->findOne($query)) {
+			$subaccount = array("type" => $TYPE_SUBACCOUNT, "parent" => $euid,
+				"items" => array(), "pending" => array());
+			$collection->insert($subaccount);
+			$collection->update($query, 
+ 				array('$push' => array("subaccounts" => $subaccount['_id']))
+			);
+			echo "addSubaccount: success";
+		} else {
+			echo "addSubaccount: failure (Could not find account)";
+		}
 	}
 
 	function removeSubaccount() {
-		
+		//uses pull function to remove _id from subaccount array, and
+		//remove function to remoe subaccount record
 	}
 
 	function createGroup() {
