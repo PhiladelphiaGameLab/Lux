@@ -1,138 +1,92 @@
 <?php
 
 	/**
-     * Defines the details of a request for a transaction.
-     * The request comes from the party with id0 for a
-     * transaction with party id1.
+	 * Creates a query array from request query string.
 	 */
-	class Transaction {
-		private $id0;
-		private $id1;
-		private $subId0;
-		private $subId1;
-		private $itemsId0;
-		private $itemsId1;
-
-		/**
-		 * Constructs Transaction from request query string.
-		 */
-		public static function constructFromQuery() {
-			$instance = new self();
-			if(!Transaction::completeQueryString()) {			
-				return;
-			}
-			$instance->id0 = $_GET["id0"];
-			$instance->id1 = $_GET["id1"];
-			$instance->subId0 = $_GET["subId0"];
-			$instance->subId1 = $_GET["subId1"];
-			$instance->itemsId0 = $_GET["itemsId0"];
-			$instance->itemsId1 = $_GET["itemsId1"];
-			return $instance;
+	function createTransactionQuery($euid) {
+		$query_str = $_SERVER['QUERY_STRING'];
+		parse_str($query_str, $query);
+		$query["id0"] = $euid;
+		if(!completeQueryString($query)) {
+			echo "Incomplete transaction details. Query string
+			must include id0, id1, subId0, subId1, itemsId0, 
+			and itemsId1.";
+			return NULL;
 		}
+		return $query;
+	}
 
-		/**
-		 * Constructs Transaction from given array parameter.
-		 */
-		public static function constructFromArray($data) {
-			$instance = new self();
-			$instance->id0 = $data["id0"];
-			$instance->id1 = $data["id1"];
-			$instance->subId0 = $data["subId0"];
-			$instance->subId1 = $data["subId1"];
-			$instance->itemsId0 = $data["itemsId0"];
-			$instance->itemsId1 = $data["itemsId1"];
-			return $instance;
+	/**
+	 * Returns whether the given array contains all required
+	 * information: id0, id1, subId0, subId1, itemsId0, and itemsId1.
+	 */
+	function completeQueryString($query) {
+		$complete = !empty($query["id0"]) && !empty($query["id1"]) &&
+					!empty($query["subId0"]) && !empty($query["subId1"]) &&
+					!empty($query["itemsId0"]) && !empty($query["itemsId1"]);
+		if(!$complete) {
+			echo "Incomplete transaction details. Query string
+			must include id0, id1, subId0, subId1, itemsId0, 
+			and itemsId1.";
 		}
+		return $complete;
+	}
 
-		/**
-		 * Returns whether the http query string contains all required
-		 * information: id0, id1, subId0, subId1, itemsId0, and itemsId1.
-		 */
-		private static function completeQueryString() {
-			$complete = isset($_GET["method"]) && isset($_GET["id0"]) && 
-				isset($_GET["id1"]) && isset($_GET["subId0"]) && 
-				isset($_GET["subId1"]) && isset($_GET["itemsId0"]) && 
-				isset($_GET["itemsId1"]);
-			if(!$complete) {
-				echo "Incomplete transaction details. Query string
-				must include id0, id1, subId0, subId1, itemsId0, 
-				and itemsId1.";
-			}
-			return $complete;
-		}
+	/**
+	 * Compares two transaction queries. The fields should be mirrored,
+	 * so id0 of $query0 should correspond to id1 of $query1.
+	 */
+	function compareTransactions($query0, $query1) {
+		return strcmp($query0["id0"], $query1["id1"]) == 0 &&
+			strcmp($query0["id1"], $query1["id0"]) == 0 &&
+			strcmp($query0["subId0"], $query1["subId1"]) == 0 &&
+			strcmp($query0["subId1"], $query1["subId0"]) == 0 &&
+			compareItemArrays($query0["itemsId0"], $query1["itemsId1"]) &&
+			compareItemArrays($query0["itemsId1"], $query1["itemsId0"]);		
+	}
 
-		/**
-		 * Compares two transactions. The fields should be mirrored,
-		 * so $id0 of $trans0 should correspond to $id1 of $trans1.
-		 */
-		public static function compare($trans0, $trans1) {
-			return strcmp($trans0->id0, $trans1->id1) == 0 &&
-				strcmp($trans0->id1, $trans1->id0) == 0 &&
-				strcmp($trans0->subId0, $trans1->subId1) == 0 &&
-				strcmp($trans0->subId1, $trans1->subId0) == 0 &&
-				count($trans0->itemsId0) ==  count($trans1->itemsId1) &&
-				count($trans0->itemsId1) ==  count($trans1->itemsId0) &&
-				Transaction::compareItemArrays($trans0->itemsId0, $trans1->itemsId1) &&
-				Transaction::compareItemArrays($trans0->itemsId1, $trans1->itemsId0);		
-		}
+	/**
+	 * Returns whether two arrays of items are identical.
+	 */
+	function compareItemArrays($items0, $items1) {
+		return empty(array_diff($items0, $items1)) &&
+			empty(array_diff($items1, $items0));
+	}
 
-		/**
-		 * Returns whether two arrays of items are identical.
-		 */
-		private static function compareItemArrays($items0, $items1) {
-			sort($items0);
-			sort($items1);
-			$count = count($items0);
-			for($i = 0; $i < $count; $i++) {
-				if(strcmp($items0[$i], $items1[$i]) != 0) {
-					return false;
-				}
-			}	
-			return true;
-		}
 
-		/*
-		 * Returns the array of transaction details.
-		 */
-		public function getDetails() {
+	/**
+	 * Yields the id, subaccount id, and items for the given party.
+	 * Parameter 0 for id0 and 1 for id1.  
+	 */
+	function getPartyDetails($query, $party) {
+		if($party) {
 			return array(
-				"id0" => $this->id0,
-				"id1" => $this->id1,
-				"subId0" => $this->subId0,
-				"subId1" => $this->subId1,
-				"itemsId0" => $this->itemsId0,
-				"itemsId1" => $this->itemsId1);
+				"id" => $query["id1"],
+				"sub" => $query["subId1"],
+				"items" => $query["itemsId1"]);
+		} else {
+			return array(
+				"id" => $query["id0"],
+				"sub" => $query["subId0"],
+				"items" => $query["itemsId0"]);
 		}
+	}	
 
-		/**
-		 * Yields the id, subaccount id, and items for the given party.
-		 * Parameter 0 for id0 and 1 for id1.  
-		 */
-		public function getPartyDetails($party) {
-			if($party) {
-				return array(
-					"id" => $this->id1,
-					"sub" => $this->subId1,
-					"items" => $this->itemsId1);
-			} else {
-				return array(
-					"id" => $this->id0,
-					"sub" => $this->subId0,
-					"items" => $this->itemsId0);
-			}
-		}	
-
-		/**
-		 * Prints the transaction details.
-		 */
-		public function printDetails() {
-			echo "<br>id0: " . $this->id0 . "<br>id1: " . 
-			$this->id1 . "<br>subId0: " . $this->subId0 . 
-			"<br>subId1: " . $this->subId1 . "<br>itemsId0: " . 
-			json_encode($this->itemsId0) . "<br>itemsId1: " . 
-			json_encode($this->itemsId1);
+	/**
+	 * Printing for testing
+	 */
+	function printQuery($query) {
+		foreach ($query as $key => $value) {
+   			if(is_array($value)) {
+   				echo $key . ": ";
+   				for($i = 0; $i < count($value) - 1; $i++) {
+  					echo $value[$i]. ", ";
+  				}
+  				echo $value[count($value) - 1]. "<br>";
+    		} else {
+        		 echo $key . ": " . $value . "<br>";
+    		}
 		}
-
 	}
 
 ?>
