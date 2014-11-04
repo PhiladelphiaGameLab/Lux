@@ -33,7 +33,7 @@ If a criteria is satisfied, its specified function is called and passed the foll
 2. The entire criteria object that was triggered. This is useful in cases where a certain function is called upon several different criteria being satisfied to determine which criteria the function was called from. It is also important for Achievements, which is a particular form of criteria and function calls.
 3. The entire upsert object.
 
-It is up to the user to implement these functions, which they should do in `custom_functions_and_criteria.php`.
+It is up to the user to implement these functions, which they should do in `custom_functions_and_criteria.php`. If an upsert modifies multiple files that satisfy the criteria, the function is called for each of these files.
 
 ### Testing
 
