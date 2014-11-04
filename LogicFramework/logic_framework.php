@@ -1,6 +1,6 @@
 <?php
 
-set_include_path('/Users/alexcannon/Sites/');
+set_include_path(getcwd());
 include_once('ArrayQuery/src/ArrayQuery.class.php');
 include_once('custom_functions_and_criteria.php');
 

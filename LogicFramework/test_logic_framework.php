@@ -1,6 +1,6 @@
 <?php
 
-set_include_path('/Users/alexcannon/Sites');
+set_include_path(getcwd());
 include_once('logic_framework.php');
 
 /*
@@ -18,7 +18,6 @@ function getUpserts() {
                             // TODO: Create upserts for tripping
                             // other criteria here
                 );    
-
    return $upserts;
 }
 
