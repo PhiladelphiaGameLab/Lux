@@ -37,4 +37,8 @@ It is up to the user to implement these functions, which they should do in `cust
 
 ### Testing
 
-A test script is included for testing the Logic Framework. In it, test cases are specified as upsert documents that are then passed through the pre-processing layer. Different criteria should also be implemented to cover as many different cases as possible.
+A test script is included for testing the Logic Framework. In it, test cases are specified as upsert documents that are then passed through the pre-processing layer. Different criteria should also be implemented to cover as many different cases as possible. The `mongoimport` command line utility can be used to load the included `zips.json` file into a MongoDB that can be used for testing:
+
+```
+mongoimport --db scratch --collection zips --file zips.json
+```
