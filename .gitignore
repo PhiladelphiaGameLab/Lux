@@ -24,3 +24,5 @@
 *.exe
 *.out
 *.app
+
+*.swp
