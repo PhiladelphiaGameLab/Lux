@@ -21,6 +21,16 @@ function doesMatchQuery($document, $query) {
 }
 
 /*
+ * Functionally equivalent to doesMatchQuery but uses an actual MongoDB
+ * Instead of the ArrayQuery class that implements MongoDB-like queries on
+ * single documents. Used as a point of comparison to see if the performance
+ * costs of inserting into a DB warrant relying on the little-tested ArrayQuery
+ * class.
+ */
+function doesMatchQueryWithDatabase($document, $query, $collection) {
+    
+}
+/*
  *
  * @param [in] functions	an array of functions, each function corresponding
  * 							to a criteria, to be executed when that criteria
