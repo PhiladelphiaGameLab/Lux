@@ -4,7 +4,7 @@
 </form>
 
 <?php
-$target_dir = "uploads/";
+$target_dir = "/Users/alexcannon/Sites/Lux/FileUpload/uploads/";
 $target_dir = $target_dir . basename( $_FILES["uploadFile"]["name"]);
 $uploadOk=1;
 
@@ -22,7 +22,8 @@ if ($uploadOk == 0) {
     if (move_uploaded_file($_FILES["uploadFile"]["tmp_name"], $target_dir)) {
         echo "The file ". basename( $_FILES["uploadFile"]["name"]). " has been uploaded.";
     } else {
-        echo "Sorry, there was an error uploading your file.";
+        echo "Sorry, there was an error uploading your file: ". basename( $_FILES["uploadFile"]["name"]). ".";
+        echo "Error: ". $_FILES["uploadFile"]["error"];
     }
 }
 ?>
