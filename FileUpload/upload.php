@@ -4,12 +4,44 @@
 </form>
 
 <?php
-$target_dir = "/Users/alexcannon/Sites/Lux/FileUpload/uploads/";
-$target_dir = $target_dir . basename( $_FILES["uploadFile"]["name"]);
+
+/*
+ * Returns the name of the base directory in which a file with the
+ * given file type should be stored.
+ *
+ * @param   file_type the type of the file, a string
+ * @returns 'images', 'video', 'audio', 'text', or 'etc'
+ */
+function get_target_dir_for_file_type($file_type) {
+    $regex_filetype_patterns = array(
+                                'images/' => '/^image/',
+                                'video/' => '/^video/',
+                                'audio/' => '/^audio/',
+                                'text/' => '/^text/'
+                            );
+
+    foreach( $regex_filetype_patterns as $dir => $regex ) {
+        if (preg_match($regex, $file_type)) {
+            return $dir;
+        }
+    }
+    return 'etc/';
+}
+
+$base_upload_dir = "/Users/alexcannon/Sites/Lux/FileUpload/uploads/";
+$target_dir = $base_upload_dir . get_target_dir_for_file_type($_FILES["uploadFile"]["type"]);
+$target_path = $target_dir . basename( $_FILES["uploadFile"]["name"]);
+
+echo "Target path: " . $target_path;
+// Create target dir if needed
+if (!file_exists($target_dir)) {
+    mkdir($target_dir, 0777, true);
+}
+
 $uploadOk=1;
 
 // Check if file already exists
-if (file_exists($target_dir . $_FILES["uploadFile"]["name"])) {
+if (file_exists($target_path . $_FILES["uploadFile"]["name"])) {
     echo "Sorry, file already exists.";
     $uploadOk = 0;
 }
@@ -19,7 +51,7 @@ if ($uploadOk == 0) {
     echo "Sorry, your file was not uploaded.";
 // if everything is ok, try to upload file
 } else { 
-    if (move_uploaded_file($_FILES["uploadFile"]["tmp_name"], $target_dir)) {
+    if (move_uploaded_file($_FILES["uploadFile"]["tmp_name"], $target_path)) {
         echo "The file ". basename( $_FILES["uploadFile"]["name"]). " has been uploaded.";
     } else {
         echo "Sorry, there was an error uploading your file: ". basename( $_FILES["uploadFile"]["name"]). ".";
