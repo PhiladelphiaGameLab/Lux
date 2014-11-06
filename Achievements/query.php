@@ -5,10 +5,10 @@ query(
                 "collectionName" => "Achievements"
                 ,"enqueue" => false
                 ,"pubsub" => false
-		,"aggregate" => false
-		,"distinct" => false
+				,"aggregate" => false
+				,"distinct" => false
                 ,"priority" => "Low"
-		,"resolve" => true
+				,"resolve" => true
         )
 );
 ?>
