@@ -5,10 +5,10 @@ query(
                 "collectionName" => "Assets"
                 ,"enqueue" => false
                 ,"pubsub" => true
-				,"aggregate" => false
-				,"distinct" => false
+		,"aggregate" => false
+		,"distinct" => false
                 ,"priority" => "High"
-				,"resolve" => false
+		,"resolve" => false
         )
 );
 ?>

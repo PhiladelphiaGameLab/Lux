@@ -33,8 +33,20 @@ function upsert($params){
 	$OUTPUT = new Output();
 	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
+	$fields = null;	
+	// check if the document paramter is specified
+	// do upserting stuff:
+		
+	if($LuxFunctions->is_avail("doc")){
 		$LuxFunctions->setDocument($LuxFunctions->fetch_avail("doc"));
 	}
+	if($LuxFunctions->is_avail("id") || $LuxFunctions->is_avail("query")){
+		if(!$LuxFunctions->is_avail("doc")){
+			$options["remove"] = true;
+			$update = null;	
+		}else{
+			$options["upsert"] = true;
+			$update = $LuxFunctions->fetch_avail("doc");
 		}
 		// update based on _id or Query
 		if($LuxFunctions->is_avail("id")){
