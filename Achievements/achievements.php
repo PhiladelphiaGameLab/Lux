@@ -20,10 +20,10 @@ function giveAchievements(){
 	//check if user has that ach, getting user id from pramas and replacing it with userach2
 	
 	$userQry= array('_id' => 'userach2');
-	$chkUserAch = $collUserAch->find({$userQry);
+	$chkUserAch = $collUserAch->find($userQry);
 	
 	//Displaying result set for one user. not to be included just testing
-	foreach ($c as  $val) {
+	foreach ($chkUserAch as  $val) {
 	    var_dump($val);
 	}
 	/*Matching Required Qty with Acheieved Qty
