@@ -5,6 +5,7 @@
 </form>
 
 <?php
+include_once("../Core/db.php");
 
 /*
  * Returns the name of the base directory in which a file with the
@@ -65,12 +66,14 @@ if ($uploadOk == 0) {
     }
 }
 
-// TODO: Insert stuff into database
-// TODO: Instantiate database (via Core/db.php?)
-$timestamp = time();
-$uploaded_by = "John Doe"; // TODO: get current user from db, via Oauth?
-// $target_path
-// $file_type
+// TODO: get current user from db, via Oauth?
+$db = new Db();
+$uploads_collection = $db->selectCollection('uploads');
+$uploads_collection->insert(    array(  'timestamp' => time(),
+                                        'uploaded_by' => 'John Doe',
+                                        'file_path' => $target_path,
+                                        'mime_type' => $file_type,
+                                        'file_name' => basename( $_FILES['uploadFile']['name'] )));
 
-//TODO: Insert arbitrary input from HTML form?
+// TODO: Insert arbitrary input from HTML form?
 ?>
