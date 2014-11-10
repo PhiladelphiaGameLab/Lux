@@ -1,6 +1,7 @@
 <form action="upload.php" method="post" enctype="multipart/form-data">
   Please choose a file: <input type="file" name="uploadFile"><br>
   <input type="submit" value="Upload File">
+  <input type="checkbox" name="should_overwrite" value="yes">Overwrite file if it already exists?<br>
 </form>
 
 <?php
@@ -14,22 +15,23 @@
  */
 function get_target_dir_for_file_type($file_type) {
     $regex_filetype_patterns = array(
-                                'images/' => '/^image/',
-                                'video/' => '/^video/',
-                                'audio/' => '/^audio/',
-                                'text/' => '/^text/'
+                                'images' => '/^image/',
+                                'video' => '/^video/',
+                                'audio' => '/^audio/',
+                                'text' => '/^text/'
                             );
 
     foreach( $regex_filetype_patterns as $dir => $regex ) {
         if (preg_match($regex, $file_type)) {
-            return $dir;
+            return $dir . "/";
         }
     }
     return 'etc/';
 }
 
 $base_upload_dir = "/Users/alexcannon/Sites/Lux/FileUpload/uploads/";
-$target_dir = $base_upload_dir . get_target_dir_for_file_type($_FILES["uploadFile"]["type"]);
+$file_type = $_FILES["uploadFile"]["type"];
+$target_dir = $base_upload_dir . get_target_dir_for_file_type($file_type);
 $target_path = $target_dir . basename( $_FILES["uploadFile"]["name"]);
 
 echo "Target path: " . $target_path;
@@ -41,10 +43,14 @@ if (!file_exists($target_dir)) {
 $uploadOk=1;
 
 // Check if file already exists
-if (file_exists($target_path . $_FILES["uploadFile"]["name"])) {
-    echo "Sorry, file already exists.";
-    $uploadOk = 0;
+if (!isset($_POST['should_overwrite'])) {
+    echo "overwrite not set";
+    if (file_exists($target_path)) {
+        echo "Sorry, file already exists.";
+        $uploadOk = 0;
+    }
 }
+// TODO: Perform other checks? e.g. file size?
 
 // Check if $uploadOk is set to 0 by an error
 if ($uploadOk == 0) {
@@ -58,4 +64,13 @@ if ($uploadOk == 0) {
         echo "Error: ". $_FILES["uploadFile"]["error"];
     }
 }
+
+// TODO: Insert stuff into database
+// TODO: Instantiate database (via Core/db.php?)
+$timestamp = time();
+$uploaded_by = "John Doe"; // TODO: get current user from db, via Oauth?
+// $target_path
+// $file_type
+
+//TODO: Insert arbitrary input from HTML form?
 ?>
