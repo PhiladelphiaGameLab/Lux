@@ -1,53 +1,71 @@
-<?php 
-
-try{
-
-//Mongo Db conn and the required collections
-$conn = new MongoClient();
-$db = $conn->achievments;
-$collAch = $db->achievments; 
-$collUserAch = $db->user_achivements;
+<?php
 
 
-/*
-* Main funtion to be called by LF
-* Can be given Pramas as user_id,DB,Query,Upsert..
 
-*/
+echo "start" . "<br/>";
+echo "<br/>";
 
-function giveAchievements(){
+
+function grantAch($user_id,$ach_id){
+	//setting mongo obj
+	$m = new MongoClient();
+	$db = $m->ach;
+	$collAch = $db->ach;
+	$collUserAch = $db->user_ach;
+
+	//getting required user id form the logic framke work call pramas.
+	$user_id = 'userach1';
+
+	//this variable contains the ach id of the ach that is being assigned to the user
+	$ach_id ='ach1';
+
+	// query for specific usr
+	$userQuery = array('$and' => array(array('_id' => $user_id),array('ach.ach_id'=>$ach_id)));
+	$userQueryField = array('ach'=>array('$elemMatch' => array('ach_id'=>$ach_id)));
 	
-	//check if user has that ach, getting user id from pramas and replacing it with userach2
-	
-	$userQry= array('_id' => 'userach2');
-	$chkUserAch = $collUserAch->find($userQry);
-	
-	//Displaying result set for one user. not to be included just testing
-	foreach ($chkUserAch as  $val) {
-	    var_dump($val);
-	}
-	/*Matching Required Qty with Acheieved Qty
-		if RQ eqls AQ achievment is awarded
-	
-		//Check if award can be given multiple times
-	
-		//TO DO code	
-		
+	//getting user ach result
+	$ures = $collUserAch->find($userQuery,$userQueryField);
 
-		else RQ ++
+	//printing for testing code
+	printData($ures);
+
+	/*
+	
+	// Once this results set is done the next tasks are
+	// 1. Checking if the ach is Repetable (with ach_id its just an if stmt)
+	// 2. Checking the Quatity Acquired with that ach has reached the thresold (Max) value
+	//	2.1 if value reached assign the ach
+	//	2.2 if lesser increment the qty acq and update in DB
+	
+
+	// For the first time when the ach is targeted it is incremented and assigned to the user
+
 	*/
-	
 
-	
+
+
+
+
+	$m->close();
+}
+
+function printData($ures){
+	// print all data
+	foreach ($ures as $key ) {
+		echo "<br/>";
+		var_dump($key);
+
+		echo "<br/>" . $key['_id'];
+		echo "<br/>" . $key['ach'][0]['ach_id'];
+		
+	}
 }
 
 
-$conn->close();
-} 
-catch (MongoConnectionException $e) {
-  die('Error connecting to MongoDB server');
-} 
-catch (MongoException $e) {
-  die('Error: ' . $e->getMessage());
-}
+grantAch($user_id,$ach_id);
+
+
+
+echo "<br/>" . "done";
+
 ?>
