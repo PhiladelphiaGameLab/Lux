@@ -1,7 +1,8 @@
 <form action="upload.php" method="post" enctype="multipart/form-data">
   Please choose a file: <input type="file" name="uploadFile"><br>
   <input type="submit" value="Upload File">
-  <input type="checkbox" name="should_overwrite" value="yes">Overwrite file if it already exists?<br>
+  Rename file to (optional):<br>
+  <input type="text" name="new_name">
 </form>
 
 <?php
