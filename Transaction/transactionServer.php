@@ -1,35 +1,31 @@
 <?php
 
 	include 'Transaction.php';
-	//include '/core/auth.php'; //When authorization class utilized
+	include 'MockOutput.php';
+	include 'MockAuth.php';
+	//include '/core/output.php'; //When output implemented
+	//include '/core/auth.php'; //When authorization implemented
 
-	// $auth = new Auth();
-	// $euid = $auth->getClientId();
-	//Temporary auth bypass
-	$euid = NULL;
-	if(isset($_GET["acc_token"])) {
-		$euid = $_GET["acc_token"];
-	} else {
-		echo "Invalid acc_token";
-		return;
-	}
-
-	$dbName = "Lux";
-	$COLL_NAME = "transaction";
-	$MONGO_SERVER = "mongodb://54.88.133.189/api/"; //If connecting remotely
 	$TYPE_ACCOUNT = 1;
 	$TYPE_SUBACCOUNT = 2;
 	$TYPE_GLOBAL_ACCOUNT = 4;
 	$TYPE_GROUP_ACCOUNT = 8;
-	if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
-		$dbName = "LuxTest";
-	}
-	$m = new MongoClient();
-	$db = $m->selectDB($dbName);
-	$collection = $db->selectCollection($COLL_NAME);
+	$USER_ROOT = "user_root";
+	$GLOBAL_ROOT = "global_root";
+	$GROUP_ROOT = "group_root";
+	$TRANSACTION_ROOT = "tree_root";
+	$ROOT_TYPE = "root_type";
+	$output = new MockOutput();
+	$auth = new MockAuth();
+	$collection = findCollection();
+	$euid = $auth->getClientId();
 
+	if(NULL == $euid) {
+		$output->failure("Invalid acc_token");
+		return;
+	}
 	if(!isset($_GET["method"])) {
-		echo "No method specified.";
+		$output->failure("No method specified");
 		return;
 	}
 
@@ -39,8 +35,8 @@
 			if (NULL == $collection->findOne() || forceInit()) {
 				initTreeStruct();
 			} else {
-				echo "Collection not reinitialized. Enter query 
-					'force=true' to override.";
+				$output->failure("Collection not reinitialized. Enter query " . 
+					"'force=true' to override.");
 			}
 			break;
 		case "transaction":
@@ -113,14 +109,28 @@
 			get();
 			break;
 		default:
-			echo "Requested method does not exist.";
+			$output->failure("Requested method does not exist.");
 	}
 
 	/**
-	 * TODO: Sets up hierarchical account branches
+	 * Removes any existing documents and sets up hierarchical account branches: a tree root with 
+	 * references to the user, global, and group roots.
 	 */
 	function initTreeStruct() {
-		echo "init";
+		global $collection, $USER_ROOT, $GLOBAL_ROOT, $GROUP_ROOT, $TRANSACTION_ROOT, $ROOT_TYPE;
+		$collection->remove();
+		$users = array($ROOT_TYPE => $USER_ROOT, "accounts" => array());	
+		$globals = array($ROOT_TYPE => $GLOBAL_ROOT, "accounts" => array());	
+		$groups = array($ROOT_TYPE => $GROUP_ROOT, "accounts" => array());
+		$collection->insert($users);
+		$collection->insert($globals);
+		$collection->insert($groups);
+		$tree = array($ROOT_TYPE => $TRANSACTION_ROOT, 
+			$USER_ROOT => $users['_id']->{'$id'},
+			$GLOBAL_ROOT => $globals['_id']->{'$id'},
+			$GROUP_ROOT => $groups['_id']->{'$id'});
+		$collection->insert($tree);
+
 	}
 
 	/**
@@ -152,16 +162,16 @@
 	 * already exist.
 	 */
 	function addAccount() {
-		global $euid, $collection, $TYPE_ACCOUNT, $TYPE_GLOBAL_ACCOUNT;
+		global $euid, $collection, $output, $TYPE_ACCOUNT, $TYPE_GLOBAL_ACCOUNT;
 		$query = array("euid" => $euid);
 		if (NULL == $collection->findOne($query)) {
 			$account = array("euid" => $euid, "type" => $TYPE_ACCOUNT,
 				"subaccounts" => array(), "groups" => array(), 
 				"transactions" => array());
 			$collection->insert($account);
-			echo "addAccount: success";
+			$output->success("Added account");
 		} else {
-			echo "addAccount: failure (Account already exists)";
+			$output->failure("Account already exists");
 		}
 	}
 
@@ -169,13 +179,13 @@
 	 * Removes account record for given $euid if it exists.
 	 */
 	function removeAccount() {
-		global $euid, $collection;
+		global $euid, $collection, $output;
 		$query = array("euid" => $euid);
 		if (NULL != $collection->findOne($query)) {
 			$collection->remove($query);
-			echo "removeAccount: success";
+			$output->success("Removed account");
 		} else {
-			echo "removeAccount: failure (Could not find account)";
+			$output->failure("Could not find account");
 		}	
 	}
 
@@ -185,24 +195,43 @@
 	 * subaccount array.
 	 */
 	function addSubaccount() {
-		global $euid, $collection, $TYPE_SUBACCOUNT;
+		global $euid, $collection, $output, $TYPE_SUBACCOUNT;
 		$query = array("euid" => $euid);
 		if (NULL != $collection->findOne($query)) {
 			$subaccount = array("type" => $TYPE_SUBACCOUNT, "parent" => $euid,
 				"items" => array(), "pending" => array());
 			$collection->insert($subaccount);
 			$collection->update($query, 
- 				array('$push' => array("subaccounts" => $subaccount['_id']))
+ 				array('$push' => array("subaccounts" => $subaccount['_id']->{'$id'}))
 			);
-			echo "addSubaccount: success";
+			$output->success("Added subaccount");
 		} else {
-			echo "addSubaccount: failure (Could not find account)";
+			$output->failure("Could not find account");
 		}
 	}
 
+	/**
+	 * Removes the given subaccount record and its reference in the subaccounts
+	 * array of its parent account.
+	 */
 	function removeSubaccount() {
-		//uses pull function to remove _id from subaccount array, and
-		//remove function to remoe subaccount record
+		global $euid, $collection, $output, $TYPE_SUBACCOUNT;
+		if(!isset($_GET["subId0"])) {
+			$output->failure("No subaccount specified");
+			return;
+		}
+		$subId = $_GET["subId0"];
+		$queryEuid = array("euid" => $euid);
+		$querySubaccount = array("_id" => new MongoID($subId));
+		if (NULL == $collection->findOne($queryEuid)) {
+			$output->failure("Could not find account");
+		} elseif (NULL == $collection->findOne($querySubaccount)) {
+			$output->failure("Could not find subaccount");
+		} else {
+			$collection->update($queryEuid, array('$pull' => array("subaccounts" => $subId)));
+			$collection->remove($querySubaccount);
+			$output->success("Removed subaccount");
+		}
 	}
 
 	function createGroup() {
@@ -275,6 +304,23 @@
 
 	function get() {
 		
+	}
+
+	function setDbName() {
+		if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
+			return "LuxTest";
+		} else {
+			return "Lux";
+		}
+	}
+
+	function findCollection() {
+		$collName = "transaction";
+		$mongoServer = "mongodb://54.88.133.189/api/"; //If connecting remotely
+		$dbName = setDbName();
+		$m = new MongoClient();
+		$db = $m->selectDB($dbName);
+		return $db->selectCollection($collName);
 	}
 
 ?>
