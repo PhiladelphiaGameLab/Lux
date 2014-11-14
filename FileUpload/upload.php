@@ -32,10 +32,25 @@ function get_target_dir_for_file_type($file_type) {
     return 'etc/';
 }
 
+$db = new Db();
+$auth = new Auth();
+
+$uploads_collection = $db->selectCollection('uploads');
+$client_id = $auth->getClientId();
+
 $base_upload_dir = "/Users/alexcannon/Sites/Lux/FileUpload/uploads/";
 $file_type = $_FILES["upload_file"]["type"];
 $target_dir = $base_upload_dir . get_target_dir_for_file_type($file_type);
-$target_path = $target_dir . basename( $_FILES["upload_file"]["name"]);
+
+// TODO: Insert filename, filetype, directory_path, userid, timestamp into db 
+$insert_array = array(  'client_id' => $client_id,
+                        'location' => $target_dir,
+                        'file_type' => $file_type,
+                        'timestamp' => time()
+                    );
+
+$uploads_collection->insert($insert_array);
+$target_path = $target_dir . $insert_array['_id'] . pathinfo($_FILES["upload_file"]["name"], PATHINFO_EXTENSION);
 
 echo "Target path: " . $target_path;
 
