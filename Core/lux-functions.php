@@ -9,13 +9,15 @@ class LuxFunctions{
 	private $OUTPUT;
 	private $parameters;
 	private $docSet;
+
 	function LuxFunctions(){
 		$this->OUTPUT = new Output();
 		$this->parameters = array();
 		$this->setArray();
 		$this->docSet = false;
 	}
-	function checkGroups($clientGroups, $documentGroup){
+
+	function checkGroups($documentGroup, $clientGroups){
 		return array_search($documentGroup, $clientGroups);
 		// check that the group permission includes "copyable"
 	}
@@ -39,6 +41,7 @@ class LuxFunctions{
 			}
 		}
 	}
+
 	function setDocument($doc){
 		if(!$this->docSet){
 			$this->docSet = true;
@@ -49,6 +52,7 @@ class LuxFunctions{
 			}
 		}
 	}
+
 	function is_avail($var, $doc=""){
 		$this->setDocument($doc);
 		if(!isset($this->parameters[$var])){
@@ -57,6 +61,7 @@ class LuxFunctions{
 			return true;
 		}
 	}
+
 	function fetch_avail($var, $die=true, $doc=""){
 		$this->setDocument($doc);
 		if(!isset($this->parameters[$var])){
@@ -68,6 +73,7 @@ class LuxFunctions{
 		}
 		return $this->parameters[$var];
 	}
+
 	function is_get($var, $die=true){
 		if(!isset($_GET[$var])){
 			if($die){
@@ -78,6 +84,7 @@ class LuxFunctions{
 		}
 		return $_GET[$var];
 	}
+
 	function is_post($var, $die=true){
 		if(!isset($_POST[$var])){
 			if($die){
