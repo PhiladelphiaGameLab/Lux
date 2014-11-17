@@ -27,7 +27,7 @@ TODO:
 */
 
 function upsert($params){
-	$options = array("new" => true);
+	//-------Setup for Upsert--------//
 	$db = new Db();
 	$collection = $db->selectCollection($params["collectionName"]);	
 	$OUTPUT = new Output();
@@ -35,27 +35,36 @@ function upsert($params){
 	$LuxFunctions = new LuxFunctions();
 	$LuxFunctions->setDocument($params);
 	$fields = null;	
-	// check if the document paramter is specified
-	// do upserting stuff:
 	$hasPermission = true;
-	echo "ready?";
-	if($LuxFunctions->is_avail("doc")){
-		//$LuxFunctions->setDocument($LuxFunctions->fetch_avail("doc"));
-		$update = $LuxFunctions->fetch_avail("doc", false);
-		$query = $update;
-		var_dump($update);
+	if($LuxFunctions->is_avail("options")){
+		$options = $LuxFunctions->fetch_avail("options");
+		$options["new"] = true;
+	}else{
+		$options = array("new" => true);
 	}
+	//------------------------------//
+
+	/* Check 1: Establish existance of Update Document */
+	if($LuxFunctions->is_avail("doc")){ 
+		$update = $LuxFunctions->fetch_avail("doc", false);
+		$query = $update; 
+		//set query in case doc is only passed information
+	}
+	
+	/* Check 2: Establish existance of Document ID or Query */
 	if($LuxFunctions->is_avail("id") || $LuxFunctions->is_avail("query")){
-		if(!($LuxFunctions->is_avail("doc"))){
+		if(!($LuxFunctions->is_avail("doc"))){ //if doc doesn't exist, remove
 			$options["remove"] = true;
 			$options["new"] = false;
 			$update = null;	
-		}else{
+		}else{ //if not, upsert
 			$options["upsert"] = true;
 			$update = $LuxFunctions->fetch_avail("doc");
 		}
-		// update based on _id or Query
-		if($LuxFunctions->is_avail("id")){
+		
+		/* Check 3: Determine ID or Query for query focus */
+		if($LuxFunctions->is_avail("id")){ 
+			//id takes priority
 			$id = $LuxFunctions->fetch_avail("id");
 			$query = array("_id" => new MongoId($id));
 		}else if($LuxFunctions->is_avail("query")){
@@ -66,13 +75,19 @@ function upsert($params){
 				$query = array($tempquery);
 			}
 		}
+		
+		/* Check 4: Determine whether or not the user has permission */
 		$checkcursor = $collection->find($query);
+		$retquery = array('$or' => array()); //query used for queue
 		$hasPermission = true;
 		foreach($checkcursor as $value){
-			echo $value["group_id"];
+			$retquery['$or'][] = array("_id" => $value['_id']); //setup queue query
 			if(($LuxFunctions->checkGroups($value["group_id"], $AUTH->getClientGroups())) === false){
 				$hasPermission = false;
 			}
+		}
+		if(empty($retquery['$or'][0])){ //will only be true if there is a potential insert
+			$params["insert"] = true;
 		}
 	}else{
 		$options["upsert"] = true;
@@ -81,27 +96,34 @@ function upsert($params){
 		$hasPermissions = true;
 	}
 	if($hasPermission){
-		var_dump($query);
 		if(isset($options["remove"]) && $options["remove"] == true){
-			$result = $collection->remove($query);
+			$removed = $collection->find($query);
+			$result = $collection->remove(array("_id" => $removed["_id"]));
 		}else if(isset($params["insert"]) && $params["insert"] == true){
 			$result = $collection->insert($update);
 		}else{
-			$result = $collection->update($query, $update, $options);
+			$result = $collection->update($query, $update, $options); 
 		}
 		$OUTPUT->success("Successfully updated document", $result);
 		if(isset($params["enqueue"]) && $params["enqueue"]){
-			$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $LuxFunctions->fetch_avail("doc", false), $params["priority"]);
+			if(isset($options["remove"]) && $options["remove"] == true){ //add removed documents to the queue
+				foreach($checkcursor as $value){
+					$value["removed"] = true;
+					$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $value, $params["priority"]);
+				}
+			}else if(isset($params["insert"]) && $params["insert"] == true){ //add insert to the queue
+				$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $update, $params["priority"]);
+			}else{
+				$quecursor = $collection->find($retquery); 
+				foreach($quecursor as $value){ //add each augmented document to the queue
+					$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $value, $params["priority"]);
+				}
+			}
 		}
 	}else{
 		$OUTPUT->error("User does not have permission to required group", $AUTH->getClientGroups());
 	}
 }
 
-//$params = array();
-//$params["collectionName"] = "Assets";
-//$params["doc"] = "this is a test";
-//$params["query"] = "test";
 
-//upsert($params);
 ?>
