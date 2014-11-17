@@ -2,6 +2,7 @@
 include_once("lux-functions.php");
 include_once("output.php");
 include_once("db.php");
+include_once("auth.php");
 
 /*
 Params in:
@@ -34,6 +35,7 @@ function copyDocument($params){
 	$OUTPUT = new Output();
 	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
+	$LuxFunctions->setDocument($params);
 	if(isset($params["query"]) || isset($params["id"]) || $LuxFunctions->is_avail("id") || $LuxFunctions->is_avail("query")){
 		if($LuxFunctions->is_avail("id") || isset($params["id"])){
 			$id = isset($params["id"]) ? $params["id"] : $LuxFunctions->fetch_avail("id");
@@ -44,10 +46,14 @@ function copyDocument($params){
 		$cursor = $collection->find($query);
 		$printList = array();
 		foreach($cursor as $result){
-			$old_id = $results["_id"];
+			$old_id = $result["_id"];
 			$result["_id"] = new MongoId();
+			$newDocument = $result;
 			$collection->insert($result);
-			$newDocument = $collection->findAndModify(array("_id" => $results["_id"]), $params["updates"]); 
+			var_dump($params);
+			if(isset($params["updates"]) && !empty($params["updates"])){
+				$newDocument = $collection->update(array("_id" => $result["_id"]), $params["updates"]); 
+			}
 			if(isset($params["R"]) && $params["R"] != false){
 				$params2 = array();
 				foreach($params["R"] as $key => $value){

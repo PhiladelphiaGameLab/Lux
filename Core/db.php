@@ -16,7 +16,7 @@ class Db{
 		}else{
 			$this->OUTPUT->error("Lux is not Properly Set-up, can not find MongoClient");
 		}
-		$this->db = $MON->Lux2;
+		$this->db = $MON->selectDB("Lux2");
 	}
 
 	function selectCollection($collectionName){

@@ -3,10 +3,10 @@
 	/**
 	 * Creates a query array from request query string.
 	 */
-	function createTransactionQuery($euid) {
+	function createTransactionQuery($id) {
 		$query_str = $_SERVER['QUERY_STRING'];
 		parse_str($query_str, $query);
-		$query["id0"] = $euid;
+		$query["id0"] = $id;
 		if(!completeQueryString($query)) {
 			echo "Incomplete transaction details. Query string
 			must include id0, id1, subId0, subId1, itemsId0, 

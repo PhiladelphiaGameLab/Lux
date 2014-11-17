@@ -1,56 +1,67 @@
 <?php
 
 	include 'Transaction.php';
-	//include '/core/auth.php'; //When authorization class utilized
+	include 'MockOutput.php';
+	include 'MockAuth.php';
+	//include '/core/output.php'; //When output implemented
+	//include '/core/auth.php'; //When authorization implemented
 
-	// $auth = new Auth();
-	// $euid = $auth->getClientId();
-	//Temporary auth bypass
-	$euid = NULL;
-	if(isset($_GET["acc_token"])) {
-		$euid = $_GET["acc_token"];
-	} else {
-		echo "Invalid acc_token";
-		return;
-	}
-
-	$dbName = "Lux";
-	$COLL_NAME = "transaction";
-	$MONGO_SERVER = "mongodb://54.88.133.189/api/"; //If connecting remotely
-	$TYPE_ACCOUNT = 1;
+	$TYPE_USER_ACCOUNT = 1;
 	$TYPE_SUBACCOUNT = 2;
 	$TYPE_GLOBAL_ACCOUNT = 4;
 	$TYPE_GROUP_ACCOUNT = 8;
-	if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
-		$dbName = "LuxTest";
-	}
-	$m = new MongoClient();
-	$db = $m->selectDB($dbName);
-	$collection = $db->selectCollection($COLL_NAME);
+	$USER_ROOT = "user_root";
+	$GLOBAL_ROOT = "global_root";
+	$GROUP_ROOT = "group_root";
+	$TRANSACTION_ROOT = "tree_root";
+	$ROOT_TYPE = "root_type";
+	$output = new MockOutput();
+	$auth = new MockAuth();
+	$collection = findCollection();
+	$id = $auth->getClientId();
 
+	if(NULL == $id) {
+		$output->failure("Invalid acc_token");
+		return;
+	}
 	if(!isset($_GET["method"])) {
-		echo "No method specified.";
+		$output->failure("No method specified");
 		return;
 	}
 
-	switch ($_GET["method"]) {
+	$method = $_GET["method"];
+	if($method != "initTreeStruct" && !treeInitialized()) {
+		$output->failure("Tree not initialized");
+		return;
+	}
+
+	switch ($method) {
 
 		case "initTreeStruct":
-			if (NULL == $collection->findOne() || forceInit()) {
+			if(!$auth->isAdmin()) {
+				$output->failure("Init not authorized.");
+			}
+			elseif (NULL == $collection->findOne() || forceInit()) {
 				initTreeStruct();
 			} else {
-				echo "Collection not reinitialized. Enter query 
-					'force=true' to override.";
+				$output->failure("Collection not reinitialized. Enter query " . 
+					"'force=true' to override.");
 			}
 			break;
 		case "transaction":
 			requestTransaction();
 			break;
-		case "addAccount":
-			addAccount();
+		case "addUserAccount":
+			addUserAccount();
 			break;
-		case "removeAccount":
-			removeAccount();
+		case "removeUserAccount":
+			removeUserAccount();
+			break;
+		case "addGlobalAccount":
+			addGlobalAccount();
+			break;
+		case "removeGlobalAccount":
+			removeGlobalAccount();
 			break;
 		case "addSubaccount":
 			addSubaccount();
@@ -91,12 +102,6 @@
 		case "removeItemFromSubAccount":
 			removeItemFromSubAccount();
 			break;
-		case "addGlobalAccount":
-			addGlobalAccount();
-			break;
-		case "removeGlobalAccount":
-			removeGlobalAccount();
-			break;
 		case "getTreeRootInfo":
 			getTreeRootInfo();
 			break;
@@ -113,14 +118,29 @@
 			get();
 			break;
 		default:
-			echo "Requested method does not exist.";
+			$output->failure("Requested method does not exist.");
 	}
 
 	/**
-	 * TODO: Sets up hierarchical account branches
+	 * Removes any existing documents and sets up hierarchical account branches: a tree root with 
+	 * references to the user, global, and group roots.
 	 */
 	function initTreeStruct() {
-		echo "init";
+		global $collection, $USER_ROOT, $GLOBAL_ROOT, $GROUP_ROOT, 
+		$TRANSACTION_ROOT, $ROOT_TYPE, $output;
+		$collection->remove();
+		$users = array($ROOT_TYPE => $USER_ROOT, "accounts" => array());	
+		$globals = array($ROOT_TYPE => $GLOBAL_ROOT, "accounts" => array());	
+		$groups = array($ROOT_TYPE => $GROUP_ROOT, "accounts" => array());
+		$collection->insert($users);
+		$collection->insert($globals);
+		$collection->insert($groups);
+		$tree = array($ROOT_TYPE => $TRANSACTION_ROOT, 
+			$USER_ROOT => $users['_id']->{'$id'},
+			$GLOBAL_ROOT => $globals['_id']->{'$id'},
+			$GROUP_ROOT => $groups['_id']->{'$id'});
+		$collection->insert($tree);
+		$output->success("Transaction tree initialized.");
 	}
 
 	/**
@@ -133,76 +153,143 @@
 			strcmp($_GET["force"], "true") == 0;
 	}
 
-	function requestTransaction() {
-		$query = createTransactionQuery($euid);
+	//TODO----------------------------------------------------------------------------------------------------------------
+	function requestTransaction() { 
+		global $id;
+		$query = createTransactionQuery($id);
 		printQuery($query);
 	}
 
-	function isGlobalAccount($id) {
-		$globalRoot = getGlobalRootInfo();
-		return /*$globalRoot members contains $id*/;
+	/**
+	 * Returns whether the specified account is a global account.
+	 */
+	function isGlobalAccount($acct_id) {
+		global $collection, $TYPE_GLOBAL_ACCOUNT;
+		$query = array('_id' => new MongoID($acct_id));
+		$account = $collection->findOne($query);
+		return (NULL != $account && (int)$account["type"] == $TYPE_GLOBAL_ACCOUNT); 
 	}
 
+	//TODO----------------------------------------------------------------------------------------------------------------
 	function searchPending($transaction) {
 		return /*pending exists*/;
 	}
 
 	/**
-	 * Adds account record for given $euid if one doesn't 
-	 * already exist.
+	 * Creates a new account document of the given type for an authorized owner. 
 	 */
-	function addAccount() {
-		global $euid, $collection, $TYPE_ACCOUNT, $TYPE_GLOBAL_ACCOUNT;
-		$query = array("euid" => $euid);
+	function addAccountDocument($type, $root_name) {
+		global $id, $collection, $output;
+		$query = array("owner_id" => $id);
 		if (NULL == $collection->findOne($query)) {
-			$account = array("euid" => $euid, "type" => $TYPE_ACCOUNT,
+			$account = array("owner_id" => $id, "type" => $type,
 				"subaccounts" => array(), "groups" => array(), 
 				"transactions" => array());
 			$collection->insert($account);
-			echo "addAccount: success";
+			updateTreeRoot(true, $root_name, $account['_id']->{'$id'});
+			$output->success("Added account: " . $account['_id']);
 		} else {
-			echo "addAccount: failure (Account already exists)";
+			$output->failure("Account already exists");
 		}
 	}
 
 	/**
-	 * Removes account record for given $euid if it exists.
+	 * Adds user account record for given id if one doesn't 
+	 * already exist.
 	 */
-	function removeAccount() {
-		global $euid, $collection;
-		$query = array("euid" => $euid);
-		if (NULL != $collection->findOne($query)) {
-			$collection->remove($query);
-			echo "removeAccount: success";
+	function addUserAccount() {
+		global $TYPE_USER_ACCOUNT, $USER_ROOT;
+		addAccountDocument($TYPE_USER_ACCOUNT, $USER_ROOT);
+	}
+
+	/**
+	 * Adds global account record for given admin id if one doesn't 
+	 * already exist.
+	 */
+	function addGlobalAccount() {
+		global $auth, $TYPE_GLOBAL_ACCOUNT, $output, $GLOBAL_ROOT;
+		if($auth->isAdmin()) {
+			addAccountDocument($TYPE_GLOBAL_ACCOUNT, $GLOBAL_ROOT);
 		} else {
-			echo "removeAccount: failure (Could not find account)";
+			$output->failure("Global account creation not authorized.");
+		}
+	}
+
+	/**
+	 * Removes account record for given euid if it exists.
+	 */
+	function removeAccountDocument($type, $root_name) {
+		global $id, $collection, $output;
+		$query = array("owner_id" => $id);
+		$account = $collection->findOne($query);
+		if (NULL != $account && (int)$account["type"] == $type) {
+			updateTreeRoot(false, $root_name, $account['_id']->{'$id'});
+			$collection->remove($query);
+			$output->success("Removed account");
+		} else {
+			$output->failure("Could not find account");
 		}	
 	}
 
 	/**
-	 * Adds a new subaccount for the account with the given $euid.
+	 * Removes account for given user if it exists.
+	 */
+	function removeUserAccount() {
+		global $TYPE_USER_ACCOUNT, $USER_ROOT;
+		removeAccountDocument($TYPE_USER_ACCOUNT, $USER_ROOT);
+	}
+
+	/**
+	 * Removes given global account if it exists.
+	 */
+	function removeGlobalAccount() {
+		global $TYPE_GLOBAL_ACCOUNT, $GLOBAL_ROOT;
+		removeAccountDocument($TYPE_GLOBAL_ACCOUNT, $GLOBAL_ROOT);
+	}
+
+	/**
+	 * Adds a new subaccount for the account with the given euid.
 	 * It creates a subaccount record and adds its _id to the account's
 	 * subaccount array.
 	 */
 	function addSubaccount() {
-		global $euid, $collection, $TYPE_SUBACCOUNT;
-		$query = array("euid" => $euid);
+		global $id, $collection, $output, $TYPE_SUBACCOUNT;
+		$query = array("owner_id" => $id);
 		if (NULL != $collection->findOne($query)) {
-			$subaccount = array("type" => $TYPE_SUBACCOUNT, "parent" => $euid,
+			$subaccount = array("type" => $TYPE_SUBACCOUNT, "parent" => $id,
 				"items" => array(), "pending" => array());
 			$collection->insert($subaccount);
 			$collection->update($query, 
- 				array('$push' => array("subaccounts" => $subaccount['_id']))
+ 				array('$push' => array("subaccounts" => $subaccount['_id']->{'$id'}))
 			);
-			echo "addSubaccount: success";
+			$output->success("Added subaccount");
 		} else {
-			echo "addSubaccount: failure (Could not find account)";
+			$output->failure("Could not find account");
 		}
 	}
 
+	/**
+	 * Removes the given subaccount record and its reference in the subaccounts
+	 * array of its parent account.
+	 */
 	function removeSubaccount() {
-		//uses pull function to remove _id from subaccount array, and
-		//remove function to remoe subaccount record
+		global $id, $collection, $output, $TYPE_SUBACCOUNT;
+		if(!isset($_GET["subId0"])) {
+			$output->failure("No subaccount specified");
+			return;
+		}
+		$subId = $_GET["subId0"];
+		$queryId = array("owner_id" => $id);
+		$querySubaccount = array('_id' => new MongoID($subId));
+		if (NULL == $collection->findOne($queryId)) {
+			$output->failure("Could not find account");
+		} elseif (NULL == $collection->findOne($querySubaccount)) {
+			$output->failure("Could not find subaccount");
+		} else {
+			$collection->update($queryId, array('$pull' => array("subaccounts" => $subId)));
+			$collection->remove($querySubaccount);
+			$output->success("Removed subaccount");
+		}
 	}
 
 	function createGroup() {
@@ -249,14 +336,6 @@
 		
 	}
 
-	function addGlobalAccount() {
-		
-	}
-
-	function removeGlobalAccount() {
-
-	}
-
 	function getTreeRootInfo() {
 		
 	}
@@ -275,6 +354,43 @@
 
 	function get() {
 		
+	}
+
+	function updateTreeRoot($add, $root_name, $document) {
+		global $ROOT_TYPE, $collection;
+		$root_query = array($ROOT_TYPE => $root_name);
+		if($add) {	
+			$collection->update($root_query, 
+ 				array('$push' => array("accounts" => $document)));
+		} else {
+			$collection->update($root_query, 
+				array('$pull' => array("accounts" => $document)));
+		}
+	}
+
+	function setDbName() {
+		if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
+			return "LuxTest";
+		} else {
+			return "Lux";
+		}
+	}
+
+	function findCollection() {
+		$collName = "transaction";
+		$mongoServer = "mongodb://54.88.133.189/api/"; //If connecting remotely
+		$dbName = setDbName();
+		$m = new MongoClient();
+		$db = $m->selectDB($dbName);
+		return $db->selectCollection($collName);
+	}
+
+	function treeInitialized() {
+		global $collection, $ROOT_TYPE, $USER_ROOT, $GLOBAL_ROOT, $GROUP_ROOT ;
+		$user = $collection->findOne(array($ROOT_TYPE => $USER_ROOT));
+		$global = $collection->findOne(array($ROOT_TYPE => $GLOBAL_ROOT));
+		$group = $collection->findOne(array($ROOT_TYPE => $GROUP_ROOT));
+		return $user != NULL && $global != NULL && $group != NULL;
 	}
 
 ?>
