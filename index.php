@@ -5,5 +5,5 @@ echo "Hello php!";
 ?>
 
 <html>
-<a href="alexcannon-lux/FileUpload/upload.php">Upload a file</a>
+<a href="FileUpload/upload.php">Upload a file</a>
 </html>
