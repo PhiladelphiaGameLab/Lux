@@ -9,6 +9,12 @@
 				return NULL;
 			}
 		}
+
+		public function isAdmin() {
+			return isset($_GET["admin"]);
+		}
+
+		//isGlobal method?
 	}
 
 ?>
