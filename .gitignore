@@ -27,3 +27,5 @@
 
 *.swp
 *.swo
+/.project
+/.buildpath
