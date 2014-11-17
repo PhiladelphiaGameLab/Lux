@@ -27,5 +27,7 @@
 
 *.swp
 *.swo
+
+# Eclipse files
 /.project
 /.buildpath
