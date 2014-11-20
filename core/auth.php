@@ -108,39 +108,49 @@ class OAuth{
 	function saveToDb(){
 		$code = $_GET['code'];
         	$url = 'https://accounts.google.com/o/oauth2/token';
-        	var_dump($this->redirect_url);
-		$params = array("code" => $code,
-            		"client_id" => "1006161612314-1qct7m1r0bqt5ecb2sntrci253dv41s1.apps.googleusercontent.com",
+		$params = array(
+			"code" => $code,
+			"client_id" => "1006161612314-1qct7m1r0bqt5ecb2sntrci253dv41s1.apps.googleusercontent.com",
 			"client_secret" => "Uka8meQZbY0KMFCnQ6nYb0Tw",
-            		"redirect_uri" => "http://". $_SERVER['HTTP_HOST']. "/".$this->redirect_url,
-            		"grant_type" => "authorization_code"
-        	);
-        	$options = array(
-            		'http' => array(
-                	'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                	'method'  => 'POST',
-                	'content' => http_build_query($params),
-            		),
-        	);
-        	
-		$context = stream_context_create($options);
-        	
-		$result = file_get_contents($url, false, $context);
-
+			"redirect_uri" => "http://".$_SERVER["HTTP_HOST"]."/tests/t_auth_success.html",
+			"grant_type" => "authorization_code"
+		);
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+		curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+	        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		
+		$json_response = curl_exec($curl);
+		$authObj = json_decode($json_response);
+		var_dump($authObj);
+		$access_tok = $authObj->{'access_token'};
+		echo $access_tok;
+		/*
+		$request = new HttpRequest($url, HttpRequest::METH_POST);
+		$request->setPostFields($params);
+		$response = $request->send();
+		$responseObj = json_decode($response);
+		echo "Access token: " . $responseObj;	
+		
         	$access_obj = json_decode($result);
         	$this->acc_token = $access_obj->{'access_token'};
-        	$refresh = $access_obj->{'refresh_token'};
+        	var_dump($this->acc_token);
+		$refresh = $access_obj->{'refresh_token'};
         	$getUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=$this->acc_token";
         	$getResponse = file_get_contents($getUrl);
         	$get = json_decode($getResponse, true);
-		
+		*/
+
 		$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
 		if(!isset($prevCheck)){
 			$get["access_token"] = $this->acc_token;
 			$this->clientInfo->insert($get);
-		}
+		}else{
 
-		header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$_SESSION['href']."?access_token=".$this->acc_token);
+		}
+		//header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$_SESSION['href']."?access_token=".$this->acc_token);
 	}
 
 }
