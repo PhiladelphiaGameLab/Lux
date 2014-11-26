@@ -54,11 +54,66 @@ io.on('connection', function(socket){
 	// listen for messages labled as "upsert, or query"
 	socket.on('upsert', function(message){
 		// upsert the message
+		var params = {};
+		if(message.hasOwnProperty("doc")){
+			params.update = message.doc;
+			params.query = message.doc;	
+		}
+		if(message.hasOwnProperty("id") || message.hasOwnProperty("query")){
+			if(message.hasOwnProperty("doc")){
+				params.upsert = true
+			}else{
+				params.remove = true;
+				params.newItem = false;
+				params.update = null;
+			}
+			if(message.hasOwnProperty("id")){
+				params.id = message.id;	
+				//// make this into a query
+			}else if(message.hasOwnProperty("query")){
+				params.query = message.query;
+			}
+		}else{ // remove
+			params.insert = true;
+		}
+		var result = "";
+		if(params.hasOwnProperty("remove")){
+			result = //// remove the document
+		}else if(params.hasOwnProperty("insert")){
+			result = //// insert the document
+		}else{
+			result = //// update the document
+		}
 		// Add upsert to Published with references resolved
+		socket.emit("upsert", results);
+		// put into the queue
+		if(params.hasOwnProperty("remove")){
+			//// enqueue as a remove
+		}else if(params.hasOwnProperty("insert")){
+			//// enqueue as an insert
+		}else{
+			//// enqueue as an update
+		}
 	});
 	socket.on('query', function(message){
 		// make a query and return the data 
-		// Add Query to Subscribed
+		var result;
+		if(message.hasOwnProperty("id")){
+			result = //// find one by id
+		}else if(message.hasOwnProperty("query"){
+			result = //// find all by query
+		}
+
+		if(true){ // should subscribe
+			// Add Query to Subscribed
+			var cursor = //// find all by query
+			if(cursor != null){
+				//// update subscribed
+			}else{
+				//// insert subscription document
+			}
+		}
+		socket.emit("upsert", results);
 	});
 	socket.on('disconnect', function(){
 		delete ids[socket.id];
