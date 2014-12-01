@@ -1,5 +1,3 @@
-var mongo require('mongodb');
- 
 // Connect to the user database to access tokens and _ids
 // Connect to other collections for more info
 
@@ -10,18 +8,36 @@ var server = require('http').createServer(app);
 var io = require('../..')(server);
 var port = process.env.PORT || 3000;
 
-function getClientId(access_token){
-	// look in user database for the access_token
-	// query Users collection on the access_token
-	
-	// get the id from the returned document	
+var Db = require('mongodb').Db,
+    MongoClient = require('mongodb').MongoClient,
+    Server = require('mongodb').Server,
+    ReplSetServers = require('mongodb').ReplSetServers,
+    ObjectID = require('mongodb').ObjectID,
+    Binary = require('mongodb').Binary,
+    GridStore = require('mongodb').GridStore,
+    Grid = require('mongodb').Grid,
+    Code = require('mongodb').Code,
+    BSON = require('mongodb').pure().BSON,
+    assert = require('assert');
 
-	// return the user's id if one exists, or an error
-	if(id != null){
-		return id;
-	}else{
-		return "loggonError";
-	}
+	// Set up the connection to the local db
+    var mongoclient = new MongoClient(new Server("localhost", 27017), {native_parser: true});
+	
+
+
+function getClientId(acc_tok){
+	mongoclient.open(function(err, mongoclient) {
+		var db = mongoclient.db("Lux");
+		db.collection('Users').findOne({"access_token": acc_tok}, 
+		function(err, results){
+			if(results != null){
+				return results._id;
+			}else{
+				return "loggonError";
+			}
+			mongoclient.close();
+		});
+	});
 }
 
 
@@ -64,28 +80,44 @@ io.on('connection', function(socket){
 				params.upsert = true
 			}else{
 				params.remove = true;
-				params.newItem = false;
-				params.update = null;
 			}
 			if(message.hasOwnProperty("id")){
 				params.id = message.id;	
-				//// make this into a query
+				params.query = {"_id": message.id};
 			}else if(message.hasOwnProperty("query")){
 				params.query = message.query;
 			}
-		}else{ // remove
+		}else{ // insert the document
 			params.insert = true;
 		}
-		var result = "";
 		if(params.hasOwnProperty("remove")){
-			result = //// remove the document
+		        mongoclient.open(function(err, mongoclient) {
+		                var db = mongoclient.db("Lux");
+        		        db.collection('Assets').remove(params.query, {w:1}
+                		function(err, results){
+					socket.emit("upsert", results);
+				});
+        		});
+
 		}else if(params.hasOwnProperty("insert")){
-			result = //// insert the document
+                        mongoclient.open(function(err, mongoclient) {
+                                var db = mongoclient.db("Lux");
+                                db.collection('Assets').insert(message.doc, {w:1}
+                                function(err, results){
+					socket.emit("upsert", results);
+                                });
+                         });
 		}else{
-			result = //// update the document
+			mongoclient.open(function(err, mongoclient) {
+                                var db = mongoclient.db("Lux");
+                                db.collection('Assets').update(message.query, message.doc, 
+				{upsert: true, w:1},
+                                function(err, results){
+					socket.emit("upsert", results);
+				});
+                         });
 		}
 		// Add upsert to Published with references resolved
-		socket.emit("upsert", results);
 		// put into the queue
 		if(params.hasOwnProperty("remove")){
 			//// enqueue as a remove
@@ -99,19 +131,25 @@ io.on('connection', function(socket){
 		// make a query and return the data 
 		var result;
 		if(message.hasOwnProperty("id")){
-			result = //// find one by id
+                	var db = mongoclient.db("Lux");
+                        db.collection('Assets').findOne({"_id" : message.id},
+                        function(err, results){
+         	               socket.emit("query", results);
+                        });
 		}else if(message.hasOwnProperty("query"){
-			result = //// find all by query
+			var db = mongoclient.db("Lux");
+                        db.collection('Assets').findOne(message.query,
+                        function(err, results){
+                               socket.emit("query", results);
+                        });
 		}
 
-		if(true){ // should subscribe
-			// Add Query to Subscribed
-			var cursor = //// find all by query
-			if(cursor != null){
-				//// update subscribed
-			}else{
-				//// insert subscription document
-			}
+		// Add Query to Subscribed
+		var cursor = //// find all by query
+		if(cursor != null){
+			//// update subscribed
+		}else{
+			//// insert subscription document
 		}
 		socket.emit("upsert", results);
 	});
