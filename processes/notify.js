@@ -120,11 +120,46 @@ io.on('connection', function(socket){
 		// Add upsert to Published with references resolved
 		// put into the queue
 		if(params.hasOwnProperty("remove")){
-			//// enqueue as a remove
+			// enqueue as a remove
+			// run the query
+			// set the document's removed parameter to true
+			// insert each one into the queue
+			var db = mongoclient.db("Lux");
+			db.collection('Assets').findOne(message.query,
+			function(err, results){
+                                var db = mongoclient.db("Lux");
+				results.removed = true;	
+                                db.collection('Published').insert(
+				// message in format: results,
+				{sender:socket.id, timestamp:new Date().getTime(), priority:0, data : results, checked_by:{python:false, node:false}}
+                                ,function(err, results){
+                                        console.log("Existing Document removed from Published");
+                                });
+			});
 		}else if(params.hasOwnProperty("insert")){
-			//// enqueue as an insert
+			// enqueue as an insert
+			// insert each one into to the queue directly
+			var db = mongoclient.db("Lux");
+			db.collection("Published").insert(
+			// Message in format: message.doc,
+			{sender:socket.id, timestamp:new Date().getTime(), priority:0, data : message.doc, checked_by:{python:false, node:false}}
+			,function(err, results){
+				console.log("New Document Inserted to Published");
+			});
 		}else{
-			//// enqueue as an update
+			// enqueue as an update
+			// run the query from the upsert
+			var db = mongoclient.db("Lux");
+                        db.collection('Assets').findOne(message.query,
+                        function(err, results){
+                                var db = mongoclient.db("Lux");
+                                db.collection('Published').update(
+				{"query."+Object.keys(message.query)[0]: message.query[0]}
+                                ,{sender:socket.id, timestamp:new Date().getTime(), priority:0, message.doc : results, checked_by:{python:false, node:false}}
+                                ,function(err, results){
+                                        console.log("new document Published");
+                                });
+                        });
 		}
 	});
 	socket.on('query', function(message){
@@ -145,13 +180,32 @@ io.on('connection', function(socket){
 		}
 
 		// Add Query to Subscribed
-		var cursor = //// find all by query
-		if(cursor != null){
-			//// update subscribed
-		}else{
-			//// insert subscription document
-		}
-		socket.emit("upsert", results);
+		var db = mongoclient.db("Lux");
+		db.collection("Subscribed").findOne(
+		// query for the query
+		,function(err, results){
+			if(results != null){
+				// update subscribed
+				// for each one
+				//	update the subscribers to include this person
+				var db = mongoclient.db("Lux");
+				db.collection('Subscribed').insert(
+				{query:message.query, timestamp: Date().getTime(), parent_sub:null, subscribers:[{clientId:socket.id}]}
+				,function(err, results){
+					console.log("New Document created in Subscribers");
+				});
+			}else{
+				// insert subscription document
+				// insert the new document into the subscribers with this person subscribed
+				var db = mongoclient.db("Lux");
+				db.collection('Subscribed').update(
+				{_id : results.id}
+				,{$addToSet : {subscribers.clientId : socket.id}}
+				,function(err, results){
+					console.log("Existing Document Updated in Subscribers");
+				});
+			}
+		});
 	});
 	socket.on('disconnect', function(){
 		delete ids[socket.id];
