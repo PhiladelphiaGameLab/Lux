@@ -31,6 +31,9 @@
 # test uploads
 FileUpload/uploads
 
+# npms
+processes/node_modules/*
+
 # Eclipse files
 /.project
 /.buildpath

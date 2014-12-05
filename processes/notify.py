@@ -1,7 +1,18 @@
 import threading
 import json
 import socket
+import json
+from pymongo import MongoClient
+from bson import json_util
 
+client = MongoClient()
+client = MongoClient('mongodb://54.88.133.189/api/')
+db = client['Lux']
+
+Published = db.Published
+Subscribed = db.Subscribed
+
+# document = Published.findOne(query);
 	
 sockets = {}
 numUsers = 0
@@ -28,12 +39,55 @@ def add(fromAddr, mongoId):
 
 def upsert(data, fromAddr, mongoId):
 	# upsert the message into the collection
+	params = {}
+	if doc in data 
+		params["update"] = data["doc"]
+		params["query"] = data["doc"]
+	if moId  in data or query in data :
+		if doc in data :
+			params["upsert"] = True
+		else:	
+			params["remove"] = True;
+			params["newItem"] = False;
+			params["update"] = null;
+		if moId in data:
+			params["id"] = data["id"]
+			#### Make this into a query
+		else if query in data:
+			params["query"] = data["query"]
+	else :
+		params["insert"] = true
+	if remove in params:
+		result = #### remove the document
+	else if insert in params :
+		result = #### insert the document
+	else 
+		result #### update the document
+
+	#### Send over UDP Socket
+	if remove in params:
+		#### enqueue as remove
+	else if insert in params:
+		#### enqueue as insert
+	else 
+		#### enqueue as an update	
 	# add the document to the Published collection with references resolved
 
 def query(data, fromAddr, mongoId):
 	# Query the Assets collection and return the results to the fromAddr
-	# Add the Query to the Subscribers collection and the client Id from to the 
-		# Criteria's document
+	if id in data:
+		result = #### find one by id
+	else if query in data:
+		result = #### find all by query
+
+	if True:	
+		cursor = #### find all by query
+		if cursor not {}:
+			#### update subscribed
+		else :
+			#### insert subscription document
+	#### Send over UDP socket
+
 
 def disconnect(fromAddr, mongoId):
 	# lock the sockets dict before removal
