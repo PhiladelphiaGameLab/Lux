@@ -5,7 +5,7 @@
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
-var io = require('../..')(server);
+var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
 var Db = require('mongodb').Db,
@@ -44,8 +44,9 @@ function getClientId(acc_tok){
 app.use(express.static(__dirname + '/public'));
 
 server.listen(port, function(){
-	console.log("Server is now on at port %d', port);
+	console.log("Server is now on at port %d", port);
 });
+console.log("Server About to be established");
 
 var sockets = {};
 var numUsers = 0;
@@ -94,7 +95,7 @@ io.on('connection', function(socket){
 		        mongoclient.open(function(err, mongoclient) {
 		                var db = mongoclient.db("Lux");
         		        db.collection('Assets').remove(params.query, {w:1}
-                		function(err, results){
+                		,function(err, results){
 					socket.emit("upsert", results);
 				});
         		});
@@ -103,7 +104,7 @@ io.on('connection', function(socket){
                         mongoclient.open(function(err, mongoclient) {
                                 var db = mongoclient.db("Lux");
                                 db.collection('Assets').insert(message.doc, {w:1}
-                                function(err, results){
+                                ,function(err, results){
 					socket.emit("upsert", results);
                                 });
                          });
@@ -153,9 +154,10 @@ io.on('connection', function(socket){
                         db.collection('Assets').findOne(message.query,
                         function(err, results){
                                 var db = mongoclient.db("Lux");
+				var key = "query."+Object.keys(message.query)[0];
                                 db.collection('Published').update(
-				{"query."+Object.keys(message.query)[0]: message.query[0]}
-                                ,{sender:socket.id, timestamp:new Date().getTime(), priority:0, message.doc : results, checked_by:{python:false, node:false}}
+				{key: message.query[0]}
+                                ,{sender:socket.id, timestamp:new Date().getTime(), priority:0, data : results, checked_by:{python:false, node:false}}
                                 ,function(err, results){
                                         console.log("new document Published");
                                 });
@@ -171,7 +173,7 @@ io.on('connection', function(socket){
                         function(err, results){
          	               socket.emit("query", results);
                         });
-		}else if(message.hasOwnProperty("query"){
+		}else if(message.hasOwnProperty("query")){
 			var db = mongoclient.db("Lux");
                         db.collection('Assets').findOne(message.query,
                         function(err, results){
@@ -181,8 +183,9 @@ io.on('connection', function(socket){
 
 		// Add Query to Subscribed
 		var db = mongoclient.db("Lux");
+		var key = "query."+Object.keys(message.query)[0];
 		db.collection("Subscribed").findOne(
-		// query for the query
+		{key: message.query[0]}
 		,function(err, results){
 			if(results != null){
 				// update subscribed
@@ -200,32 +203,30 @@ io.on('connection', function(socket){
 				var db = mongoclient.db("Lux");
 				db.collection('Subscribed').update(
 				{_id : results.id}
-				,{$addToSet : {subscribers.clientId : socket.id}}
+				,{"$addToSet" : {"subscribers.clientId" : socket.id}}
 				,function(err, results){
 					console.log("Existing Document Updated in Subscribers");
 				});
 			}
 		});
+		socket.on('disconnect', function(){
+			delete ids[socket.id];
+			--numUsers;
+		});
 	});
-	socket.on('disconnect', function(){
-		delete ids[socket.id];
-		--numUsers;
-	}
 });
-
 function emitMessages(){
 	while(1){
+		console.log("Reading Pub/Sub and sending");
 		// Meanwhile- cycle through the subscribers criterium
 		// query the Published collection for the subscribers criteria
 		var db = mongoclient.db("Lux");
 		db.collection('Subscribed').find(
-		{"checked_by.node":false}
-		,function(err, cursor){
-			cursor.forEach( function(subDoc){
+		{"checked_by.node":false}).toArray(function(err, array){ 
+			array.forEach( function(subDoc){
 				db.collection('Published').find(
-				subDoc.query
-				,function(err, cursor){
-					cursor.forEach(function(pubDoc){
+				subDoc.query).toArray(function(err, array){
+					array.forEach(function(pubDoc){
 						subDoc.subscribers.forEach(function(subscriber){
 							sockets[subscriber].emit(pubDoc);
 						});

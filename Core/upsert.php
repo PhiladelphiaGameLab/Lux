@@ -80,12 +80,12 @@ function upsert($params){
 		$checkcursor = $collection->find($query);
 		$retquery = array('$or' => array()); //query used for queue
 		$hasPermission = true;
-		foreach($checkcursor as $value){
+		/*foreach($checkcursor as $value){
 			$retquery['$or'][] = array("_id" => $value['_id']); //setup queue query
 			if(($LuxFunctions->checkGroups($value["group_id"], $AUTH->getClientGroups())) === false){
 				$hasPermission = false;
 			}
-		}
+		}*/
 		if(empty($retquery['$or'][0])){ //will only be true if there is a potential insert
 			$params["insert"] = true;
 		}

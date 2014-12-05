@@ -66,7 +66,7 @@ function query($params){
 			//$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
 		}else{
 			echo"new doc!";
-			$newdoc = array("query" => $query, "subscribers" => array("clientId" => array($AUTH->getClientId())), "timestamp" => microtime(), "parent-sub" => null);
+			$newdoc = array("query" => $query, "subscribers" => array("clientId" => array($AUTH->getClientId())), "timestamp" => microtime(), "parent_sub" => null);
 			$PubSub->insert($newdoc);
 		}
 	}

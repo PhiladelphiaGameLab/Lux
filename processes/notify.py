@@ -1,7 +1,18 @@
 import threading
 import json
 import socket
+import json
+from pymongo import MongoClient
+from bson import json_util
 
+client = MongoClient()
+client = MongoClient('mongodb://54.88.133.189/api/')
+db = client['Lux']
+
+Published = db.Published
+Subscribed = db.Subscribed
+
+# document = Published.findOne(query);
 	
 sockets = {}
 numUsers = 0
