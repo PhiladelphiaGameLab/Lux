@@ -217,6 +217,26 @@ function emitMessages(){
 	while(1){
 		// Meanwhile- cycle through the subscribers criterium
 		// query the Published collection for the subscribers criteria
+		var db = mongoclient.db("Lux");
+		db.collection('Subscribed').find(
+		{"checked_by.node":false}
+		,function(err, cursor){
+			cursor.forEach( function(subDoc){
+				db.collection('Published').find(
+				subDoc.query
+				,function(err, cursor){
+					cursor.forEach(function(pubDoc){
+						subDoc.subscribers.forEach(function(subscriber){
+							sockets[subscriber].emit(pubDoc);
+						});
+					});
+				});
+			db.collection('Subscribed').update(
+			{"_id":subDoc.id}
+			,{"checked_by.node":true}
+			,function(err, results){});
+			});
+		});
 		// look at subscribers list from subscribers collection
 		// send message to subscribers if [id] exists in "sockets" structure
 		// Mark Published document as "sent to nodejs"
