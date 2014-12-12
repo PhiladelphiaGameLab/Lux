@@ -1,13 +1,13 @@
 <?php
-include_once('../core/query.php');
+include_once('../Core/query.php');
 query(
         array(
                 "collectionName" => "Groups"
                 ,"enqueue" => false
-                ,"pubsub" => true
+                ,"pubsub" => false
 		,"aggregate" => false
 		,"distinct" => false
-                ,"priority" => "High"
+                ,"priority" => "low"
 		,"resolve" => true
         )
 );

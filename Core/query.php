@@ -38,7 +38,7 @@ function query($params){
         $OUTPUT = new Output();
         $coll = $db->selectCollection($params["collectionName"]);
         $PubSub = $db->selectCollection("PubSub");
-	$AUTH = new Auth();
+//	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
 	$LuxFunctions->setDocument($params);
 	if($LuxFunctions->is_avail("id")){
@@ -47,25 +47,27 @@ function query($params){
 	
 	}else if($LuxFunctions->is_avail("query")){
 		$query = $LuxFunctions->fetch_avail("query");
-		var_dump($query);
 		// change to is_avail	
 		if(isset($params["distinct"]) && $params["distinct"]){
                 	$result = $coll->distinct($query);
 	
 		}else if(isset($params["aggregate"]) && $params["aggregate"]){
                 	$result = $coll->aggregate($query);
+		}else{
+			echo "<pre>".json_encode($query)."</pre>";
+			$result = $coll->find($query);
 		}
 	}
-	
+	echo json_encode($result);	
 	if(isset($params["pubsub"]) && $params["pubsub"] == true){
 		$key = array_keys($query);
 		$value = array_values($query); 
-		$cursor = $PubSub->findOne(array("query.".$key[0] => $value[0]));		var_dump($cursor);
+		$cursor = $PubSub->findOne(array("query.".$key[0] => $value[0]));		
 		if(isset($cursor)){
 			$PubSub->update(array("_id" => $cursor["_id"]) , array('$addToSet' => array("subscribers.clientId" => $AUTH->getClientId())));
 			//$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
 		}else{
-			echo"new doc!";
+			//echo"new doc!";
 			$newdoc = array("query" => $query, "subscribers" => array("clientId" => array($AUTH->getClientId())), "timestamp" => microtime(), "parent_sub" => null);
 			$PubSub->insert($newdoc);
 		}

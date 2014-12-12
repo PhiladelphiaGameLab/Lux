@@ -1,9 +1,10 @@
 <?php
-include_once('../core/upsert.php');
+include_once('../Core/upsert.php');
 upsert(
         array(
                 "collectionName" => "Groups"
-                ,"enqueue" => true
+		,"SN" => true
+                ,"enqueue" => false
                 ,"pubsub" => false
                 ,"priority" => "Low"
         )

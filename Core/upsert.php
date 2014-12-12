@@ -31,7 +31,7 @@ function upsert($params){
 	$db = new Db();
 	$collection = $db->selectCollection($params["collectionName"]);	
 	$OUTPUT = new Output();
-	$AUTH = new Auth();
+	//$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
 	$LuxFunctions->setDocument($params);
 	$fields = null;	
@@ -90,10 +90,13 @@ function upsert($params){
 			$params["insert"] = true;
 		}
 	}else{
-		$options["upsert"] = true;
+		$options["insert"] = true;
 		$update = $LuxFunctions->fetch_avail("doc", false);
-		$query = $update;
+		//$query = $update;
 		$hasPermissions = true;
+	}
+	if(isset($params["SN"]) && $params["SN"]){
+		// create a node if none exists 
 	}
 	if($hasPermission){
 		if(isset($options["remove"]) && $options["remove"] == true){

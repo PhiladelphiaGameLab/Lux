@@ -1,5 +1,5 @@
 <?php
-include_once('../core/query.php');
+include_once('../Core/query.php');
 query(
         array(
                 "collectionName" => "Assets"
