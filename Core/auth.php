@@ -139,7 +139,7 @@ class OAuth{
 		}else{
 
 		}
-		//header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$_SESSION['href']."?access_token=".$access_tok);
+		header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$this->redirect_url."?access_token=".$access_tok);
 	}
 
 }

@@ -1,12 +1,6 @@
 <?php
-include_once('../core/upsert.php');
-upsert(
-        array(
-                "collectionName" => "Assets"
-                ,"enqueue" => true
-                ,"pubsub" => false
-                ,"priority" => "High"
-        )
-);
-?>
+include_once('../Core/upsert.php');
+
+upsert(array("enqueue"=> true,
+		"collectionName" => "Assets"));
 
