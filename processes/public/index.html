@@ -1,0 +1,40 @@
+<html>
+<head>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var access_token = Math.floor(Math.random()*1000)
+function console(data){
+	document.getElementById("console").innerHTML+= JSON.stringify(data);
+}
+socket.on('connected', function(data){
+	console(data);
+	socket.emit('join', {access_token: access_token});
+	socket.emit('upsert', 	
+			{
+				query: {this : "is a test"},
+				update: {'$set' : {this : "was a test"}}
+			});
+	socket.emit('query', {query: {this: "was a test"}});
+});
+socket.on('updated', function(data){
+	console(data);
+});
+socket.on('query', function(data){
+	console(data);
+});
+
+socket.on('error', function(data){
+	console(data);
+});
+socket.on('joined', function(data){
+	console(data);
+});
+
+
+</script>
+</head>
+<body>
+<div id="console"></div>
+</body>
+</html>
