@@ -11,9 +11,9 @@ class Auth{
 		// test to make sure that access code is legit
 		$LuxFunctions = new LuxFunctions();
 		$OUTPUT = new Output(); 
-		$access_token = $LuxFunctions->is_avail("access_token");
+		$access_token = $LuxFunctions->fetch_avail("access_token");
 		$DB = new db();
-		$clientInfo = $DB->selectCollection("ClientInfo");
+		$clientInfo = $DB->selectCollection("Users");
 		$this->client_doc = $clientInfo->findOne(array("access_token" => $access_token));
 		if(!isset($this->client_doc)){
 			$OUTPUT->error("Access Code is invalid or has Expired");

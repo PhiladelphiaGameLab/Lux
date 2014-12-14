@@ -112,14 +112,14 @@ function upsert($params){
 			if(isset($options["remove"]) && $options["remove"] == true){ //add removed documents to the queue
 				foreach($checkcursor as $value){
 					$value["removed"] = true;
-					$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $value, $params["priority"]);
+					$db->publish($value, $AUTH, $params["priority"]);
 				}
 			}else if(isset($params["insert"]) && $params["insert"] == true){ //add insert to the queue
-				$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $update, $params["priority"]);
+				$db->publish($update, $AUTH, $params["priority"]);
 			}else{
 				$quecursor = $collection->find($retquery); 
 				foreach($quecursor as $value){ //add each augmented document to the queue
-					$db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $value, $params["priority"]);
+					$db->publish($value, $AUTH, $params["priority"]);
 				}
 			}
 		}
