@@ -18,8 +18,17 @@ $sizes = array();
 
 $results = $groups->findOne(array('players' =>
                 array('$elemMatch'=>array('id'=>$AUTH->getClientId()))));
+$memberNumber = 0;
 
-if(isset($results)){
+if(isset($results)){	
+	
+	foreach($results["players"] as $playerId){
+		if($playerId["id"] == $AUTH->getClientId()){
+			break;
+		}
+		$memberNumber += 1;
+	}
+
 	$range = $results["range"];
 
 	for($i=$range["low"]; $i < $range["high"]; $i++){
@@ -37,7 +46,7 @@ if(isset($results)){
 				array('accepting'=> false
 				,'timestamp'=>microtime())));
 	if(isset($matchingGroup)){
-		$OUTPUT->success("Group was found", $matchingGroup["_id"]);
+		$OUTPUT->success("Group was found", array("group" => $matchingGroup["_id"], "member"=>$memberNumber));
 	}else{
 		$OUTPUT->success("No Group yet");
 	}

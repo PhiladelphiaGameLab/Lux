@@ -17,7 +17,6 @@ var GridStore = require('mongodb').Grid;
 var Code = require('mongodb').Code;
 var BSON = require('mongodb').pure().BSON;
 
-var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 
 server.listen(port, function(){
 	console.log('Server Listening on port %d', port);
@@ -27,22 +26,39 @@ server.listen(port, function(){
 app.use(express.static(__dirname + '/public'));
 
 // Functions to be utilized
-function getClientId(acc_tok){
-	return acc_tok;
-}
-function query(query, userId){ // yes
-	console.log(userId + " Queried for a doc " + query);
-	mongoclient.open(function(err, mongoclient){
-		var db = mongoclient.db("Lux2");
-		var cursor =  db.collection("Assets").find(query);
-		mongoclient.close();
-		return cursor.toArray();
+function getClientId(acc_tok, callback){
+var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+	mongoclient.open(function(err, mc){
+		var db = mc.db("Lux2");
+		db.collection("Users").findOne({access_token:acc_tok}, function(err, userDoc){
+			if(userDoc != null){
+				var userId = userDoc["_id"];
+				mongoclient.close();
+				callback(userId);
+			}else{
+				callback(false);
+			}
+		});
 	});
 }
+function query(query, userId){ // yes
+var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+	//console.log(userId + " Queried for a doc " + query);
+	mongoclient.open(function(err, mc){
+		var db = mc.db("Lux2");
+		db.collection("Assets").find(query, function(err, cursor){
+			cursor.toArray(function(err, array){
+				mongoclient.close();
+				return array;
+			});
+	});
+});
+}
 function upsert(data, userId){ 
-	console.log(userId + " Upserted a doc" + data);
-	mongoclient.open(function(err, mongoclient){
-		var db = mongoclient.db("Lux2");
+var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+	//console.log(userId + " Upserted a doc" + data);
+	mongoclient.open(function(err, mc){
+		var db = mc.db("Lux2");
 		var removed = false;
 		if(data.hasOwnProperty("update") && data.hasOwnProperty("query")){
 			// upsert
@@ -51,7 +67,7 @@ function upsert(data, userId){
 			}else{
 				var options = {upsert:true};
 			}
-			db.collection("Assets").update(data.query, data.update, options)
+			db.collection("Assets").update(data.query, data.update, options, function(err, results){})
 			documents = db.collection("Assets").find(data.query);
 		}else if(data.hasOwnProperty("query")){
 			// remove
@@ -60,46 +76,41 @@ function upsert(data, userId){
 			removed = true;
 		}else{
 			// insert	
-			db.collection("Assets").insert(data.update);
+			db.collection("Assets").insert(data.update, function(){});
 			documents = db.collection("Assets").find(data.update);
 		}
 		documents.each(function(err, doc){
 			if(err == null && doc != null){
 				if(removed == true){ doc["removed"] = true; }
-				publish(doc, socket.userId);
+				doc["info"] = {sender: userId, checked_by:{python:false, node:false}};
+				db.collection("Published").insert(doc, function(){});
 			}
 		});
 		mongoclient.close();
 	});
 }
-function publish(update, userId){ // yes
-	console.log(userId + " Published " + update);
-	mongoclient.open(function(err, mongoclient){
-		var db = mongoclient.db("Lux2");
-		udpate["info"] = {sender: userId, checked_by:{python:false, node:false}};
-		db.collection("Published").insert(update);
-		mongoclient.close();
-	});
-	
-}
 function subscribe(query, userId){ // yes
-	console.log(userId + " Subscribed " + query);
-	mongoclient.open(function(err, mongoclient){
-		var db = mongoclient.db("Lux2");
+var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+	//console.log(userId + " Subscribed " + query);
+	mongoclient.open(function(err, mc){
+		var db = mc.db("Lux2");
 		db.collection("Subscribers").update({query:query}, 
 				{'$addToSet':{'subscribers': {id: userId}}},
-				{upsert:true});
-		mongoclient.close();
+				{upsert:true}, function(err, results){
+					mongoclient.close();
+				});
 	});
 }
 function unsubscribeAll(userId){// yes
-	console.log(userId + " Unsubscribed to all");
-	mongoclient.open(function(err, mongoclient){
-		var db = mongoclient.db("Lux2");
+var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+	//console.log(userId + " Unsubscribed to all");
+	mongoclient.open(function(err, mc){
+		var db = mc.db("Lux2");
 		db.collection("Subscribers").update({}, 
 				{'$pull':{'subscribers': {id: userId}}},
-				{upsert:true, multiple:true});
-		mongoclient.close();
+				{upsert:true, multiple:true}, function(){
+					mongoclient.close();
+				});
 	});
 }
 var sockets = {};
@@ -112,21 +123,23 @@ io.on('connection', function(socket){
 	socket.on('join', function(data){
 		if(!socket.connected){
 			if(data.hasOwnProperty("access_token")){
-				var userId = getClientId(data.access_token);
-				if(userId != false && userId != null){
-					socket.userId = userId;
-					socket.connected = true;
-					sockets[userId] = socket;
-					socket.emit('joined', {status: 'connected'});
-					console.log("A user has connected " + userId);
-				}else{
-					socket.emit('error', {error: "access Token Invalid"});
-				}
+				getClientId(data.access_token, function(userId){
+					if(userId != false && userId != null){
+						socket.userId = userId;
+						socket.connected = true;
+						sockets[userId] = socket;
+						socket.emit('joined', {status: 'connected'});
+						console.log("A user has connected " + userId);
+					}else{
+						console.log("you fucked up bro");
+						socket.emit('error_lux', {'error_lux': "access Token Invalid"});
+					}
+				});
 			}else{
-				socket.emit('error', {error: "access_token is missing"});
+				socket.emit('error_lux', {error_lux: "access_token is missing"});
 			}
 		}else{
-			socket.emit('error', {error: "you are already connected"});
+			socket.emit('error_lux', {error_lux: "you are already connected"});
 		}
 	});
 	socket.on('upsert', function(data){
@@ -143,40 +156,120 @@ io.on('connection', function(socket){
 
 });
 
+function emitUpdates(){
+var mongoclient1 = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+var mongoclient2 = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+var mongoclient3 = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+var mongoclient4 = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+
+mongoclient1.open(function(err, mc1){
+	if(err != null){console.log("Connection : " +err);}
+	var db1 = mc1.db('Lux2');
+	db1.collection('Subscribers').find({'subscribers' : {$not: {$size:0}}}, 
+		function(err, subscriptions){
+			if(err != null){
+				console.log("finding Subscription Documents: " + err);	
+			}else if(subscriptions != null){
+				subscriptions.each(function(err, subscription){
+					if(err != null){
+						console.log("iterating Subscription Documents: " + err);
+					}else if(subscription != null && subscription.hasOwnProperty("query")){
+						var query = subscription.query;
+						var subscribers = subscription.subscribers;
+						query["info.checked_by.node"] = false;
+						//mongoclient2.open(function(err, mc2){
+						//	if(err != null){console.log(err);}
+						//	var db2 = mc2.db('Lux2');
+							db1.collection('Published').find(query,
+								function(err, published){
+									if(err != null){
+										console.log("Finding Published Documents" + err);
+									}else if(published != null){
+										published.each(function(err, publish){
+											if(err != null){
+												console.log("Iterating Published Documents " + err);
+											}else if(publish != null){
+												subscribers.forEach(function(err, subscriber){
+													if(err != null){
+														console.log("Iterating Subscribers: " + JSON.stringify(err));
+													}else if(subscriber != null){
+														if(sockets.hasOwnProperty(subscriber)){
+															sockets[subscriber].emit('updated', publish);
+															console.log("Subscriber Notified");
+														}
+													}
+												});
+												//mongoclient3.open(function(err, mc3){
+												//	var db3 = mc3.db('Lux2');
+													db1.collection('Published').update({"_id":publish._id}, {$set:{"info.checked_by.node":true}}
+														,function(err, doc){
+															if(err != null){
+																console.log("Updating Published: " + err);
+															}else if(doc != null){
+																console.log("Updated Published " + doc);
+															}
+															//mongoclient3.close();
+														});
+												//});
+											}
+										});			
+									}
+									//mongoclient2.close();
+								});
+						//});	
+					}
+				});
+			//mongoclient1.close();
+			}
+		});
+
+});
+}
+
+
 function emitMessages(){
-mongoclient.open(function(err, mongoclient){
-	var db = mongoclient.db('Lux2');
+var mongoclient2 = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
+mongoclient2.open(function(err, mc){
+	var db = mc.db('Lux2');
 	db.collection('Subscribers').find({'subscribers' : {$not: {$size:0}}}, function(err, subscriptions){
+		//console.log("Subscription Queried");
 		subscriptions.each(function(err, subscription){
 			if(subscription != null){
+			//console.log("Subscription Found");
 				var query = subscription.query;
 				query["info.checked_by.node"] = false;
 				db.collection('Published').find(query, function(err, publish){
+					if(publish != null){
+				//	console.log("Published Queried");
 					publish.each(function(err, doc){
+						console.log(doc);
 						if(doc != null){
+						console.log("Published Found" + doc);
 							db.collection("Published").update({"_id":doc._id}, {$set:{"info.checked_by.node":true}}, function(err, doc){});
+							console.log("Published Updated");
 							subscription.subscribers.forEach(function(err, subscriber){
-								console.log("subscribers notified");
 								if(sockets.hasOwnProperty(subscriber.id)){
 									sockets[subscriber.id].emit('updated', doc);
+									console.log("Subscriber Notified");
 								} 
-								//mongoclient.close();
+								mongoclient2.close();
 							});
 						}else{
-							mongoclient.close();
+							//mongoclient2.close();
 						}
 					});
-					if(publish == null){ mongoclient.close();}
+					}
+					//if(publish == null){ mongoclient2.close();}
 				});
 			}else{
-				mongoclient.close();
+				//mongoclient2.close();
 			}
 		});
-		if(subscriptions == null){ mongoclient.close();}
+		//if(subscriptions == null){ mongoclient2.close();}
 	});
 });
 }
 
 
-setInterval(emitMessages, 1000);
+setInterval(emitUpdates, 100);
 
