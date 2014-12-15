@@ -23,16 +23,33 @@ class Db{
 		return $this->db->selectCollection($collectionName);
 	}
 
-	function enQueue($documentId, $senderId, $document, $priority){
-		$priority = $priority? $priority : "0";
-		$doc=array("sender" => $senderId, "timestamp" => microtime(), "priority"=> $priority, "data" => $document, "checked_by" => array("python" => false, "node" => false));
-		$options = array( "upsert" => true);
-		$Queue = $db->selectCollection("Queue");
-		$Queue->update(array('_id' => new MongoId($id)), $doc, $options);
+	function publish($document, $AUTH, $priority=0){
+		$document["info"] = array("sender" => $AUTH->getClientId(), "timestamp" => microtime(), "priority"=> $priority, "checked_by" => array("python" => false, "node" => false));
+		$Published = $this->selectCollection("Published");
+		$Published->update(array("_id"=>$document["_id"]),$document, array("upsert"=>true));
+	}
+	
+	function unpublish($document, $AUTH, $priority=0){
+		$Published = $this->selectCollection("Published");
+		$Published->remove(array("_id"=>$document["_id"]));
 	}
 
-	function PubSub($query, $senderId){
-		// add to PubSub
+	function subscribe($query, $AUTH){
+		$subscribers = $this->selectCollection("Subscribers");
+		$subDoc = $subscribers->update(
+		array("query"=>$query)
+		,array('$addToSet'=> array("subscribers" => array("id" => $AUTH->getClientId())) 
+	        ,'$set'=>array("timestamp"=>microtime()))
+		,array("upsert"=>true));
+	}
+	
+	function unsubscribe($query, $AUTH){
+		$subscribers = $this->selectCollection("Subscribers");
+		$subDoc = $subscribers->update(
+		array("query"=>$query)
+		,array('$pull'=> array("subscribers" => array(array("id"=>$AUTH->getClientId()))) 
+	        ,'$set'=>array("timestamp"=>microtime()))
+		,array("upsert"=>true));
 	}
 
 	function findAsset($id){

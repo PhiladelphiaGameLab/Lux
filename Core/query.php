@@ -22,23 +22,13 @@ Functionality:
 	Queries collection with passed query string
         
 TODO:
-	uses is_avail instead of isset
-	Push into the pub/sub section
-	Format on a single parameters matching a description
-	Accept $gt, $lt, $rad, $box, and $btw operators
-	Specific Limit and Ordering Filters
-	Queries can be Filtered by something	
-	//Allow for Aggregation as well
-	//Queries for Distinct
-	//Automatically Resolve DBRefs
-	Use Grouping where availiable
 */
 function query($params){
 	$db = new Db();
         $OUTPUT = new Output();
         $coll = $db->selectCollection($params["collectionName"]);
-        $PubSub = $db->selectCollection("PubSub");
-//	$AUTH = new Auth();
+        $Subscribe = $db->selectCollection("Subscribers");
+	$AUTH = new Auth();
 	$LuxFunctions = new LuxFunctions();
 	$LuxFunctions->setDocument($params);
 	if($LuxFunctions->is_avail("id")){
@@ -54,34 +44,24 @@ function query($params){
 		}else if(isset($params["aggregate"]) && $params["aggregate"]){
                 	$result = $coll->aggregate($query);
 		}else{
-			echo "<pre>".json_encode($query)."</pre>";
 			$result = $coll->find($query);
 		}
 	}
-	echo json_encode($result);	
-	if(isset($params["pubsub"]) && $params["pubsub"] == true){
+	echo json_encode($result);
+	if(isset($params["subscribe"]) && $params["subscribe"] == true){
 		$key = array_keys($query);
 		$value = array_values($query); 
-		$cursor = $PubSub->findOne(array("query.".$key[0] => $value[0]));		
+		$cursor = $Subscribe->findOne(array("query.".$key[0] => $value[0]));		
 		if(isset($cursor)){
-			$PubSub->update(array("_id" => $cursor["_id"]) , array('$addToSet' => array("subscribers.clientId" => $AUTH->getClientId())));
-			//$PubSub->upsert(array("_id" => $check["id"]), array("timestamp" => microtime()));
+			$Subscribe->update(array("_id" => $cursor["_id"]) , array('$addToSet' => array("subscribers.clientId" => $AUTH->getClientId())));
 		}else{
-			//echo"new doc!";
 			$newdoc = array("query" => $query, "subscribers" => array("clientId" => array($AUTH->getClientId())), "timestamp" => microtime(), "parent_sub" => null);
-			$PubSub->insert($newdoc);
+			$Subscribe->insert($newdoc);
 		}
 	}
-
-	if(isset($params["enqueue"]) && $params["enqueue"] == true){
-		 $db->enQueue($LuxFunctions->fetch_avail("id"), $AUTH, $LuxFunctions->fetch_avail("doc", false), $params["priority"]);	
+	if(isset($params["publish"]) && $params["publish"] == true){
+		 $db->Publish($LuxFunctions->fetch_avail("doc", false), $AUTH, $params["priority"]);	
 	}
-	
-	if(isset($params["resolve"]) && $params["resolve"]){
-		// loop through the documents and resolve the dbRefs
-	}
-
-	
 }
 
 ?>
