@@ -1,0 +1,71 @@
+<html>
+<head>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var rand = Math.floor(Math.random()*10)
+function console(data){
+	document.getElementById("console").innerHTML+= JSON.stringify(data);
+}
+socket.on('connected', function(data){
+	console(data);
+	socket.emit('join', {access_token: "abc"});
+	socket.emit('upsert', 	
+			{
+				query: {},
+				update: {'$set' : {group : "5"}}
+			});
+	socket.emit('query', {query: {group: "5"}});
+
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this1", random:"how very1", yoda:"is i1", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 10*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this2", random:"how very2", yoda:"is i2", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 20*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this3", random:"how very3", yoda:"is i3", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 30*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this4", random:"how very4", yoda:"is i4", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 40*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this5", random:"how very5", yoda:"is i5", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 50*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this6", random:"how very6", yoda:"is i6", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 60*rand);
+	setTimeout(function(){
+		socket.emit('upsert', { update: {group : "5", test:"this7", random:"how very7", yoda:"is i7", num: rand} });
+		console("<br/>upserted a document<br/>");
+	}, 70*rand);
+});
+socket.emit('upsert', { update: {group : "5", test:"outside Connection", random:"Outside Connection", yoda:"OUTSIDE CONNECTION", num: rand} });
+
+socket.on('updated', function(data){
+	console("<br/>updated: "+JSON.stringify(data));
+});
+socket.on('query', function(data){
+	console("<br/>query: " +JSON.stringify(data));
+});
+
+socket.on('error_lux', function(data){
+	console("<br/>error: "+JSON.stringify(data));
+});
+socket.on('joined', function(data){
+	console("<br/>joined: "+JSON.stringify(data));
+});
+
+
+</script>
+</head>
+<body>
+<div id="console"></div>
+</body>
+</html>

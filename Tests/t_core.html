@@ -1,0 +1,111 @@
+<html>
+
+<head>
+<script>
+function Ajax(where, who, what){
+var xmlhttp;
+if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+  xmlhttp=new XMLHttpRequest();
+  }
+xmlhttp.onreadystatechange=function(){
+  if (xmlhttp.readyState==4 && xmlhttp.status==200){
+    document.getElementById(where).innerHTML=xmlhttp.responseText;
+    }
+  }
+xmlhttp.open("POST",who,true);
+xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+xmlhttp.send(JSON.stringify(what));
+}
+
+Ajax("AssetsUpsert1", "../Assets/upsert.php",{access_token:"abc",query:{first:"Ana"}});
+Ajax("AssetsUpsert2", "../Assets/upsert.php",{access_token:123,query:{first:"Jake"}});
+Ajax("AssetsUpsert3", "../Assets/upsert.php",{access_token:"abc",update:{first: "Ana", last: "Vara"}});
+Ajax("AssetsUpsert4", "../Assets/upsert.php",{access_token:123,update:{first: "Ana", last: "Abed"}});
+Ajax("AssetsUpsert5", "../Assets/upsert.php",{access_token:"abc",query:{first:"Ana"}, update:{"$set":{last: "Ailor"}}});
+Ajax("AssetsUpsert6", "../Assets/upsert.php",{access_token:123,query:{last:"Ailor"}, update:{first: "Jake", last: "Ailor"}});
+
+Ajax("AssetsQuery1", "../Assets/query.php",{access_token:123,query:{last:"Ailor"}});
+Ajax("AssetsQuery2", "../Assets/query.php",{access_token:"abc",query:{last:"Abed"}});
+Ajax("AssetsQuery3", "../Assets/query.php",{access_token:123, distinct:"last"});
+
+Ajax("UsersUpsert1", "../Users/upsert.php",{access_token:123,update:{'$set':{last:"Alpha"}}});
+Ajax("UsersUpsert2", "../Users/upsert.php",{access_token:"abc",update:{last:"Alpha2"}});
+Ajax("UsersUpsert3", "../Users/upsert.php",{access_token:123});
+
+Ajax("UsersQuery1", "../Users/query.php",{access_token:123});
+Ajax("UsersQuery2", "../Users/query.php",{access_token:"abc", query:{last:"Alpha"}});
+Ajax("UsersQuery3", "../Users/query.php",{access_token:123, query:{first:"Jake"}});
+
+Ajax("UsersGetMe1", "../Users/getMe.php",{access_token:123});
+Ajax("UsersGetMe2", "../Users/getMe.php",{access_token:"abc"});
+
+Ajax("GroupsUpsert1", "../Groups/upsert.php",{access_token:123,update:{first: "Ana", last: "Abed"}});
+Ajax("GroupsUpsert2", "../Groups/upsert.php",{access_token:"abc",query:{first:"Ana"}, update:{"$set":{last: "Ailor"}}});
+Ajax("GroupsUpsert3", "../Groups/upsert.php",{access_token:123,query:{last:"Ailor"}, update:{first: "Jake", last: "Ailor"}});
+
+Ajax("GroupsQuery1", "../Groups/query.php",{access_token:123,query:{last:"Ailor"}});
+Ajax("GroupsQuery2", "../Groups/query.php",{access_token:"abc",query:{last:"Abed"}});
+Ajax("GroupsQuery3", "../Groups/query.php",{access_token:123, distinct:"last"});
+
+Ajax("Publish", "../Published/publish.php",{access_token:123, update:{"_id" :"548c9d5be473b694ecf46614", "first" : "Ana", "last" : "Ailor", "access_token" : "abc", "type" : "Spanish", "job" : "Nuero Researcher" }});
+Ajax("PublishQuery", "../Published/publish.php", {access_token:"abc", query:{first:"Ana"}});
+Ajax("unPublish", "../Published/remove.php",{access_token:123, update:{"_id" :"548c9d5be473b694ecf46614", "first" : "Ana", "last" : "Ailor", "access_token" : "abc", "type" : "Spanish", "job" : "Nuero Researcher" }});
+
+Ajax("subscribe", "../Subscribed/subscribe.php", {access_token:"abc", query:{test:"this is a test"}});
+Ajax("SubscribedQuery", "../Subscribed/query.php", {access_token:123, query:{"query.test":"this is a test"}});
+Ajax("unsubscribe", "../Subscribed/unsubscribe.php",{access_token:"abc", query:{test:"this is a test"}});
+
+Ajax("CGGetCode", "../CodeGenerator/getCode.php");
+
+Ajax("MMRequest1", "../MatchMaker/request.php", {access_token:"abc", range:{low:2, high:4}});
+Ajax("MMRequest2", "../MatchMaker/request.php", {access_token:123, range:{low:2, high: 4}});
+Ajax("MMPending1", "../MatchMaker/checkPending.php", {access_token:"abc"});
+Ajax("MMPending2", "../MatchMaker/checkPending.php", {access_token:123});
+
+Ajax("getUpdates1", "../Assets/getUpdates.php", {access_token:123, since:"0.83940800 1418523664"});
+Ajax("getUpdates2", "../Assets/getUpdates.php", {access_token:"abc",since:"0.83940800 1418523664"});
+</script>
+
+</head
+<body>
+
+Assets Upsert 1<div id="AssetsUpsert1"></div>
+Assets Upsert 2<div id="AssetsUpsert2"></div>
+Assets Upsert 3<div id="AssetsUpsert3"></div>
+Assets Upsert 4<div id="AssetsUpsert4"></div>
+Assets Upsert 5<div id="AssetsUpsert5"></div>
+Assets Upsert 6<div id="AssetsUpsert6"></div>
+Assets Query 1<div id="AssetsQuery1"></div>
+Assets Query 2<div id="AssetsQuery2"></div>
+Assets Query 3<div id="AssetsQuery3"></div>
+Users Upsert 1<div id="UsersUpsert1"></div>
+Users Upsert 2<div id="UsersUpsert2"></div>
+Users Upsert 3<div id="UsersUpsert3"></div>
+Users Query 1<div id="UsersQuery1"></div>
+Users Query 2<div id="UsersQuery2"></div>
+Users Query 3<div id="UsersQuery3"></div>
+Users Get Me 1<div id="UsersGetMe1"></div>
+Users Get Me 2<div id="UsersGetMe2"></div>
+Groups Upsert 1<div id="GroupsUpsert1"></div>
+Groups Upsert 2<div id="GroupsUpsert2"></div>
+Groups Upsert 3<div id="GroupsUpsert3"></div>
+Groups Query 1<div id="GroupsQuery1"></div>
+Groups Query 2<div id="GroupsQuery2"></div>
+Groups Query 3<div id="GroupsQuery3"></div>
+Publish<div id="Publish"></div>
+Publish Query<div id="PublishQuery"></div>
+unPublish<div id="unPublish"></div>
+Subscribe<div id="subscribe"></div>
+Subscribed Query<div id="SubscribedQuery"></div>
+Unsubscribe<div id="unsubscribe"></div>
+CG Get Code<div id="CGGetCode"></div>
+MM First Request<div id="MMRequest1"></div>
+MM Second Request<div id="MMRequest2"></div>
+MM First Pending<div id="MMPending1"></div>
+MM Second Pending<div id="MMPending2"></div>
+Get Updates 1<div id="getUpdates1"></div>
+Get Updates 2<div id="getUpdates2"></div>
+
+</body>
+</html>

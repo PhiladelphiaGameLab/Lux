@@ -24,3 +24,17 @@
 *.exe
 *.out
 *.app
+
+*.swp
+*.swo
+
+# test uploads
+FileUpload/uploads
+
+# npms
+processes/node_modules/*
+
+# Eclipse files
+/.project
+/.buildpath
+/.settings
