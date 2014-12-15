@@ -1,0 +1,3 @@
+[submodule "LogicFramework/ArrayQuery"]
+	path = LogicFramework/ArrayQuery
+	url = https://github.com/hubtheflow/ArrayQuery.git
