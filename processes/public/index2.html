@@ -53,12 +53,11 @@ function consol1(data){
 
 socket.on('connected', function(data){
 	consol1(JSON.stringify(data));
-	socket.emit('join', {access_token: 123});
+	socket.emit('join', {access_token: "abc"});
 });
 
 
 function emitMore(){
-	consol1(connected);
 	if(connected){
 		socket.emit('upsert', 	
 				{
@@ -114,11 +113,7 @@ socket.on('joined', function(data){
 		connected = true;
 	}
 });
-
-
-setInterval(emitMore(), 100);
-
- 
+setInterval(emitMore(), 1000); 
 </script>
 </head>
 <body>
