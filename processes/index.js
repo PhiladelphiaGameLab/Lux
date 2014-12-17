@@ -17,7 +17,7 @@ var GridStore = require('mongodb').Grid;
 var Code = require('mongodb').Code;
 var BSON = require('mongodb').pure().BSON;
 
-
+// Open the server port
 server.listen(port, function(){
 	console.log('Server Listening on port %d', port);
 });
@@ -25,9 +25,11 @@ server.listen(port, function(){
 // Point to the Game Files
 app.use(express.static(__dirname + '/public'));
 
+// declare the database
 var mongoConnection;
 var db;
 
+// Only open the database connection Once
 var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 mongoclient.open(function(err, mc){
 	if(err != null){ 
@@ -37,195 +39,190 @@ mongoclient.open(function(err, mc){
 		db = mc.db("Lux2");		
 	}
 });
+// Delcare the list of Sockets Online
+var sockets = {};
 
-// Functions to be utilized
+// Get the client Id, only need to do this once
+// Since if the client disconnects then they will
+// Get a new port
 function getClientId(acc_tok, callback){ // done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//	mongoclient.open(function(err, mc){
-	if(db == null){ console.log("getClientId open" + err); }else{
-		//var db = mc.db("Lux2");
+	if(db == null){ console.log("ERROR: getClientId Database Not Open " + err); }else{
 		db.collection("Users").findOne({access_token:acc_tok}, function(err, userDoc){
-			if(userDoc != null){
-				var userId = userDoc["_id"];
-		//		mongoclient.close();
-				callback(userId);
-			}else{
-				if(err == null){console.log("query: " + err);}
-				callback(false);
+			if(err != null){ console.log("ERROR: getClientId Query Failed " + err); }else{
+				if(userDoc != null && userDoc.hasOwnProperty("_id")){
+					var userId = userDoc["_id"];
+					callback(userId);
+				}else{
+					callback(false);
+				}
 			}
 		});
 	}
-//	});
-}
-function query(query, userId){ // done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-	//console.log(userId + " Queried for a doc " + query);
-//	mongoclient.open(function(err, mc){
-	if( db == null){ console.log("query open " + err); }else{
-		//var db = mc.db("Lux2");
-		db.collection("Assets").find(query, function(err, cursor){
-			cursor.toArray(function(err, array){
-				if(err != null){console.log("query: " + err);}else{
-					console.log(userId);
-					//console.log(sockets[userId]);
-					if(sockets[userId] != undefined && sockets[userId] != null){
-						sockets[userId].emit('query', array);
-						console.log("sent query out");
-					}
-				}
-				//mongoclient.close();
-			});
-		});
-	}
-//	});
 }
 
-function update(query, update, options, userId){ // done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//	mongoclient.open(function(err, mc){
-	if(db == null){ console.log("update open " + err); }else{
-	//	var db = mc.db("Lux2");
+// Query the Database and return the Results
+// Should only be utilized if Game has extended Map
+// Should not be used for any other reason
+function query(query, userId){
+	if( db == null){ console.log("ERROR: query Database Not Open" + err); }else{
+		db.collection("Assets").find(query, function(err, cursor){
+			if(err != null){ console.log("ERROR: query Query Failed " + err); }else{
+				cursor.toArray(function(err, array){
+					if(err != null){console.log("ERROR: query Conversion to Array " + err);}else{
+						if(sockets.hasOwnProperty(userId) && sockets[userId] != undefined && sockets[userId] != null){
+							sockets[userId].emit('query', array);
+						}else{
+							console.log("ERROR: query userId is not Registered");
+						}
+					}
+				});
+			}
+		});
+	}
+}
+
+// Part of Upsert
+// Update the Database when Asset State Changes 
+// No response to the Updating client 
+// (The Document should be updated on their side anyway)
+function update(query, update, options, userId){
+	if(db == null){ console.log("ERROR: update Database Not Open " + err); }else{
 		db.collection("Assets").update(query, update, options
 			,function(err, results){
-			if(err != null){console.log("update: " + err);}else{
-				// needs a loop
-				publish(query, userId, true, false);
-				console.log("updated");		
-			}
-	//		mongoclient.close();
+				if(err != null){console.log("ERROR: update Query Failed" + err);}else{
+					publish(query, userId, true, false);
+				}
 			});
 	}
-//	});
 }
-function insert(doc, userId){ // done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//	mongoclient.open(function(err, mc){
-	if(db  == null){ console.log("insert open " + err); }else{
-		//var db = mc.db("Lux2");
+
+// Part of Upsert
+// Insert to Database when Asset is created
+// No resposne to the Updating Client
+// (The Document should be updated on their side anyway)
+function insert(doc, userId){ 
+	if(db  == null){ console.log("ERROR: insert Database Not Open " + err); }else{
 		db.collection("Assets").insert(doc
 			,function(err, results){
-			if(err != null){console.log("insert: " + err);}else{
-				publish(doc, userId, false, false);
-				console.log("inserted");
-			}
-		//	mongoclient.close();
+				if(err != null){console.log("ERROR: insert Query Failed " + err);}else{
+					publish(doc, userId, false, false);
+				}
 			});
 	}
-//	});
 }
-function remove(query, userId){ //done 
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//	mongoclient.open(function(err, mc){
-	if(db == null){ console.log("remove open " + err); }else{
-	//	var db = mc.db("Lux2");
+
+// Part of Upsert
+// Remove From databse When Asset is created
+// No response to the Updating Client
+// Should almost never be used, documents should be marked as Deleted 
+// Rather then actually deleted
+function remove(query){ 
+	if(db == null){ console.log("ERROR: remove Database Not Open" + err); }else{
 		db.collection("Assets").remove(query
 			,function(err, results){
-			if(err != null){console.log("remove: " + err);}else{
-				console.log("removed");
-			}
-	//		mongoclient.close();
+				if(err != null){console.log("ERROR: remove Query Failed" + err);}else{
+					// success publish needs to be done prior to removal
+					// so there is no operation to call here
+				}
 			});
 	}
-//	});
 }
-function publish(doc, userId, multi, removed){ // done
+
+// Publish the document so it can be updated to other clients
+// Used for any Upsert Operation
+// Function is recursive on Queries
+function publish(doc, userId, multi, removed){ 
+	// Need to know if a loop is necissary
 	if(multi){
-		//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//		mongoclient.open(function(err, mc){
-		if(db == null){ console.log("ERROR: publish Multi open " +err);}else{
-		//	var db = mc.db("Lux2");
+		if(db == null){ console.log("ERROR: publish (multi) Database Not Open " +err);}else{
 			db.collection("Assets").find(doc, function(err, cursor){
-				if(err != null){console.log("Published find: " + err);}else{
-					cursor.each(function(err, docsy){
-						if(err != null){console.log("ERROR: Published find doc: " + err);}else if(docsy != null){
-							//console.log("Published Find Doc");
-							publish(docsy, userId, false, false); 
-						}else if(docsy == null){
-		//					mongoclient.close();
-						}	
+				if(err != null){console.log("ERROR: publish (multi) Query Failed: " + err);}else{
+					cursor.each(function(err, singleDocument){
+						if(err != null){console.log("ERROR: publish (multi) Iteration: " + err);}else{
+							if(singleDocument != null){
+								publish(singleDocument, userId, false, false); 
+							}
+						}
 					});
 					if(removed){
-						remove(doc, userId);
+						// call removed here since 
+						// This is where the document needs to be removed
+						remove(doc);
 					}
 				}
 			});	
 		}
-//		});	
+	// Single document needs to be inserted 
 	}else{
-		//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//		mongoclient.open(function(err, mc){
-		if(db == null){ console.log("ERROR: publish open connection" + err); }else{
-		//	var db = mc.db("Lux2");
-			if(removed){doc["removed"] = true}
+		if(db == null){ console.log("ERROR: pulish Database Not Open" + err); }else{
+			if(removed){
+				doc["removed"] = true
+			}
 			doc["info"] = {sender: userId, checked_by:{python:false, node:false}};
 			db.collection("Published").update({"_id":doc["_id"]}, doc, {upsert:true}
 				,function(err, results){
-				if(err != null){console.log("ERROR: Published: " + err);}else{
-					//console.log("Published");
-				}
-		//		mongoclient.close();
+					if(err != null){console.log("ERROR: publish Query Failed: " + err);}
 				});
 		}
-//		});
 	}
 }
 
-function upsert(data, userId){ // done
-	var removed = false;
-	if(data.hasOwnProperty("update") && data.hasOwnProperty("query")){
-		// upsert
-		if(data.update.hasOwnProperty('$set')){
-			var options = {upsert:true, multiple:true};
+// Upsert Handles and redirects Upsert Requests
+// Should be constantly Utilized Throughout the Game
+// Every Asset that is updated shuold pass through here
+function upsert(data, userId){
+	if(sockets.hasOwnProperty(userId) && sockets[userId] != undefined && sockets[userId] != null){
+		var removed = false;
+		if(data.hasOwnProperty("update") && data.hasOwnProperty("query")){
+			// upsert
+			if(data.update.hasOwnProperty('$set')){
+				var options = {upsert:true, multiple:true};
+			}else{
+				var options = {upsert:true};
+			}
+			update(data.query, data.update, options, userId);
+		}else if(data.hasOwnProperty("query")){
+			// remove
+			publish(data.query, userId, true, true);
 		}else{
-			var options = {upsert:true};
-		}
-		update(data.query, data.update, options, userId);
-	}else if(data.hasOwnProperty("query")){
-		// remove
-		publish(data.query, userId, true, true);
+			// insert	
+			insert(data.update, userId);
+		} 
 	}else{
-		// insert	
-		insert(data.update, userId);
+		console.log("ERROR: upsert userId is not Registered");
 	}
 }
-function subscribe(query, userId){ // done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-	//console.log(userId + " Subscribed " + query);
-//	mongoclient.open(function(err, mc){
-		if(db == null){console.log("ERROR: subscribe Opening: " + err);}else{
-		//var db = mc.db("Lux2");
+
+// Subscribes the User to the Query 
+// Should only be used on Query
+// Should only be used if Game has extended Map
+function subscribe(query, userId){
+		if(db == null){console.log("ERROR: subscribe Database Not Open: " + err);}else{
 		db.collection("Subscribers").update({query:query},
 				{'$addToSet':{'subscribers': {id: userId}}},
 				{upsert:true}, function(err, results){
-					if(err != null){ console.log("ERROR: sub update " + err); }else{
-		//				mongoclient.close();
-					}
+					if(err != null){ console.log("ERROR: subscribe Query Failed " + err); }
 				});
 		}
-//	});
 }
-function unsubscribeAll(userId){// done
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-	//console.log(userId + " Unsubscribed to all");
-//	mongoclient.open(function(err, mc){
-		if(db == null){console.log("ERROR: unsubAll: " + err);}else{
-		//var db = mc.db("Lux2");
+
+// Unsubscriber Users when they Disconnect
+// Prevents System from trying to send Ghost Docs
+function unsubscribeAll(userId){
+		if(db == null){console.log("ERROR: unsubscribe Database Not Open: " + err);}else{
 		db.collection("Subscribers").update({}, 
 				{'$pull':{'subscribers': {id: userId}}},
 				{upsert:true, multiple:true}, function(err, results){
-					if(err != null){ console.log("ERROR: unsub update " + err); }else{
-		//				mongoclient.close();
-					}
+					if(err != null){ console.log("ERROR: unsubscribe Query Failed " + err); }
 				});
 		}
-//	});
 }
-var sockets = {};
 
 // Socket Logic
-io.on('connection', function(socket){ // done
+// Handles A socket Connection and Decides what
+// Needs to be executed based on data passed in
+io.on('connection', function(socket){ 
 	socket.emit('connected', {status: "successfully connected"});
-	// for when you join!
 	socket.connected = false;
 	socket.on('join', function(data){
 		if(!socket.connected){
@@ -236,9 +233,7 @@ io.on('connection', function(socket){ // done
 						socket.connected = true;
 						sockets[userId] = socket;
 						socket.emit('joined', {status: 'connected'});
-						console.log("A user has connected " + userId);
 					}else{
-						console.log("you messed up bro");
 						socket.emit('error_lux', {'error_lux': "access Token Invalid"});
 					}
 				});
@@ -275,52 +270,44 @@ io.on('connection', function(socket){ // done
 // Step 1.
 // Successfully Finds Documents and iterates them 
 function sendUpdates(){
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//mongoclient.open(function(err, mc){
-	if(db == null){ console.log("ERROR: SU Opening DB" + err); }else{
-	//	var db = mc.db("Lux2");
-		db.collection("Subscribers").find({'subscribers' : {$not: {$size:0}}},
-		function(err, subscriptions){
-			if(err != null){ console.log("ERROR: SU Found Documents" + err); }else{
-				//console.log("SU Found Documents");
-				subscriptions.each(function(err, subscription){
-					if(err != null){ console.log("ERROR: SU Iterating Documents " + err);
-					}else if(subscription != null){
-						var query = subscription.query;
-						var subscribers = subscription.subscribers;
-						query["info.checked_by.node"] = false;
-						//console.log("SU Iterating Documents Found");
-						findPublishedDocs(query, subscribers);
-						//removeUpdated();
-					}else{
-	//					mongoclient.close();
-					}
-				});
-			}
-		});
+	// only do this if someone is online
+	if(sockets.length != 0){
+		if(db == null){ console.log("ERROR: SU Database Not Open " + err); }else{
+			db.collection("Subscribers").find({'subscribers' : {$not: {$size:0}}},
+			function(err, subscriptions){
+				if(err != null){ console.log("ERROR: SU Query Failed " + err); }else{
+					subscriptions.each(function(err, subscription){
+						if(err != null){ console.log("ERROR: SU Iterating Documents " + err);}else{
+							if(subscription != null){
+								var query = subscription.query;
+								var subscribers = subscription.subscribers;
+								query["info.checked_by.node"] = false;
+								findPublishedDocs(query, subscribers);
+							}
+						}
+					});
+				}
+			});
+		}
+	}else{
+		removeUpdated();
 	}
-//});
 }
+
+
 // Step 2:
 // Successfully Finds Docs and Iterates them
 function findPublishedDocs(query, subscribers){
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//mongoclient.open(function(err, mc){
-	if(db == null){ console.log("ERROR: FPD Opening DB" + err); }else{
-	//	var db = mc.db("Lux2");
+	if(db == null){ console.log("ERROR: FPD Database Not Open " + err); }else{
 		db.collection("Published").find(query,
 		function(err, publishedDocs){
-			if(err != null){ console.log("ERROR: FPD Found Docs" + err); }else{
-				//console.log("FPD Found Docs");
+			if(err != null){ console.log("ERROR: FPD Query Failed " + err); }else{
 				publishedDocs.each(function(err, published){
-					if(err != null){ console.log("ERROR: FPD Iterating Found Docs" + err);
-					}else if(published != null){
-						// emit each doc to subscribers
-						//console.log("FPD Iterating Found Docs");
-						emitUpdates(published, subscribers);
-						updatePubDoc(published);
-					}else{
-	//					mongoclient.close();
+					if(err != null){ console.log("ERROR: FPD Iterating Documents " + err);}else{
+						if(published != null){
+							emitUpdates(published, subscribers);
+							updatePubDoc(published);
+						}
 					}
 				});
 			}
@@ -328,15 +315,13 @@ function findPublishedDocs(query, subscribers){
 	}
 //});
 }
-// Step 3:
-//
+// Step 3: 
+// Sends Updates to Users who are Subscribed and Online
 function emitUpdates(published, subscribers){
 	subscribers.forEach(function(subscriber){
 		if(sockets.hasOwnProperty(subscriber.id)){
-		//console.log("Subscriber id: " + subscriber.id);
 			if(subscriber != null && sockets[subscriber.id] != null){
 				sockets[subscriber.id].emit('updated', published);
-				//console.log("EU Subscriber Notified " + subscriber.id);
 			}
 		}
 	});
@@ -346,31 +331,25 @@ function emitUpdates(published, subscribers){
 // Step 3:
 // Documents are successfully Updated
 function updatePubDoc(published){
-//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
-//mongoclient.open(function(err, mc){
-	if(db == null){ console.log("ERROR: UPD DB Exists" + err); }else{
-	//	var db = mc.db("Lux2");
+	if(db == null){ console.log("ERROR: UPD Database Not Open" + err); }else{
 		db.collection("Published").update({"_id":published._id}, {$set:{"info.checked_by.node":true}}
 		,function(err, results){
-			if(err != null){ console.log("ERROR: UPD Updating Doc" +err); }else{
-				//console.log("Updated Pub Doc");
-	//			mongoclient.close();
-			}
+			if(err != null){ console.log("ERROR: Query Failed" +err); }
 		});
 	}
-//});
 }
-
+// Step 1B:
+// Removes Published Documents that have been seen by both Parties 
+// Should also remove documents more than 3 minutes old
+// This will do nothing if the Python Script isn't running
 function removeUpdated(){
-	if(db == null){ console.log("ERROR: RU open" + err); }else{
+	if(db == null){ console.log("ERROR: RU Database Not Open" + err); }else{
 		db.collection("Published").remove({"info.checked_by.node":true, "info.checked_by.python":true}
 		,function(err, results){
-			if(err != null){ console.log("ERROR: RU removing the documents" +err); }else{
-				console.log("Removed Documents");
-			}
+			if(err != null){ console.log("ERROR: RU Query Failed" +err); }
 		});
 	}
 }
 
-setInterval(sendUpdates, 1000);
+setInterval(sendUpdates, 100);
 
