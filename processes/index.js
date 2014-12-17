@@ -132,13 +132,13 @@ function publish(doc, userId, multi, removed){ // done
 	if(multi){
 		//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 //		mongoclient.open(function(err, mc){
-		if(db == null){ console.log("publish Multi open " +err);}else{
+		if(db == null){ console.log("ERROR: publish Multi open " +err);}else{
 		//	var db = mc.db("Lux2");
 			db.collection("Assets").find(doc, function(err, cursor){
 				if(err != null){console.log("Published find: " + err);}else{
 					cursor.each(function(err, docsy){
-						if(err != null){console.log("Published find doc: " + err);}else if(docsy != null){
-							console.log("Published Find Doc");
+						if(err != null){console.log("ERROR: Published find doc: " + err);}else if(docsy != null){
+							//console.log("Published Find Doc");
 							publish(docsy, userId, false, false); 
 						}else if(docsy == null){
 		//					mongoclient.close();
@@ -154,14 +154,14 @@ function publish(doc, userId, multi, removed){ // done
 	}else{
 		//var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 //		mongoclient.open(function(err, mc){
-		if(db == null){ console.log("publish open connection" + err); }else{
+		if(db == null){ console.log("ERROR: publish open connection" + err); }else{
 		//	var db = mc.db("Lux2");
 			if(removed){doc["removed"] = true}
 			doc["info"] = {sender: userId, checked_by:{python:false, node:false}};
 			db.collection("Published").update({"_id":doc["_id"]}, doc, {upsert:true}
 				,function(err, results){
-				if(err != null){console.log("Published 1: " + err);}else{
-					console.log("Published");
+				if(err != null){console.log("ERROR: Published: " + err);}else{
+					//console.log("Published");
 				}
 		//		mongoclient.close();
 				});
@@ -192,12 +192,12 @@ function subscribe(query, userId){ // done
 //var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 	//console.log(userId + " Subscribed " + query);
 //	mongoclient.open(function(err, mc){
-		if(db == null){console.log("subscribe: " + err);}else{
+		if(db == null){console.log("ERROR: subscribe Opening: " + err);}else{
 		//var db = mc.db("Lux2");
-		db.collection("Subscribers").update({query:query}, 
+		db.collection("Subscribers").update({query:query},
 				{'$addToSet':{'subscribers': {id: userId}}},
 				{upsert:true}, function(err, results){
-					if(err != null){ console.log("sub update " + err); }else{
+					if(err != null){ console.log("ERROR: sub update " + err); }else{
 		//				mongoclient.close();
 					}
 				});
@@ -208,12 +208,12 @@ function unsubscribeAll(userId){// done
 //var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 	//console.log(userId + " Unsubscribed to all");
 //	mongoclient.open(function(err, mc){
-		if(db == null){console.log("unsubAll: " + err);}else{
+		if(db == null){console.log("ERROR: unsubAll: " + err);}else{
 		//var db = mc.db("Lux2");
 		db.collection("Subscribers").update({}, 
 				{'$pull':{'subscribers': {id: userId}}},
 				{upsert:true, multiple:true}, function(err, results){
-					if(err != null){ console.log("unsub update " + err); }else{
+					if(err != null){ console.log("ERROR: unsub update " + err); }else{
 		//				mongoclient.close();
 					}
 				});
@@ -238,7 +238,7 @@ io.on('connection', function(socket){ // done
 						socket.emit('joined', {status: 'connected'});
 						console.log("A user has connected " + userId);
 					}else{
-						console.log("you fucked up bro");
+						console.log("you messed up bro");
 						socket.emit('error_lux', {'error_lux': "access Token Invalid"});
 					}
 				});
@@ -272,23 +272,26 @@ io.on('connection', function(socket){ // done
 
 
 
-// Can't open connection
+// Step 1.
+// Successfully Finds Documents and iterates them 
 function sendUpdates(){
 //var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 //mongoclient.open(function(err, mc){
-	if(db == null){ console.log("SU open" + err); }else{
+	if(db == null){ console.log("ERROR: SU Opening DB" + err); }else{
 	//	var db = mc.db("Lux2");
 		db.collection("Subscribers").find({'subscribers' : {$not: {$size:0}}},
 		function(err, subscriptions){
-			if(err != null){ console.log("SU finding Sub Docs " + err); }else{
+			if(err != null){ console.log("ERROR: SU Found Documents" + err); }else{
+				//console.log("SU Found Documents");
 				subscriptions.each(function(err, subscription){
-					if(err != null){ console.log("Iterating Sub Docs " + err);
+					if(err != null){ console.log("ERROR: SU Iterating Documents " + err);
 					}else if(subscription != null){
 						var query = subscription.query;
 						var subscribers = subscription.subscribers;
 						query["info.checked_by.node"] = false;
-						console.log("SU Finding Sub Docs");
+						//console.log("SU Iterating Documents Found");
 						findPublishedDocs(query, subscribers);
+						//removeUpdated();
 					}else{
 	//					mongoclient.close();
 					}
@@ -298,21 +301,22 @@ function sendUpdates(){
 	}
 //});
 }
-
-// can't open
+// Step 2:
+// Successfully Finds Docs and Iterates them
 function findPublishedDocs(query, subscribers){
 //var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 //mongoclient.open(function(err, mc){
-	if(db == null){ console.log("SU pub open" + err); }else{
+	if(db == null){ console.log("ERROR: FPD Opening DB" + err); }else{
 	//	var db = mc.db("Lux2");
 		db.collection("Published").find(query,
 		function(err, publishedDocs){
-			if(err != null){ console.log("SU pub finding Docs " + err); }else{
+			if(err != null){ console.log("ERROR: FPD Found Docs" + err); }else{
+				//console.log("FPD Found Docs");
 				publishedDocs.each(function(err, published){
-					if(err != null){ console.log("Iterating Pub Docs " + err);
+					if(err != null){ console.log("ERROR: FPD Iterating Found Docs" + err);
 					}else if(published != null){
 						// emit each doc to subscribers
-						console.log("SU pub Finding Docs");
+						//console.log("FPD Iterating Found Docs");
 						emitUpdates(published, subscribers);
 						updatePubDoc(published);
 					}else{
@@ -324,34 +328,48 @@ function findPublishedDocs(query, subscribers){
 	}
 //});
 }
-
+// Step 3:
+//
 function emitUpdates(published, subscribers){
 	subscribers.forEach(function(subscriber){
-		if(sockets.hasOwnProperty(subscriber)){
-			if(subscriber != null && sockets[subscriber] != null){
-				sockets[subscriber].emit('updated', publish);
-				console.log("Subscriber Notified");
+		if(sockets.hasOwnProperty(subscriber.id)){
+		//console.log("Subscriber id: " + subscriber.id);
+			if(subscriber != null && sockets[subscriber.id] != null){
+				sockets[subscriber.id].emit('updated', published);
+				//console.log("EU Subscriber Notified " + subscriber.id);
 			}
 		}
 	});
 }
 
 
-// Can't open?
+// Step 3:
+// Documents are successfully Updated
 function updatePubDoc(published){
 //var mongoclient = new MongoClient(new MongoServer("localhost", 27017), {native_parser:true});
 //mongoclient.open(function(err, mc){
-	if(db == null){ console.log("UpdatePubDoc connection " + err); }else{
+	if(db == null){ console.log("ERROR: UPD DB Exists" + err); }else{
 	//	var db = mc.db("Lux2");
-		db.collection("Published").update({"_id":publish._id}, {$set:{"info.checked_by.node":true}}
+		db.collection("Published").update({"_id":published._id}, {$set:{"info.checked_by.node":true}}
 		,function(err, results){
-			if(err != null){ console.log("UpdatePubDoc " +err); }else{
-				console.log("Updated Pub Doc");
+			if(err != null){ console.log("ERROR: UPD Updating Doc" +err); }else{
+				//console.log("Updated Pub Doc");
 	//			mongoclient.close();
 			}
 		});
 	}
 //});
+}
+
+function removeUpdated(){
+	if(db == null){ console.log("ERROR: RU open" + err); }else{
+		db.collection("Published").remove({"info.checked_by.node":true, "info.checked_by.python":true}
+		,function(err, results){
+			if(err != null){ console.log("ERROR: RU removing the documents" +err); }else{
+				console.log("Removed Documents");
+			}
+		});
+	}
 }
 
 setInterval(sendUpdates, 1000);
