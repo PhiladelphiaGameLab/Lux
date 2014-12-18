@@ -46,9 +46,9 @@ if(isset($results)){
 				array('accepting'=> false
 				,'timestamp'=>microtime())));
 	if(isset($matchingGroup)){
-		$OUTPUT->success("Group was found", array("group" => $matchingGroup["_id"], "member"=>$memberNumber));
+		$OUTPUT->success(array("group" => $matchingGroup["_id"], "member"=>$memberNumber));
 	}else{
-		$OUTPUT->success("No Group yet");
+		$OUTPUT->success(array("pending" => true));
 	}
 }else{
 	$OUTPUT->error("No Request is Pending");

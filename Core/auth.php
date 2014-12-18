@@ -75,10 +75,16 @@ class OAuth{
 	private $service;
 
 	function __construct($serv){
+		$LF = new LuxFunctions();
 		$this->OUTPUT = new Output();
                 $this->DB = new db();
-                $this->clientInfo = $this->DB->selectCollection("ClientInfo");
+                if(!is_array($_SESSION)){
+			session_start();
+		}
+		$this->clientInfo = $this->DB->selectCollection("Users");
 		$this->service = $serv;
+		$_SESSION["href"] = $LF->fetch_avail("href");
+		$this->check($LF->fetch_avail("href"));
 	}
 
 	function check($info){
@@ -93,13 +99,13 @@ class OAuth{
 	
 	function getURL(){
                 switch($this->service){
-                        case "Google":
+                        case "google":
                                 $state = 'done';
                                 $cli_id = '1006161612314-1qct7m1r0bqt5ecb2sntrci253dv41s1.apps.googleusercontent.com';
                                 $call = 'http://'. $_SERVER['HTTP_HOST'] .'/Auth/google.php';
                                 $scope = 'email%20profile%20https://www.googleapis.com/auth/admin.directory.user';
                                 $url = "https://accounts.google.com/o/oauth2/auth?state=$state&scope=$scope&redirect_uri=$call&response_type=code&client_id=$cli_id&approval_prompt=force&access_type=offline";
-                                $this->redirect_url = $_GET["href"];
+                                //$this->redirect_url = $_GET["href"];
                                 return $url;
                 }
         }
@@ -115,7 +121,7 @@ class OAuth{
 			"redirect_uri" => "http://".$_SERVER["HTTP_HOST"]."/Auth/google.php",
 			"grant_type" => "authorization_code"
 		);
-		var_dump($params);
+		//var_dump($params);
 		
 		$curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_POST, true);
@@ -130,16 +136,23 @@ class OAuth{
         	$getUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=".$access_tok;
                 $getResponse = file_get_contents($getUrl);
                 $get = json_decode($getResponse, true);
-		var_dump($get);
+		//var_dump($get);
 
-		$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
-		if(!isset($prevCheck)){
+	//	$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
+
+		$get["access_token"] = $this->acc_token;
+		$results = $this->clientInfo->update(array("id" => $get["id"]), array('$set' => $get), array("upsert" => true));
+	/*	if(!isset($prevCheck)){
 			$get["access_token"] = $this->acc_token;
 			$this->clientInfo->insert($get);
 		}else{
 
-		}
+		} */
+		echo var_dump($results);
+		//echo "<br/><br/>redirect url: ".$this->redirect_url;
+		//echo "<br/><br/>Location: http://". $_SERVER['HTTP_HOST']. "/" .$this->redirect_url."?access_token=".$access_tok;
 		header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$this->redirect_url."?access_token=".$access_tok);
+		die();
 	}
 
 }

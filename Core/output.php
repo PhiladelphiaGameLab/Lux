@@ -10,14 +10,14 @@ class Output{
 		$this->array = array();
 	}	
 	function success(){
-		echo "<pre>";
-		echo json_encode(func_get_args());	
-		echo "\n\n</pre>";
+		if(is_array(func_get_args(0))){
+			echo json_encode(func_get_args(0));
+		}else{
+			echo json_encode(func_get_args());	
+		}
 	}
 	function error(){
-		echo "<pre>";
 		echo json_encode(func_get_args());	
-		echo "\n\n</pre>";
 		die();
 	}
 	function addToPrintArray(){
