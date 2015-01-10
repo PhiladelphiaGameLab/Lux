@@ -13,16 +13,22 @@ $AUTH = new Auth();
 $userID = $AUTH->getClientId();
 
 $query = array(
-    "_id" => new MongoId(),
-    "userID" => $LF->fetch_avail("userID"), // must be unique
-    "username" => $LF->fetch_avail("username"),
-    "score" => array(
-        "raw" => 0
-    ),
-    "levels" => array(),
-    "assets" => array()
+    "userID" => $LF->fetch_avail("userID"),
+    "assets" => array('$in' => $LF->fetch_avail("oldasset"))
 );
 
-$results = $collection->insert($query);
+$update = array(
+    '$pull' => array("assets" => $LF->fetch_avail("oldasset")),
+    '$push' => array("assets" => $LF->fetch_avail("newasset"))
+);
+
+$results = $collection->findAndModify(
+    $query,
+    $update,
+    null,
+    array(
+        "new" => true
+    )
+);
 
 $OUTPUT->success("success", $results);
