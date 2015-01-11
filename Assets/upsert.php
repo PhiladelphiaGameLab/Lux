@@ -56,11 +56,13 @@ if(isset($update) && isset($query)){
 }else{
 	$OUTPUT->error("Parameters are missing", "query || update");
 }
-foreach($documents as $document){
-	if(isset($removed) && $removed){
-		$document["removed"] = true;
+if(!$LF->is_avail("noPub") && $LF->fetch_avail("noPub")){
+	foreach($documents as $document){
+		if(isset($removed) && $removed){
+			$document["removed"] = true;
+		}
+		$db->publish($document, $AUTH); 
 	}
-	$db->publish($document, $AUTH); 
 }
 
 

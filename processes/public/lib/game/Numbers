@@ -1,0 +1,56 @@
+Room 1:
+    Bed: 2091, 705, downleft
+    Lamp: 2214, 704, downleft
+    Nightstand: 2433, 923, downleft
+    Dresser: 1889, 959, downright
+    Fridge: 2752, 1227, downleft
+    Sink: 2796, 1240, downleft
+    Stove: 2704, 1432, upleft
+    Tv: 1704, 1068, downleft
+    Tvstand: 1580, 1204, downleft
+    Oblongtable: 1787, 1184, downright
+    SideTable: 1488, 1344, downleft
+    Toilet: 2332, 1784, downleft
+    
+Room 2:
+    Bed: 3295, 1937, downleft
+    Lamp: 3666, 2164, downleft
+    Nightstand: 3345, 1867, downleft
+    Dresser: 3389, 2371, upleft
+    Fridge: 3080, 1543, downleft
+    Sink: 2996, 1432, downleft
+    Stove: 2776, 1508, downright
+    Tv: 3192, 2504, upleft
+    Tvstand: 3076, 2628, upleft
+    Oblongtable: 2983, 2336, downright
+    SideTable: 2936, 2756, downright
+    Toilet: 2484, 1920, downleft
+
+Room 3:
+    Bed: 1699, 3437, upright
+    Lamp: 1966, 3852, downleft
+    Nightstand: 1645, 3527, upright
+    Dresser: 2281, 3475, upleft
+    Fridge: 1384, 3255, upright
+    Sink: 1300, 3140, upright
+    Stove: 1412, 2868, downright
+    Tv: 2388, 3304, upleft
+    Tvstand: 2508, 3200, upleft
+    Oblongtable: 2191, 3136, downright
+    SideTable: 2608, 3104, downleft
+    Toilet: 2332, 1784, downleft
+
+Room 4:
+    Bed: 531, 2265, upright
+    Lamp: 510, 2408, downleft
+    Nightstand: 733, 2615, upright
+    Dresser: 741, 2099, downright
+    Fridge: 1044, 2915, upright
+    Sink: 1088, 2928, upright
+    Stove: 1344, 2796, upleft
+    Tv: 940, 1832, downright
+    Tvstand: 1056, 1736, downright
+    Oblongtable: 1059, 1964, downright
+    SideTable: 1172, 1660, downleft
+    Toilet: 2332, 1784, downleft
+

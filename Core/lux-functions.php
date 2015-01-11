@@ -15,6 +15,9 @@ class LuxFunctions{
 		$this->parameters = array();
 		$this->setArray();
 		$this->docSet = false;
+		if(!isset($_SESSION)){
+			session_start();
+		}
 	}
 
 	function checkGroups($documentGroup, $clientGroups){
@@ -37,6 +40,11 @@ class LuxFunctions{
 		}
 		if(is_array($_GET)){
 			foreach($_GET as $key => $value){
+				$this->parameters[$key] = $value;
+			}
+		}
+		if(isset($_SESSION) && is_array($_SESSION)){
+			foreach($_SESSION as $key => $value){
 				$this->parameters[$key] = $value;
 			}
 		}

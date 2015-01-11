@@ -18,7 +18,7 @@ if($LF->is_avail("id")){
 }else if($LF->is_avail("query")){
 	$query = is_array($LF->fetch_avail("query"))? $LF->fetch_avail("query") : array($LF->fetch_avail("query"));
 	$documents = $collection->find($query);
-	$OUTPUT->success("Found Documents", $documents);
+	$OUTPUT->success("Found Documents", iterator_to_array(($documents)));
 }else if($LF->is_avail("distinct")){
 	$query = $LF->fetch_avail("distinct");
 	$documents = $collection->distinct($query);
@@ -28,8 +28,10 @@ if($LF->is_avail("id")){
 	$documents = $collection->aggregateCursor($query);
 	$OUTPUT->success("Found Aggregate Values", $documents);
 }
-$db->subscribe($query, $AUTH);
-
+if(!$LF->is_avail("noSub") || $LF->fetch_avail("noSub")){
+	$db->subscribe($query, $AUTH);
+}
+die();
 
 ?>
 

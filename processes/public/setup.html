@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Lato:300">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="http://demo.philadelphiagamelab.org/Demo/css/animate.min.css">
+  <link rel="stylesheet" href="http://demo.philadelphiagamelab.org/Demo/css/tiempo.css">
+  <link rel="alternate stylesheet" href="http://demo.philadelphiagamelab.org/Demo/css/light.css" name="light">
+  <link rel="stylesheet" href="http://demo.philadelphiagamelab.org/Demo/css/dark.css" name="dark">
+  <link rel="stylesheet" href="http://demo.philadelphiagamelab.org/Demo/css/style.css">
+  <link rel="shortcut icon" href="images/tiempo-favicon.png">
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  <script src="http://demo.philadelphiagamelab.org/Demo/js/jquery.mb.YTPlayer.js"></script>
+  <script src="http://demo.philadelphiagamelab.org/Demo/js/tiempo.js"></script>
+	<title>Impact Game</title>
+	<style type="text/css">
+		
+		#canvas {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+		}
+	</style>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="lib/impact/impact.js"></script>
+	<script type="text/javascript" src="lib/game/main.js"></script>
+
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+  <!-- Loading screen -->
+  <div class="loading">
+    <span class="loading-icon">Loading...</span>
+  </div>
+  <div class="filter pattern">
+	<span>Pattern</span>
+  </div>
+  <!-- Navigation -->
+  <nav id="menu" class="menu menu-close">
+	<ul class="menu-items">
+	<li class="brand animated fadeIn delay-2s"data-toggle="modal-section" data-target="#instructions">Instructions</li>
+	</ul>
+    <button type="button" class="btn-menu animated fadeIn delay-2s" data-toggle="menu">
+      <span>Menu</span>
+    </button>
+    <ul class="menu-items">
+      <li><a target="_blank" href="http://www.philadelphiagamelab.org">Philadelphia Game Lab</a></li>
+      <li data-toggle="modal-section" data-target="#about_lux">About Lux</li>
+      <li data-toggle="modal-section" data-target="#about_demo">About The Demo Game</li>
+    </ul>
+  </nav>
+  <!-- Content -->
+  <section id="content" class="container">
+    <div class="contentWrapper">
+      <div class="content">
+        <!-- Header -->
+        <header id="header">
+        </header>
+        <!-- Main -->
+        <main id="main">
+          <!-- About us -->
+          <section id="about_lux" class="modal modal-close">
+            <button type="button" class="btn-menu" data-toggle="modal">
+              <span>Menu</span>
+            </button>
+            <div class="container">     
+              <h3 class="title">About Lux</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae diam ultricies diam dapibus lacinia eget ac sapien. Donec tincidunt nibh dictum elit varius auctor. Ut volutpat dignissim convallis. Aenean scelerisque condimentum ex sit amet convallis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris consectetur ultrices vestibulum. Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien. </p>
+              <div class="row services">
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/31762.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/38860.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/12225.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+              </div>
+              </div>
+            </div>
+          </section>
+          <section id="about_demo" class="modal modal-close">
+            <button type="button" class="btn-menu" data-toggle="modal">
+              <span>Menu</span>
+            </button>
+            <div class="container">     
+              <h3 class="title">About The Demo Game</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae diam ultricies diam dapibus lacinia eget ac sapien. Donec tincidunt nibh dictum elit varius auctor. Ut volutpat dignissim convallis. Aenean scelerisque condimentum ex sit amet convallis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris consectetur ultrices vestibulum. Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien. </p>
+              <div class="row services">
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/14033.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/24338.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/36181.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="instructions" class="modal modal-close">
+            <button type="button" class="btn-menu" data-toggle="modal">
+              <span>Menu</span>
+            </button>
+            <div class="container">     
+              <h3 class="title">Instructions on How to Play</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin vitae diam ultricies diam dapibus lacinia eget ac sapien. Donec tincidunt nibh dictum elit varius auctor. Ut volutpat dignissim convallis. Aenean scelerisque condimentum ex sit amet convallis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris consectetur ultrices vestibulum. Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien. </p>
+              <div class="row services">
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/14033.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/24338.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+                <div class="col-sm-4 service">
+                  <img src="http://cdn.flaticon.com/png/256/36181.png" height="125"></img>
+                  <p>Ut lacus augue, posuere ac pretium vitae, pellentesque quis lorem. Proin vel neque non urna tincidunt posuere vel ut sapien.</p>
+                </div>
+              </div>
+	   </div>
+	  </section>
+          <section class="countdown animated bounceIn delay-1s5t">
+        	<!-- Countdown zone -->  
+	</section>
+        </main>
+      </div>
+    </div>
+  </section>
+    </div>
+  </div>
+</body>
+</html>

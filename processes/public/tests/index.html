@@ -46,18 +46,19 @@ function queryGroup(group){
 
 var connected = false;
 var socket = io();
-var rand = Math.floor(Math.random()*10)
+var rand = Math.floor(Math.random()*10);
 function consol1(data){
 	document.getElementById("console").innerHTML+= data;
 }
 
 socket.on('connected', function(data){
 	consol1(JSON.stringify(data));
-	socket.emit('join', {access_token: "abc"});
+	socket.emit('join', {access_token: 123});
 });
 
 
 function emitMore(){
+	consol1(connected);
 	if(connected){
 		socket.emit('upsert', 	
 				{
@@ -113,7 +114,11 @@ socket.on('joined', function(data){
 		connected = true;
 	}
 });
-setInterval(emitMore(), 1000); 
+
+
+setInterval(emitMore(), 100);
+
+ 
 </script>
 </head>
 <body>
