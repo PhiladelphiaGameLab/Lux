@@ -15,14 +15,20 @@ ig.module(
 
             sector: 0,
             room: 0,
+	    
+	    name: 'unidentified',
 
             direction: 'downright',
 
             init: function( x, y, settings ) {
                 this.parent( x, y, settings );
-
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
                 this.direction = settings.direction;
                 this.room = settings.room;
+
+		this.name = settings.name;
             },
 
             update: function() {

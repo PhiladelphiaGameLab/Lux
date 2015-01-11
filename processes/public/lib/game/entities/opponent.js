@@ -8,7 +8,7 @@ ig.module(
 )
     .defines(function(){
         EntityOpponent = ig.Entity.extend({
-
+	
             size: {x: 50, y: 50},
             offset: {x: 50, y: 100},
             flip: false,
@@ -26,8 +26,11 @@ ig.module(
 
             init: function (x, y, settings) {
 
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
+		console.log("Opponent Name: " + this.name);
                 this.playerIndex = settings.index;
-
                 if (this.playerIndex == 1) {
                     this.animSheet = new ig.AnimationSheet('media/spritesheetred.png', 150, 150);
                 } else if (this.playerIndex == 2) {
@@ -69,218 +72,17 @@ ig.module(
                 this.hitDirection = 'downleft';
 
                 this.attackHeld = false;
-
                 this.parent(x, y, settings);
             },
 
             update: function () {
+		if(ig.game.connected){
 
-                this.zIndex = Math.floor(this.pos.y) + this.getSector()*10000;
+			this.zIndex = Math.floor(this.pos.y) + this.getSector()*10000;
 
-                /*
-                if (ig.input.state('attack')) {
-                    if (this.attackAnimationTimer.delta() >= 0) {
-                        this.attackAnimationTimer.reset();
-                        this.currentAnim = this.anims.downleftattack.rewind();
-                        this.currentAnim = this.anims.downrightattack.rewind();
-                        this.currentAnim = this.anims.upleftattack.rewind();
-                        this.currentAnim = this.anims.uprightattack.rewind();
-                    }
-                }
-                */
-
-                // move left or right
-                var accel = 700;
-
-
-                //Change accelerations
-                if (ig.input.state('upleftx') && ig.input.state('uprightx')) {
-                    this.accel.x = 0;
-                    this.accel.y = -accel;
-                } else if (ig.input.state('upleftx') && ig.input.state('downleftx')) {
-                    this.accel.x = -accel;
-                    this.accel.y = 0;
-                } else if (ig.input.state('downrightx') && ig.input.state('uprightx')) {
-                    this.accel.x = accel;
-                    this.accel.y = 0;
-                } else if (ig.input.state('downrightx') && ig.input.state('downleftx')) {
-                    this.accel.x = 0;
-                    this.accel.y = accel;
-                } else if (ig.input.state('upleftx')) {
-                    this.accel.x = -accel;
-                    this.accel.y = -accel;
-                } else if (ig.input.state('downrightx')) {
-                    this.accel.x = accel;
-                    this.accel.y = accel;
-                } else if (ig.input.state('uprightx')) {
-                    this.accel.x = accel;
-                    this.accel.y = -accel;
-                } else if (ig.input.state('downleftx')) {
-                    this.accel.x = -accel;
-                    this.accel.y = accel;
-                } else {
-                    this.accel.x = 0;
-                    this.accel.y = 0;
-                }
-                if (ig.input.state('capturex')) {
-                    var i = 0;
-                    while(ig.game.getEntitiesByType(EntityFlag)[i]) {
-                        flag = ig.game.getEntitiesByType(EntityFlag)[i];
-                        if (flag.distanceTo(this) < 150) {
-                            flag.currentAnim = flag.anims.blue;
-                        }
-                        i++;
-                    }
-                }
-
-                /*
-
-                if(this.attackTimer.delta() < 0) {
-                    this.currentAnim = this.anims.attack;
-                    for (var i = 0; i < ig.game.entities.length; i++) {
-                        if (ig.game.entities[i].id !== this.id
-                        && ig.game.entities[i].distanceTo(this) < 10
-                        && ig.game.entities[i].invulnerableTimer
-                        && ig.game.entities[i].invulnerableTimer.delta() >= 0) {
-                            ig.game.entities[i].receiveDamage(5, this);
-                            console.log('HIT');
-                            ig.game.entities[i].invulnerableTimer.reset();
-                        }
-                    }
-                }
-                */
-
-                //Animations
-                if (this.attackAnimationTimer.delta() <= 0) {
-                    if(this.accel.x > 0 || this.xLast == 1) {
-                        if(this.accel.y < 0 || this.yLast == 0) {
-                            this.currentAnim = this.anims.uprightattack;
-                        } else if(this.accel.y > 0 || this.yLast == 1) {
-                            this.currentAnim = this.anims.downrightattack;
-                        }
-                    }else if(this.accel.x < 0 || this.xLast == 1) {
-                        if(this.accel.y < 0 || this.yLast == 0) {
-                            this.currentAnim = this.anims.upleftattack;
-                        } else if(this.accel.y > 0 || this.yLast == 1) {
-                            this.currentAnim = this.anims.downleftattack;
-                        }
-                    }else if(this.xLast == 0) {
-                        if(this.accel.y < 0 || this.yLast == 0) {
-                            this.currentAnim = this.anims.upleftattack;
-                        } else if(this.accel.y > 0 || this.yLast == 1) {
-                            this.currentAnim = this.anims.downleftattack;
-                        }
-                    }else{
-                        if(this.accel.y < 0 || this.yLast == 0) {
-                            this.currentAnim = this.anims.upleftattack;
-                        } else if(this.accel.y > 0 || this.yLast == 1) {
-                            this.currentAnim = this.anims.downleftattack;
-                        }
-                    }
-                }else if(this.accel.x > 0 && this.accel.y < 0) {
-                    this.currentAnim = this.anims.upright;
-                    this.xLast = 1;
-                    this.yLast = 0;
-                }else if(this.accel.x > 0 && this.accel.y > 0) {
-                    this.currentAnim = this.anims.downright;
-                    this.xLast = 1;
-                    this.yLast = 1;
-                }else if(this.accel.x < 0 && this.accel.y < 0) {
-                    this.currentAnim = this.anims.upleft;
-                    this.xLast = 0;
-                    this.yLast = 0;
-                }else if(this.accel.x < 0 && this.accel.y > 0) {
-                    this.currentAnim = this.anims.downleft;
-                    this.xLast = 0;
-                    this.yLast = 1;
-                }else if(this.accel.x < 0){
-                    if(this.yLast == 0) {
-                        this.currentAnim = this.anims.upleft;
-                    }else{
-                        this.currentAnim = this.anims.downleft;
-                    }
-                    this.xLast = 0;
-                }else if(this.accel.x > 0){
-                    if(this.yLast == 0) {
-                        this.currentAnim = this.anims.upright;
-                    }else{
-                        this.currentAnim = this.anims.downright;
-                    }
-                    this.xLast = 1;
-                }else if(this.accel.y > 0){
-                    if(this.xLast == 0) {
-                        this.currentAnim = this.anims.downleft;
-                    }else{
-                        this.currentAnim = this.anims.downright;
-                    }
-                    this.yLast = 1;
-                }else if(this.accel.y < 0){
-                    if(this.xLast == 0) {
-                        this.currentAnim = this.anims.upleft;
-                    }else{
-                        this.currentAnim = this.anims.upright;
-                    }
-                    this.yLast = 0;
-                }else if(this.accel.x == 0 && this.accel.y == 0){
-                    if(this.xLast == 0 && this.yLast == 0) {
-                        this.currentAnim = this.anims.upleftidle;
-                    }else if(this.xLast == 0 && this.yLast == 1){
-                        this.currentAnim = this.anims.downleftidle;
-                    }else if(this.xLast == 1 && this.yLast == 0) {
-                        this.currentAnim = this.anims.uprightidle;
-                    }else{
-                        this.currentAnim = this.anims.downrightidle;
-                    }
-                }
-
-                //Receiving hit
-                if(this.hitAnimationTimer.delta() < 0) {
-                    if (this.hitDirection == 'downleft') {
-                        this.currentAnim = this.anims.uprighthit;
-                        this.xLast = 1;
-                        this.yLast = 0;
-                    } else if (this.hitDirection == 'downright') {
-                        this.currentAnim = this.anims.uplefthit;
-                        this.xLast = 0;
-                        this.yLast = 0;
-                    } else if (this.hitDirection == 'upleft') {
-                        this.currentAnim = this.anims.downrighthit;
-                        this.xLast = 1;
-                        this.yLast = 1;
-                    } else if (this.hitDirection == 'upright') {
-                        this.currentAnim = this.anims.downlefthit;
-                        this.xLast = 0;
-                        this.yLast = 1;
-                    }
-
-                    if (this.hitAnimationTimer.delta() > -0.2) {
-                        if (this.hitDirection == 'downleft') {
-                            this.accel.x -= this.hitForce;
-                            this.accel.y += this.hitForce;
-                        } else if (this.hitDirection == 'downright') {
-                            this.accel.x += this.hitForce;
-                            this.accel.y += this.hitForce;
-                        } else if (this.hitDirection == 'upleft') {
-                            this.accel.x -= this.hitForce;
-                            this.accel.y -= this.hitForce;
-                        } else if (this.hitDirection == 'upright') {
-                            this.accel.x += this.hitForce;
-                            this.accel.y -= this.hitForce;
-                        }
-                    }
-                }
-
-                if (this.invulnerableTimer.delta() < 0) {
-                    this.currentAnim.alpha = .7;
-                } else {
-                    this.currentAnim.alpha = 1;
-                }
-
-                this.xAccelLast = this.accel.x;
-                this.yAccelLast = this.accel.y;
-
-                // move
-                this.parent();
+			// move
+			this.parent();
+		    }	
             },
 
             numFlags: function() {

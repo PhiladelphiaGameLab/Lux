@@ -12,6 +12,8 @@ ig.module(
             flip: false,
             flagIndex: 1,
 
+	    name: 'unidentified',
+
             collides: ig.Entity.COLLIDES.FIXED,
 
             maxVel: {x: 0, y: 0},
@@ -22,6 +24,9 @@ ig.module(
                 this.flagIndex = settings.index;
 
                 this.parent( x, y, settings );
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
                 this.addAnim( 'red', 0.2, [8,9,12,13] );
                 this.addAnim( 'blue', 0.2, [0,1,4,5] );
                 this.addAnim( 'green', 0.2, [2,3,6,7] );

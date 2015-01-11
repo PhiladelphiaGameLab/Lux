@@ -1,4 +1,3 @@
-
 ig.module(
     'game.entities.player'
 )
@@ -31,10 +30,9 @@ ig.module(
 
         init: function (x, y, settings) {
 
-    	    if(settings.hasOwnProperty("name")){
-   		this.name = settings.name;
-	    }
-
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
             this.playerIndex = settings.index;
 	    console.log(this.name);            
 
@@ -67,7 +65,6 @@ ig.module(
             this.attackAnimationTimer = new ig.Timer(0.3);
             this.invulnerableTimer = new ig.Timer(1);
             this.hitAnimationTimer = new ig.Timer(0.35);
-	    this.respawnTimer = new ig.Timer();
 
             this.hitForce = 500;
 
@@ -366,14 +363,6 @@ ig.module(
 				    opponent.hitDirection = 'upleft';
 				    opponent.anims.downrighthit.rewind();
 				}
-
-			    ig.game.socket.emit('upsert',
-                        {query: {group : ig.game.group, name : opponent.name}
-                        ,update: { "$set" : {group : ig.game.group, name: opponent.name,
-
-                                attackData: {from: this.name, to: opponent.name, damage: 5},
-                                 timeSent:  Date.now()}}});
-
 			    }
 			}
 
@@ -412,27 +401,23 @@ ig.module(
 		    //Store acceleration values
 		    this.xAccelLast = this.accel.x;
 		    this.yAccelLast = this.accel.y;
-			
-		//	console.log(this.getAnimName);
 		    
+
+
 		    // This is where the you should emit updates I think	
 		    ig.game.socket.emit('upsert',
-			{query: {group : ig.game.group, name : this.name} 
-			,update: { "$set" : {group : ig.game.group, name: this.name,
+			{query: {group : ig.game.group, name : this.name}} 
+			,{update: { "$set" : {group : ig.game.group, name: this.name,
 
-				pos: {x:this.pos.x, y:this.pos.y},
-				animName: this.getAnimName(),
-				 timeSent:  Date.now()}}});
+				pos:{x:this.pos.x, y:this.pos.y},
+				 timeSent:  Date.now()}}}
+		    );
+
 		    // I like to move it move it
 		    this.parent();
 		}
         },
-/*
-	kill: function() {
-	    this.parent();
-	    //RESPAWN
-	}
-*/
+
         numFlags: function() {
             var f = 0;
             for(var i = 0; i < 4; i++) {
@@ -442,54 +427,6 @@ ig.module(
             }
             return f;
         },
-
-	getAnimName: function() {
-		var animName;
-		
-		if (this.currentAnim.tile < 4) {
-			animName = "downleftattack";
-		} else if (this.currentAnim.tile < 8) {
-			animName = "downleft";
-		} else if (this.currentAnim.tile < 12) {
-			animName = "downlefthit";
-		} else if (this.currentAnim.tile < 16) {
-			animName = "uplefthit";
-		} else if (this.currentAnim.tile < 20) {
-			animName = "upleftidle";
-		} else if (this.currentAnim.tile < 24) {
-			animName = "downleftidle";
-		} else if (this.currentAnim.tile < 28) {
-			animName = "upleft";
-		} else if (this.currentAnim.tile < 32) {
-			animName = "upleftattack";
-		} else if (this.currentAnim.tile < 38) {
-			animName = "downright";
-		} else if (this.currentAnim.tile < 42) {
-			animName = "downrightattack";
-		} else if (this.currentAnim.tile < 46) {
-			animName = "downrighthit";
-		} else if (this.currentAnim.tile < 48) {
-			animName = "downright";
-		} else if (this.currentAnim.tile < 50) {
-			animName = "uprightidle";
-		} else if (this.currentAnim.tile < 54) {
-			animName = "uprighthit";
-		} else if (this.currentAnim.tile < 58) {
-			animName = "downrightidle";
-		} else if (this.currentAnim.tile < 60) {
-			animName = "uprightidle";
-		} else if (this.currentAnim.tile < 62) {
-			animName = "uprightattack";
-		} else if (this.currentAnim.tile < 66) {
-			animName = "upright";
-		} else if (this.currentAnim.tile < 72) {
-			animName = "uprightattack";
-		} else if (this.currentAnim.tile < 4) {
-			animName = "unknown";
-		}
-
-		return animName;
-	},
 
         getSector: function() {
             if (this.pos.x - this.pos.y >= 557) {

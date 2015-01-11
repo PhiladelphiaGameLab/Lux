@@ -2,12 +2,10 @@
 include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');
-include_once('../Core/auth.php');
 
 $db = new Db();
 $OUTPUT = new Output();
 $collection = $db->selectCollection("Assets");
-$AUTH = new Auth();
 $LF = new LuxFunctions();
 
 
@@ -27,9 +25,6 @@ if($LF->is_avail("id")){
 	$query = $LF->fetch_avail("aggregate");
 	$documents = $collection->aggregateCursor($query);
 	$OUTPUT->success("Found Aggregate Values", $documents);
-}
-if(!$LF->is_avail("noSub") || $LF->fetch_avail("noSub")){
-	$db->subscribe($query, $AUTH);
 }
 die();
 

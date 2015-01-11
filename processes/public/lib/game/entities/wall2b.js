@@ -13,6 +13,9 @@ ig.module(
 
             init: function( x, y, settings ) {
                 this.parent( x, y, settings );
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
                 this.addAnim( 'idle', 1, [0] );
             },
 

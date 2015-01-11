@@ -140,7 +140,7 @@ class OAuth{
 
 	//	$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
 
-		$get["access_token"] = $this->acc_token;
+		$get["access_token"] = $access_tok;
 		$results = $this->clientInfo->update(array("id" => $get["id"]), array('$set' => $get), array("upsert" => true));
 	/*	if(!isset($prevCheck)){
 			$get["access_token"] = $this->acc_token;

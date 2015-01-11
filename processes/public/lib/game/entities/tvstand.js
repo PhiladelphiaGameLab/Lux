@@ -14,6 +14,9 @@ ig.module(
 
             init: function( x, y, settings ) {
                 this.parent( x, y, settings );
+	    	if(settings.hasOwnProperty("name")){
+			this.name = settings.name;
+		}
                 this.addAnim( 'downleft', 1, [0] );
                 this.addAnim( 'downright', 1, [1] );
                 this.addAnim( 'upleft', 1, [2] );
