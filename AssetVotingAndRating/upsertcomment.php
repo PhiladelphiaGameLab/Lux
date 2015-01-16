@@ -14,9 +14,21 @@ $userID = $AUTH->getClientId();
 
 $query = array(
     "userID" => $LF->fetch_avail("userID"),
-    "levels.levelID" => array('$in' => $LF->fetch_avail("levelID"))
+    "assets" => array('$in' => $LF->fetch_avail("oldasset"))
 );
 
-$results = $collection->findOne($query);
+$update = array(
+    '$pull' => array("assets" => $LF->fetch_avail("oldasset")),
+    '$push' => array("assets" => $LF->fetch_avail("newasset"))
+);
+
+$results = $collection->findAndModify(
+    $query,
+    $update,
+    null,
+    array(
+        "new" => true
+    )
+);
 
 $OUTPUT->success("success", $results);
