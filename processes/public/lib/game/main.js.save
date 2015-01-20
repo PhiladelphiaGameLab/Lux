@@ -7,7 +7,7 @@ var player_id;
 var startTime;
 var gameTime;
 var spawnPos = {player1: {x: 2230, y: 1180}, player2: {x: 3050, y: 2156}, player3: {x: 1198, y: 2304}, player4: {x: 1994, y: 3220}};
-                //spawnPos2 = {x: 3050, y: 2156};
+                //spawnPos2 (proper) = {x: 3050, y: 2156};
 		//spawnPos2(testing) = {x: 2430, y: 1380}
 
 function getJsonFromUrl(){
