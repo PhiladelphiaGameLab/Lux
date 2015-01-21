@@ -115,7 +115,7 @@
 		echo json_encode($result) . "<br><br>";
 	}
 
-	function testTransactionIncompleteDetails() { //add asserts ------------------------------------------------------------
+	function testTransactionIncompleteDetails() {
 		echo "Test makeTransaction incomplete details<br>";
 		makeRequest("initTreeStruct", "&acc_token=1&admin&force=true");
 		$query = array(	
@@ -154,11 +154,11 @@
 	function testAddItemToSubaccount() {
 		echo "Test addItemToSubaccount<br>";
 		makeRequest("initTreeStruct", "&acc_token=1&admin&force=true");
-		$result = makeRequest("addItemToSubaccount", "&acc_token=111&subId=2&item=3");
+		$result = makeRequest("addItemToSubaccount", "&acc_token=111&subId=2&itemId=3");
 		assert($result->{"result"} == "failure"); //No id account
 		echo json_encode($result) . "<br>";
 		makeRequest("addUserAccount", "&acc_token=111");
-		$result = makeRequest("addItemToSubaccount", "&acc_token=111&subId=2&item=3");
+		$result = makeRequest("addItemToSubaccount", "&acc_token=111&subId=2&itemId=3");
 		assert($result->{"result"} == "failure"); //No subaccount
 		echo json_encode($result) . "<br>";
 		$result =  makeRequest("addSubaccount", "&acc_token=111"); 
@@ -295,7 +295,43 @@
 		$query_string = "&" . http_build_query($query);
 		$result = makeRequest("transaction", $query_string);
 		assert($result->{"result"} == "success");
+		echo json_encode($result) . "<br><br>";
+	}
+
+	function testRemoveItemFromSubaccount() {
+		echo "Test remove item from subaccount<br>";
+		makeRequest("initTreeStruct", "&acc_token=1&admin&force=true");
+		$result = makeRequest("removeItemFromSubaccount", "&acc_token=000&subId=2&itemId=3");
+		assert($result->{"result"} == "failure"); //No id account
 		echo json_encode($result) . "<br>";
+		makeRequest("addUserAccount", "&acc_token=000");
+		makeRequest("addGlobalAccount", "&acc_token=111&admin"); 
+		$result = makeRequest("removeItemFromSubaccount", "&acc_token=000&subId=2&itemId=3");
+		assert($result->{"result"} == "failure"); //No subaccount
+		echo json_encode($result) . "<br>";
+		$result =  makeRequest("addSubaccount", "&acc_token=000"); 
+		$subId0 = $result->{"added"};
+		$result =  makeRequest("addSubaccount", "&acc_token=111"); 
+		$subId1 = $result->{"added"};
+		$result = makeRequest("removeItemFromSubaccount", "&acc_token=000&subId=" . $subId0);
+		assert($result->{"result"} == "failure"); //No item
+		echo json_encode($result) . "<br>";
+		$result = makeRequest("addItemToSubaccount", "&acc_token=000&subId="
+			. $subId0 . "&itemId=555");
+		assert($result->{"result"} == "success"); //Added to user
+		echo json_encode($result) . "<br>";
+		$result = makeRequest("addItemToSubaccount", "&acc_token=000&subId="
+			. $subId0 . "&itemId=666");
+		assert($result->{"result"} == "success"); //Added to user
+		echo json_encode($result) . "<br>";
+		$result = makeRequest("removeItemFromSubaccount", "&acc_token=111&subId="
+			. $subId1 . "&itemId=555");
+		assert($result->{"result"} == "failure"); //Item not in subaccount
+		echo json_encode($result) . "<br>";
+		$result = makeRequest("removeItemFromSubaccount", "&acc_token=000&subId="
+			. $subId0 . "&itemId=555");
+		assert($result->{"result"} == "success"); //Item removed
+		echo json_encode($result) . "<br><br>";
 	}
 
 	testInitTreeStruct();
@@ -306,5 +342,6 @@
 	testAddItemToSubaccount();
 	testMakeTransactionWithGlobal();
 	testMakePendingTransaction();
+	testRemoveItemFromSubaccount();
 
 ?>

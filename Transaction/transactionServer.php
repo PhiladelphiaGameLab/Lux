@@ -41,7 +41,8 @@
 		case "initTreeStruct":
 			if(!$auth->isAdmin()) {
 				$output->failure("Init not authorized.");
-			} elseif (NULL == $collection->findOne() || forceInit()) {
+			} elseif (NULL == $collection->findOne() || 
+				(isset($_GET["force"]) && $_GET["force"] === "true")) {
 				initTreeStruct();
 			} else {
 				$output->failure("Collection not reinitialized. Enter query " . 
@@ -49,7 +50,15 @@
 			}
 			break;
 		case "transaction":
-			requestTransaction();
+			$transaction = createTransactionQuery($id);
+			if(NULL == $transaction) {
+				$output->failure("Incomplete transaction details");
+				return;
+			}
+			if(!findTransactionAccounts($transaction)) {
+				return;
+			}
+			requestTransaction($transaction);
 			break;
 		case "addUserAccount":
 			addUserAccount();
@@ -67,55 +76,88 @@
 			addSubaccount();
 			break;
 		case "removeSubaccount":
+			if(!isset($_GET["subId"])) {
+				$output->failure("No subaccount specified");
+				return;
+			}
 			removeSubaccount();
 			break;
-		case "createGroup":
-			createGroup();
-			break;
-		case "destroyGroup":
-			destroyGroup();
-			break;
-		case "addGroupMember":
-			addGroupMember();
-			break;
-		case "removeGroupMember":
-			removeGroupMember();
-			break;
-		case "changeGroupPermission":
-			changeGroupPermission();
-			break;
+		// case "createGroup":
+		// 	createGroup();
+		// 	break;
+		// case "destroyGroup":
+		// 	destroyGroup();
+		// 	break;
+		// case "addGroupMember":
+		// 	addGroupMember();
+		// 	break;
+		// case "removeGroupMember":
+		// 	removeGroupMember();
+		// 	break;
+		// case "changeGroupPermission":
+		// 	changeGroupPermission();
+		// 	break;
 		case "getTransactionHistory":
 			getTransactionHistory();
 			break;
 		case "getTransactionDetail":
+			if(!isset($_GET["transId"])) {
+				$output->failure("No transId specified");
+				return;
+			}
 			getTransactionDetail();
 			break;
 		case "getAccountInfo":
 			getAccountInfo();
 			break;
 		case "getSubaccountInfo":
+			if(!isset($_GET["subId"])) {
+				$output->failure("No subaccount specified");
+				return;
+			}
 			getSubaccountInfo();
 			break;
 		case "addItemToSubaccount":
+			if(!isset($_GET["subId"]) ||!isset($_GET["itemId"])) {
+				$output->failure("Specify subId and itemId");
+				return;
+			}
 			addItemToSubAccount();
 			break;
 		case "removeItemFromSubaccount":
+			if(!isset($_GET["subId"]) ||!isset($_GET["itemId"])) {
+				$output->failure("Specify subId and itemId");
+				return;
+			}
 			removeItemFromSubAccount();
 			break;
 		case "getTreeRootInfo":
-			getTreeRootInfo();
+			if(!$auth->isAdmin()) {
+				$output->failure("Not authorized.");
+			} else {
+				getTreeRootInfo();
+			}
 			break;
 		case "getUserRootInfo":
-			getUserRootInfo();
+			if(!$auth->isAdmin()) {
+				$output->failure("Not authorized.");
+			} else {
+				getUserRootInfo();
+			}
 			break;
 		case "getGroupRootInfo":
-			getGroupRootInfo();
+			if(!$auth->isAdmin()) {
+				$output->failure("Not authorized.");
+			} else {
+				getGroupRootInfo();
+			}
 			break;
 		case "getGlobalRootInfo":
-			getGlobalRootInfo();
-			break;
-		case "get":
-			get();
+			if(!$auth->isAdmin()) {
+				$output->failure("Not authorized.");
+			} else {
+				getGlobalRootInfo();
+			}
 			break;
 		default:
 			$output->failure("Requested method does not exist.");
@@ -143,27 +185,9 @@
 		$output->success("Transaction tree initialized.", NULL, NULL);
 	}
 
-	/**
-	 * Checks if query string includes override to remove
-	 * existing records and reinitialze hierarchical 
-	 * account branches.
-	 */
-	function forceInit() {
-		return isset($_GET["force"]) && 
-			strcmp($_GET["force"], "true") == 0;
-	}
-
-	function requestTransaction() { 
+	function requestTransaction($transaction0) { 
 		global $id, $output, $TYPE_TRANSACTION;
-		$transaction0 = createTransactionQuery($id);
-		if(null == $transaction0) {
-			$output->failure("Incomplete transaction details");
-			return;
-		}
-		if(!findTransactionAccounts($transaction0)) {
-			return;
-		}
-		$transaction0["type"] = $TYPE_TRANSACTION;
+		$transaction0["type"] = $TYPE_TRANSACTION; //Add type for new MongoDB document
 		if(!isGlobalAccount($transaction0['id1'])) {
 			$transaction1 = findPending($transaction0);
 			if(NULL == $transaction1) {
@@ -395,15 +419,13 @@
 	 */
 	function removeSubaccount() {
 		global $id, $collection, $output, $TYPE_SUBACCOUNT;
-		if(!isset($_GET["subId"])) {
-			$output->failure("No subaccount specified");
-			return;
-		}
-		$subId = $_GET["subId"];
+
+		
 		if (NULL == findAccount($id)) {
 			$output->failure("Could not find account");
 			return;
 		} 
+		$subId = $_GET["subId"];
 		$subaccount = findSubaccount($subId);
 		if (NULL == $subaccount || $subaccount["parent"] != $id) {
 			$output->failure("Could not find subaccount");
@@ -416,66 +438,85 @@
 		}
 	}
 
-	function createGroup() {
+	// function createGroup() {
 
-	}
+	// }
 
-	function destroyGroup() {
+	// function destroyGroup() {
 		
-	}
+	// }
 
-	function addGroupMember() {
+	// function addGroupMember() {
 		
-	}
+	// }
 
-	function removeGroupMember() {
+	// function removeGroupMember() {
 		
-	}
+	// }
 
-	function changeGroupPermission() {
+	// function changeGroupPermission() {
 
-	}
+	// }
 
 	function getTransactionHistory() {
-		
+		global $id, $output;
+		$accountDoc = findAccount($id); 
+		if($accountDoc == NULL) {
+			$output->failure("Could not find account");	
+			return;		
+		}
+		$transactions = array("transactions" => $accountDoc["transactions"]);
+		$output->success($transactions, NULL, NULL);	
 	}
 
-	function getTransactionDetail() {
+	function getTransactionDetail() { //TODO-----------------------------------------------------------------------------------------
 		
 	}
 
 	function getAccountInfo() {
-		
+		global $id, $output;
+		$accountDoc = findAccount($id); 
+		if($accountDoc == NULL) {
+			$output->failure("Could not find account");	
+			return;		
+		}
+		$output->success($accountDoc, NULL, NULL);
+	}
+
+	function verifyAccountAndSubaccount($id, $subId) {
+		global $output;
+		$accountDoc = findAccount($id); 
+		if($accountDoc == NULL) {
+			$output->failure("Could not find account");
+			return FALSE;
+		}
+		if(!findSubaccount($subId)) {
+			$output->failure("Could not find subaccount");
+			return FALSE;
+		}
+		if(!accountContainsSubaccount($accountDoc, $subId)) {
+			$output->failure("Could not find subId for id");
+			return FALSE;
+		}
+		return TRUE;
 	}
 
 	function getSubaccountInfo() {
-
+		global $id, $output;
+		if(!verifyAccountAndSubaccount($id, $_GET["subId"])) {
+			return;
+		}
+		$sub = findSubaccount($_GET["subId"]);
+		echo json_encode($sub["items"]);
+		$output->success(findSubaccount($_GET["subId"]), NULL, NULL);
 	}
 
 	function addItemToSubAccount() { //Check isAdmin?
 		global $id, $collection, $output;
-		$accountDoc = findAccount($id); 
-		if($accountDoc == NULL) {
-			$output->failure("Could not find account");
-			return;
-		}
-		if(!isset($_GET["subId"])) {
-			$output->failure("No subaccount subId specified");
+		if(!verifyAccountAndSubaccount($id, $_GET["subId"])) {
 			return;
 		}
 		$subId = $_GET["subId"];
-		if(!findSubaccount($subId)) {
-			$output->failure("Could not find subaccount");
-			return;
-		}
-		if(!accountContainsSubaccount($accountDoc, $subId)) {
-			$output->failure("Could not find subId for id");
-			return;
-		}
-		if(!isset($_GET["itemId"])) {
-			$output->failure("No item itemId specified");
-			return;
-		}
 		$item = $_GET["itemId"];
 		$querySubId = array('_id' => new MongoID($subId));
 		$collection->update($querySubId, array('$push' => array("items" => $item)));
@@ -483,27 +524,63 @@
 	}
 
 	function removeItemFromSubAccount() {
-		
+		global $id, $collection, $output;
+		if(!verifyAccountAndSubaccount($id, $_GET["subId"])) {
+			return;
+		}
+		$subId = $_GET["subId"];
+		$item = $_GET["itemId"];
+		$querySubId = array('_id' => new MongoID($subId), 'items' => $item);
+		if(NULL == $collection->findOne($querySubId)) {
+			$output->failure("No item itemId in subId");
+			return;			
+		}
+		$collection->update($querySubId, array('$pull' => array("items" => $item)));
+		$output->success("Removed item from subaccount", NULL, $item);		
 	}
 
 	function getTreeRootInfo() {
-		
+		global $ROOT_TYPE, $TRANSACTION_ROOT, $collection, $output;
+		$query = array($ROOT_TYPE => $TRANSACTION_ROOT);
+		$root = $collection->findOne($query);
+		if($root == NULL) {
+			$output->failure("Tree root not found");
+			return;			
+		}
+		$output->success($root, NULL, NULL);		
 	}
 
 	function getUserRootInfo() {
-		
+		global $ROOT_TYPE, $USER_ROOT, $collection, $output;
+		$query = array($ROOT_TYPE => $USER_ROOT);
+		$root = $collection->findOne($query);
+		if($root == NULL) {
+			$output->failure("User root not found");
+			return;			
+		}
+		$output->success($root, NULL, NULL);			
 	}
 
 	function getGroupRootInfo() {
-		
+		global $ROOT_TYPE, $GROUP_ROOT, $collection, $output;
+		$query = array($ROOT_TYPE => $GROUP_ROOT);
+		$root = $collection->findOne($query);
+		if($root == NULL) {
+			$output->failure("Group root not found");
+			return;			
+		}
+		$output->success($root, NULL, NULL);			
 	}
 
 	function getGlobalRootInfo() {
-
-	}
-
-	function get() {
-		
+		global $ROOT_TYPE, $GLOBAL_ROOT, $collection, $output;
+		$query = array($ROOT_TYPE => $GLOBAL_ROOT);
+		$root = $collection->findOne($query);
+		if($root == NULL) {
+			$output->failure("Global root not found");
+			return;			
+		}
+		$output->success($root, NULL, NULL);
 	}
 
 	function updateTreeRoot($add, $root_name, $document) {
@@ -564,7 +641,7 @@
 	} 
 
 	function setDbName() {
-		if(isset($_GET["testing"]) && strcmp($_GET["testing"], "true") == 0) {
+		if(isset($_GET["testing"]) && $_GET["testing"] === "true") {
 			return "LuxTest";
 		} else {
 			return "Lux";
