@@ -119,9 +119,6 @@ ig.module(
                             this.accel.y = -this.hitForce;
                         }
 		    }
-<<<<<<< HEAD
-                }
-=======
                 } else if (this.currentAnim == this.anims.downlefthit) {
 			this.currentAnim = this.anims.downleftidle;
 		} else if (this.currentAnim == this.anims.downrighthit) {
@@ -131,7 +128,6 @@ ig.module(
 		} else if (this.currentAnim == this.anims.uprighthit) {
 			this.currentAnim = this.anims.uprightidle;
 		}
->>>>>>> origin/master
 
                 if (this.invulnerableTimer.delta() < 0) {
                     this.currentAnim.alpha = .7;

@@ -1,13 +1,7 @@
 <?php
-<<<<<<< HEAD
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Content-Range, Content-Disposition, Content-Description");
-=======
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-
->>>>>>> origin/master
 include_once("../Core/auth.php");
 $auth = new OAuth("google");
 

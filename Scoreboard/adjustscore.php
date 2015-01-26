@@ -13,11 +13,7 @@ $AUTH = new Auth();
 $userID = $AUTH->getClientId();
 
 $query = array(
-<<<<<<< HEAD:scoreboard2/adjustscore.php
-    "user_id" => $LF->fetch_avail("user_id"),
-=======
     "_id" => $userID,
->>>>>>> origin/master:Scoreboard/adjustscore.php
 );
 
 $update = array(

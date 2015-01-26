@@ -383,17 +383,6 @@ ig.module(
                                     hitDir = "upleft";
 				    opponent.anims.downrighthit.rewind();
 				}
-<<<<<<< HEAD
-				console.log('yes');
-
-	   		        ig.game.socket.emit('upsert',
-        	                	{query: {group : ig.game.group, name : opponent.name}
-                       			,update: { "$set" : {group : ig.game.group, name: opponent.name,
-
-	                                attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
-        	                        timeSent:  Date.now()}}});
-				
-=======
 
 	   		        ig.game.socket.emit('upsert',
 					// needs the name for this to work
@@ -402,17 +391,12 @@ ig.module(
 	                                attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
         	                        timeSent:  Date.now()}});
 			/*	
->>>>>>> origin/master
 				console.log( {query: {group : ig.game.group, name : opponent.name}
                                         ,update: { "$set" : {group : ig.game.group, name: opponent.name,
 
                                         attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
                                         timeSent:  Date.now()}}})
-<<<<<<< HEAD
-	
-=======
 			*/
->>>>>>> origin/master
 				 }
 				
 			}

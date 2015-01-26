@@ -60,11 +60,7 @@ function getClientId(acc_tok, callback){ // done
 					callback(userId, acc_tok);
 				}else{
 					console.log("ERROR: getClientId user Not in Users collection" + " : " + new Date().getTime());
-<<<<<<< HEAD
-					callback(false, access_token);
-=======
 					callback(false, acc_tok);
->>>>>>> origin/master
 				}
 			}
 		});
@@ -136,11 +132,6 @@ function remove(query){
 			,function(err, results){
 				if(err != null){console.log("ERROR: remove Query Failed" + err);}else{
 					console.log("Remove: Document Removed" + " : " + new Date().getTime());
-<<<<<<< HEAD
-					// success publish needs to be done prior to removal
-					// so there is no operation to call here
-=======
->>>>>>> origin/master
 				}
 			});
 	}
@@ -159,16 +150,12 @@ function publish(doc, userId, multi, removed){
 						if(err != null){console.log("ERROR: publish (multi) Iteration: " + err);}else{
 							if(singleDocument != null){
 								console.log("Publish: Publishing Documents" + " : " + new Date().getTime());
-<<<<<<< HEAD
-								publish(singleDocument, userId, false, false); 
-=======
 							/*	if(singleDocument.hasOwnProperty("attackData")){
 									console.log("SINGLE DOCING AN ATTACK!!!! " + singleDocument._id);	
 								}else{
 									publish(singleDocument, userId, false, false); 
 								}*/
 									publish(singleDocument, userId, false, false); 
->>>>>>> origin/master
 							}
 						}
 					});
@@ -210,17 +197,6 @@ function upsert(data, userId){
 				var options = {upsert:true};
 			}
 			console.log("Upsert: Updating Document" + " : " + new Date().getTime());
-<<<<<<< HEAD
-			update(data.query, data.update, options, userId);
-		}else if(data.hasOwnProperty("query")){
-			// remove
-			console.log("Upsert: Publishing Document" + " : " + new Date().getTime());
-			publish(data.query, userId, true, true);
-		}else{
-			// insert	
-			console.log("Upsert: Upserting Document" + " : " + new Date().getTime());
-			insert(data.update, userId);
-=======
 			if(data.hasOwnProperty("query") && data.hasOwnProperty("update")){
 				update(data.query, data.update, options, userId);
 			}
@@ -236,7 +212,6 @@ function upsert(data, userId){
 			if(data.hasOwnProperty("update")){
 				insert(data.update, userId);
 			}
->>>>>>> origin/master
 		} 
 	}else{
 		console.log("ERROR: upsert userId is not Registered");
@@ -283,11 +258,7 @@ io.on('connection', function(socket){
 				getClientId(data.access_token, function(userId, access_token){
 					if(userId != false && userId != null){
 						socket.userId = userId;
-<<<<<<< HEAD
-						console.log("Join: Recieved Access_token: " + access_token + " : " + new Date().getTime());
-=======
 						console.log("\t\t\t\t\t\t\t\t\t\tJoin: Recieved Access_token: " + access_token + " : " + new Date().getTime());
->>>>>>> origin/master
 						socket.access_token = access_token;
 						socket.connected = true;
 						sockets[userId] = socket;
@@ -338,12 +309,8 @@ io.on('connection', function(socket){
 function sendUpdates(){
 	//removeUpdated();
 	// only do this if someone is online
-<<<<<<< HEAD
-	console.log("Running SendUpdates function" + " : " + new Date().getTime());
-=======
 	emitting = true;
 	console.log("\t\t\t\t\tRunning SendUpdates function" + " : " + new Date().getTime());
->>>>>>> origin/master
 	if(Object.keys(sockets).length != 0){
 		if(db == null){ console.log("ERROR: SU Database Not Open " + err); }else{
 			db.collection("Subscribers").find({'subscribers' : {$not: {$size:0}}},
@@ -355,11 +322,7 @@ function sendUpdates(){
 								var query = subscription.query;
 								var subscribers = subscription.subscribers;
 								query["info.checked_by.node"] = false;
-<<<<<<< HEAD
-								console.log("SendUpdates: finding Published Docs" + " : " + new Date().getTime());
-=======
 								console.log("\t\t\t\t\tSendUpdates: finding Published Docs" + " : " + new Date().getTime());
->>>>>>> origin/master
 								findPublishedDocs(query, subscribers);
 							}
 						}
@@ -368,10 +331,7 @@ function sendUpdates(){
 			});
 		}
 	}else{
-<<<<<<< HEAD
-=======
 		console.log("\t\t\t\t\tSendUpdates: Clearing Data, no users online");
->>>>>>> origin/master
 		clearPublished();
 		removeAssets();
 	}
@@ -388,15 +348,9 @@ function findPublishedDocs(query, subscribers){
 				publishedDocs.each(function(err, published){
 					if(err != null){ console.log("ERROR: FPD Iterating Documents " + err);}else{
 						if(published != null){
-<<<<<<< HEAD
-							console.log("Find Published Docs: Emitting Updated Docs " + " : " + new Date().getTime());
-							emitUpdates(published, subscribers);
-							console.log("Find Published Docs: Updating Published Docs " + " : " + new Date().getTime());
-=======
 							console.log("\t\t\t\t\tFind Published Docs: Emitting Updated Docs " + " : " + new Date().getTime());
 							emitUpdates(published, subscribers);
 							console.log("\t\t\t\t\tFind Published Docs: Updating Published Docs " + " : " + new Date().getTime());
->>>>>>> origin/master
 							updatePubDoc(published);
 						}
 					}
@@ -411,11 +365,8 @@ function emitUpdates(published, subscribers){
 	subscribers.forEach(function(subscriber){
 		if(sockets.hasOwnProperty(subscriber["id"])){
 			if(subscriber != null && sockets[subscriber["id"]] != null){
-<<<<<<< HEAD
 				console.log("Emited message to: " + sockets[subscriber["id"]].access_token + " : " + new Date().getTime());
-=======
 				console.log("\t\t\t\t\tEmited message to: " + sockets[subscriber["id"]].access_token + " : " + new Date().getTime());
->>>>>>> origin/master
 				sockets[subscriber["id"]].emit('updated', published);
 			}
 		}
@@ -430,12 +381,8 @@ function updatePubDoc(published){
 		db.collection("Published").remove({"_id":published._id} //{$set:{"info.checked_by.node":true}}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: Query Failed" +err); }else{
-<<<<<<< HEAD
-				console.log("Update PubDoc: Removed Published Docs" + " : " + new Date().getTime());
-=======
 				console.log("\t\t\t\t\tUpdate PubDoc: Removed Published Docs" + " : " + new Date().getTime());
 				emitting = false;
->>>>>>> origin/master
 			}
 		});
 	}
@@ -449,11 +396,7 @@ function removeUpdated(){
 		db.collection("Published").remove({"info.checked_by.node":true}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RU Query Failed" +err);}else{
-<<<<<<< HEAD
-				console.log("remove Updated: Removed Updated Docs" + " : " + new Date().getTime());
-=======
 				console.log("\t\t\t\t\tremove Updated: Removed Updated Docs" + " : " + new Date().getTime());
->>>>>>> origin/master
 			}
 		});
 	}
@@ -463,11 +406,7 @@ function clearPublished(){
 		db.collection("Published").remove({}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RU Query Failed" +err);}else{
-<<<<<<< HEAD
-				console.log("remove Updated: Removed Updated Docs" + " : " + new Date().getTime());
-=======
 				console.log("\t\t\t\t\tremove Updated: Removed Updated Docs" + " : " + new Date().getTime());
->>>>>>> origin/master
 			}
 		});
 	}
@@ -477,24 +416,16 @@ function removeAssets(){
 		db.collection("Assets").remove({'pos':{'$exists':'true'}}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RA Query Failed" +err);}else{
-<<<<<<< HEAD
 				console.log("Remove Assets: Removed Assets" + " : " + new Date().getTime());
-=======
 				console.log("\t\t\t\t\tRemove Assets: Removed Assets" + " : " + new Date().getTime());
->>>>>>> origin/master
 			}
 		});
 	}
 }
 
 setTimeout(function(){
-<<<<<<< HEAD
-	console.log("starting Broadcast" + " : " + new Date().getTime());
-	setInterval(sendUpdates, 50);
-=======
 	console.log("\t\t\t\t\tstarting Broadcast" + " : " + new Date().getTime());
 	setInterval(sendUpdates, 5);
->>>>>>> origin/master
 
 }, 5000);
 
