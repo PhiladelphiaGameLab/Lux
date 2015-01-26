@@ -1,6 +1,4 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type, Content-Range, Content-Disposition, Content-Description");
 include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');

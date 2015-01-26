@@ -56,7 +56,7 @@ if(isset($update) && isset($query)){
 }else{
 	$OUTPUT->error("Parameters are missing", "query || update");
 }
-if(!$LF->is_avail("noPub") && $LF->fetch_avail("noPub")){
+if(!$LF->is_avail("noPub") || $LF->fetch_avail("noPub")){
 	foreach($documents as $document){
 		if(isset($removed) && $removed){
 			$document["removed"] = true;
