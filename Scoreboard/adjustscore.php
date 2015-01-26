@@ -13,7 +13,7 @@ $AUTH = new Auth();
 $userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
+    "_id" => $userID,
 );
 
 $update = array(

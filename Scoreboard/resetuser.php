@@ -10,20 +10,13 @@ $OUTPUT = new Output();
 $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID")
+    "userID" => $AUTH->getClientId()
 );
 
-$update = array(
-    $set => array(
-        "score" => 0,
-        "levels" => array(),
-        "assets" => array()
-    )
-);
+$collection->remove($query, array("justOne" => true));
 
-$results = $collection->update($query, $update);
+$results = $collection->insert($query);
 
 $OUTPUT->success("success", $results);

@@ -7,19 +7,24 @@ include_once('../Core/auth.php');
 
 $db = new Db();
 $OUTPUT = new Output();
-$collection = $db->selectCollection("Scoreboard");
+$collection = $db->selectCollection('Scoreboard');
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
+    'userID' => $AUTH->getClientId(),
 );
 
 $update = array(
-    '$push' => array("assets" => $LF->fetch_avail("asset"))
+    '$push' => array('assets' => $LF->fetch_avail('asset_id'))
 );
 
-$results = $collection->update($query, $update);
+$results = $collection->update(
+    $query,
+    $update,
+    array(
+        'upsert' => true
+    )
+);
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success('success', $results);
