@@ -109,10 +109,10 @@ ig.module(
 			}
 		    }
 
-		    if (ig.game.state == 'setup') {
-			var mouseX = ig.input.mouse.x + ig.game.screen.x;
-			var mouseY = ig.input.mouse.y + ig.game.screen.y;
-
+		    if (ig.game.state == 'setup'){
+                	var mouseX = ig.input.mouse.x + ig.game.screen.x;
+                	var mouseY = ig.input.mouse.y + ig.game.screen.y;
+			
 			if (ig.input.pressed('select')) {
 			    if (this.selected) {
 				this.selected.collides = ig.Entity.COLLIDES.FIXED;
@@ -139,7 +139,7 @@ ig.module(
 				}
 			    }
 			}
-
+		    
 			if (this.selected) {
 			    this.selected.pos.x = this.selectOriginX + (mouseX - this.mouseOriginX);
 			    this.selected.pos.y = this.selectOriginY + (mouseY - this.mouseOriginY);
@@ -210,6 +210,13 @@ ig.module(
 			    flag = ig.game.getEntitiesByType(EntityFlag)[i];
 			    if (flag.distanceTo(this) < 150) {
 				flag.flagIndex = this.playerIndex;
+				ig.game.socket.emit('upsert',
+				 {query: {group : ig.game.group, name : flag.name}
+	                       	 ,update: { "$set" : {group : ig.game.group, name: flag.name,
+
+                                 flagIndex: this.playerIndex,
+                                 timeSent:  Date.now()}}});
+
 			    }
 			    i++;
 			}
@@ -306,6 +313,7 @@ ig.module(
 			}
 
 			if (this.hitAnimationTimer.delta() > -0.2) {
+
 			    if (this.hitDirection == 'downleft') {
 				this.accel.x -= this.hitForce;
 				this.accel.y += this.hitForce;
@@ -321,6 +329,11 @@ ig.module(
 			    }
 			}
 		    }
+	                if (this.invulnerableTimer.delta() < 0) {
+	                    this.currentAnim.alpha = .7;
+	                } else {
+	                    this.currentAnim.alpha = 1;
+	                }
 
 		    //Dealing hits
 		    if(this.attackAnimationTimer.delta() < 0 && this.currentAnim.frame == 2) {
@@ -370,6 +383,7 @@ ig.module(
                                     hitDir = "upleft";
 				    opponent.anims.downrighthit.rewind();
 				}
+<<<<<<< HEAD
 				console.log('yes');
 
 	   		        ig.game.socket.emit('upsert',
@@ -379,12 +393,26 @@ ig.module(
 	                                attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
         	                        timeSent:  Date.now()}}});
 				
+=======
+
+	   		        ig.game.socket.emit('upsert',
+					// needs the name for this to work
+					// 
+        	                	{update: {group : ig.game.group, name: opponent.name,
+	                                attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
+        	                        timeSent:  Date.now()}});
+			/*	
+>>>>>>> origin/master
 				console.log( {query: {group : ig.game.group, name : opponent.name}
                                         ,update: { "$set" : {group : ig.game.group, name: opponent.name,
 
                                         attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
                                         timeSent:  Date.now()}}})
+<<<<<<< HEAD
 	
+=======
+			*/
+>>>>>>> origin/master
 				 }
 				
 			}
@@ -419,32 +447,61 @@ ig.module(
 		    }
 
 
-		    //Animations
+			// took out 3 closing brackets here
+			if(ig.game.state == 'end'){
+				this.accel.x = 0;
+				this.accel.y = 0;
+			}
 
 		    //Store acceleration values
-		    this.xAccelLast = this.accel.x;
-		    this.yAccelLast = this.accel.y;
-			
-		//	console.log(this.getAnimName);
-		    
-		    // This is where the you should emit updates I think	
-		    ig.game.socket.emit('upsert',
-			{query: {group : ig.game.group, name : this.name} 
-			,update: { "$set" : {group : ig.game.group, name: this.name,
+			this.xAccelLast = this.accel.x;
+			this.yAccelLast = this.accel.y;
 
-				pos: {x:this.pos.x, y:this.pos.y},
-				animName: this.getAnimName(),
-				 timeSent:  Date.now()}}});
-		    // I like to move it move it
-		    this.parent();
+			if(ig.game.counter%2 == 0){
+			    ig.game.socket.emit('upsert',
+				{query: {group : ig.game.group, name : this.name, attackData : {"$exists": false}} 
+				,update: { "$set" : {group : ig.game.group, name: this.name,
+
+					pos: {x:this.pos.x, y:this.pos.y},
+					animName: this.getAnimName(),
+					 timeSent:  Date.now()}}});
+			}    
+		// I like to move it move it
+			this.parent();
 		}
         },
-/*
+
 	kill: function() {
+
 	    this.parent();
 	    //RESPAWN
-	}
-*/
+
+		console.log(this.playerIndex);
+
+                switch (this.playerIndex) {
+                        case 1:
+                                var settings = {'index':1, 'direction':'downright', 'name': 'player1'};
+                                ig.game.spawnEntity(EntityPlayer, ig.game.spawnPos.player1.x, ig.game.spawnPos.player1.y, settings);
+                                break;
+                        case 2:
+				console.log("YES");
+                                var settings = {'index':2, 'direction':'downright', 'name': 'player2'};
+                                ig.game.spawnEntity(EntityPlayer, ig.game.spawnPos.player2.x, ig.game.spawnPos.player2.y, settings);
+                                break;
+                        case 3:
+                                var settings = {'index':3, 'direction':'downright', 'name': 'player3'};
+                                ig.game.spawnEntity(EntityPlayer, ig.game.spawnPos.player3.x, ig.game.spawnPos.player3.y, settings);
+                                break;
+                        case 4:
+                                var settings = {'index':4, 'direction':'downright', 'name': 'player4'};
+                                ig.game.spawnEntity(EntityPlayer, ig.game.spawnPos.player4.x, ig.game.spawnPos.player4.y, settings);
+                                break;
+                        default:
+                                break;
+		}
+
+	},
+
         numFlags: function() {
             var f = 0;
             for(var i = 0; i < ig.game.numFlags; i++) {
@@ -555,44 +612,5 @@ ig.module(
  } else { //no vertical change
  if (this.yLast == 0) {
  var settings = {'dustrection': 'downright'};
- } else {
- var settings = {'dustrection': 'upright'};
- }
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- }
- } else if (this.accel.x > this.xAccelLast){ //towards right
- if (this.accel.y < this.yAccelLast){ //towards up
- var settings = {'dustrection': 'downleft'};
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- } else if (this.accel.y > this.yAccelLast){ //towards down
- var settings = {'dustrection': 'upleft'};
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- } else { //no vertical change
- if (this.yLast == 0) {
- var settings = {'dustrection': 'downleft'};
- } else {
- var settings = {'dustrection': 'upleft'};
- }
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- }
- } else { //no horizontal change
- if (this.accel.y < this.yAccelLast){ //towards up
- if (this.xLast == 0) {
- var settings = {'dustrection': 'downright'};
- } else {
- var settings = {'dustrection': 'downleft'};
- }
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- } else if (this.accel.y > this.yAccelLast){ //towards down
- if (this.xLast == 0) {
- var settings = {'dustrection': 'upright'};
- } else {
- var settings = {'dustrection': 'upleft'};
- }
- ig.game.spawnEntity(EntityDust, this.pos.x, this.pos.y, settings);
- } else { //no vertical change
- //No change in acceleration
- }
- }
- }
- */
+
+*/

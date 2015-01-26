@@ -119,7 +119,19 @@ ig.module(
                             this.accel.y = -this.hitForce;
                         }
 		    }
+<<<<<<< HEAD
                 }
+=======
+                } else if (this.currentAnim == this.anims.downlefthit) {
+			this.currentAnim = this.anims.downleftidle;
+		} else if (this.currentAnim == this.anims.downrighthit) {
+			this.currentAnim = this.anims.downrightidle;
+		} else if (this.currentAnim == this.anims.uplefthit) {
+			this.currentAnim = this.anims.upleftidle; 
+		} else if (this.currentAnim == this.anims.uprighthit) {
+			this.currentAnim = this.anims.uprightidle;
+		}
+>>>>>>> origin/master
 
                 if (this.invulnerableTimer.delta() < 0) {
                     this.currentAnim.alpha = .7;
@@ -132,10 +144,40 @@ ig.module(
 		    }	
             },
 
+	        kill: function() {
+	
+	            this.parent();
+	            //RESPAWN
+	
+	                switch (this.playerIndex) {
+	                        case 1:
+	                                var settings = {'index':1, 'direction':'downright', 'name': 'player1'};
+	                                ig.game.spawnEntity(EntityOpponent, ig.game.spawnPos.player1.x, ig.game.spawnPos.player1.y, settings);
+	                                break;
+	                        case 2:
+	                                console.log("YES");
+	                                var settings = {'index':2, 'direction':'downright', 'name': 'player2'};
+	                                ig.game.spawnEntity(EntityOpponent, ig.game.spawnPos.player2.x, ig.game.spawnPos.player2.y, settings);
+	                                break;
+	                        case 3:
+	                                var settings = {'index':3, 'direction':'downright', 'name': 'player3'};
+	                                ig.game.spawnEntity(EntityOpponent, ig.game.spawnPos.player3.x, ig.game.spawnPos.player3.y, settings);
+	                                break;
+	                        case 4:
+	                                var settings = {'index':4, 'direction':'downright', 'name': 'player4'};
+	                                ig.game.spawnEntity(EntityOpponent, ig.game.spawnPos.player4.x, ig.game.spawnPos.player4.y, settings);
+	                                break;
+	                        default:
+	                                break;
+	                }
+	
+	        },
+
+
             numFlags: function() {
                 var f = 0;
-                for(var i = 0; i < 4; i++) {
-                    if (ig,game.getEntitiesByType(EntityFlag)[i].flagIndex == this.playerIndex) {
+                for(var i = 0; i < ig.game.numFlags; i++) {
+                    if (ig.game.getEntitiesByType(EntityFlag)[i].flagIndex == this.playerIndex) {
                         f++;
                     }
                 }

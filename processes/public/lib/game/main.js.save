@@ -7,7 +7,7 @@ var player_id;
 var startTime;
 var gameTime;
 var spawnPos = {player1: {x: 2230, y: 1180}, player2: {x: 3050, y: 2156}, player3: {x: 1198, y: 2304}, player4: {x: 1994, y: 3220}};
-                //spawnPos2 = {x: 3050, y: 2156};
+                //spawnPos2 (proper) = {x: 3050, y: 2156};
 		//spawnPos2(testing) = {x: 2430, y: 1380}
 
 function getJsonFromUrl(){
@@ -94,11 +94,7 @@ MyGame = ig.Game.extend({
 					this.state = 'play';
 				}
 			} else if (this.state == 'play') {
-<<<<<<< HEAD
-				if (gameTime > 1200000) {
-=======
 				if (gameTime > 120000) {
->>>>>>> origin/master
 					this.state = 'end';
 				}
 			} else if (this.state == 'end') {
@@ -127,33 +123,7 @@ MyGame = ig.Game.extend({
 
 			var xText = ig.system.width/2,
 				yText = ig.system.height/2;
-<<<<<<< HEAD
-
-			this.font.draw(
-				'Health:',
-				ig.system.width - 1, 0, ig.Font.ALIGN.RIGHT);
-                        this.font.draw(
-                                ig.game.getEntitiesByType(EntityPlayer)[0].health,
-                                ig.system.width - 1, 0 + 30, ig.Font.ALIGN.RIGHT);
-
-
-			if (this.state == 'setup') {
-				this.font.draw(
-					'Room Setup!',
-					xText, 0, ig.Font.ALIGN.CENTER );
-				this.font.draw(
-					10 - (gameTime/1000).toFixed(0),
-					xText, 0 + 30, ig.Font.ALIGN.CENTER );
-			} else if (this.state == 'play') {
-				this.font.draw(
-					'Capture Flags!',
-					xText, 0, ig.Font.ALIGN.CENTER );
-				this.font.draw(
-					(120 - (gameTime/1000)).toFixed(0),
-					xText, 0 + 30, ig.Font.ALIGN.CENTER );
-=======
 			if (this.getEntitiesByType(EntityPlayer)[0]) {
->>>>>>> origin/master
 				this.font.draw(
 					'Health:',
 					ig.system.width - 1, 0, ig.Font.ALIGN.RIGHT);
@@ -205,15 +175,9 @@ MyGame = ig.Game.extend({
 			}
 		}
 
-<<<<<<< HEAD
-		player = this.getEntitiesByType(EntityPlayer)[0];
-		this.font.draw("x: " + player.pos.x,ig.system.width/2, ig.system.height - 80, ig.Font.ALIGN.CENTER );
-                this.font.draw("y: " + player.pos.y,ig.system.width/2, ig.system.height - 40, ig.Font.ALIGN.CENTER );
-=======
 		//player = this.getEntitiesByType(EntityPlayer)[0];
 		//this.font.draw("x: " + player.pos.x,ig.system.width/2, ig.system.height - 80, ig.Font.ALIGN.CENTER );
                 //this.font.draw("y: " + player.pos.y,ig.system.width/2, ig.system.height - 40, ig.Font.ALIGN.CENTER );
->>>>>>> origin/master
 
 
 	},
@@ -271,11 +235,6 @@ MyGame = ig.Game.extend({
 						if(property != "name" && property != "info"	){
 							if (property == "animName") { //Special case (animation)
 								ig.game.getEntityByName(data.name).currentAnim = ig.game.getEntityByName(data.name).anims[data[property]];
-<<<<<<< HEAD
-							} else if (property == "attackData") {
-								ig.game.getEntityByName(data.attackData.to).receiveDamage(data.attackData.damage, ig.game.getEntityByName(data.attackData.from));	
-							} else { //Normal cases
-=======
 							}else if (property == "attackData") { //Special case (attack data)
 								var opponent = ig.game.getEntityByName(data.attackData.to);
 								var attacker = ig.game.getEntityByName(data.attackData.from);
@@ -302,7 +261,6 @@ MyGame = ig.Game.extend({
                                                                         attacker.anims.uprighttattack.rewind();
                                                                 }
 							}else if(!data.hasOwnProperty("attackData")){ //Normal cases
->>>>>>> origin/master
 								ig.game.getEntityByName(data.name)[property] = data[property];
 							}
 						}

@@ -11,15 +11,3 @@ $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
 $userID = $AUTH->getClientId();
-
-$query = array(
-    "userID" => $LF->fetch_avail("userID"),
-);
-
-$update = array(
-    '$push' => array("assets" => $LF->fetch_avail("asset"))
-);
-
-$results = $collection->update($query, $update);
-
-$OUTPUT->success("success", $results);
