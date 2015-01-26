@@ -14,7 +14,7 @@ $userID = $AUTH->getClientId();
 
 $query = array(
     "_id" => new MongoId(),
-    "userID" => $LF->fetch_avail("userID"), // must be unique
+    "user_id" => $LF->fetch_avail("user_id"), // must be unique
     "username" => $LF->fetch_avail("username"),
     "score" => array(
         "raw" => 0

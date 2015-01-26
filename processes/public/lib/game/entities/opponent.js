@@ -78,7 +78,54 @@ ig.module(
             update: function () {
 		if(ig.game.connected){
 
-			this.zIndex = Math.floor(this.pos.y) + this.getSector()*10000;
+		this.zIndex = Math.floor(this.pos.y) + this.getSector()*10000;
+
+		//DON'T GO ANYWHERE
+		this.accel.x = 0;
+		this.accel.y = 0;
+
+                //Receiving hit
+                if(this.hitAnimationTimer.delta() < 0) {
+                    if (this.hitDirection == 'downleft') {
+                        this.currentAnim = this.anims.uprighthit;
+                        this.xLast = 1;
+                        this.yLast = 0;
+                    } else if (this.hitDirection == 'downright') {
+                        this.currentAnim = this.anims.uplefthit;
+                        this.xLast = 0;
+                        this.yLast = 0;
+                    } else if (this.hitDirection == 'upleft') {
+                        this.currentAnim = this.anims.downrighthit;
+                        this.xLast = 1;
+                        this.yLast = 1;
+                    } else if (this.hitDirection == 'upright') {
+                        this.currentAnim = this.anims.downlefthit;
+                        this.xLast = 0;
+                        this.yLast = 1;
+                    }
+
+                    if (this.hitAnimationTimer.delta() > -0.2) {
+                        if (this.hitDirection == 'downleft') {
+                            this.accel.x = -this.hitForce;
+                            this.accel.y = this.hitForce;
+                        } else if (this.hitDirection == 'downright') {
+                            this.accel.x = this.hitForce;
+                            this.accel.y = this.hitForce;
+                        } else if (this.hitDirection == 'upleft') {
+                            this.accel.x = -this.hitForce;
+                            this.accel.y = -this.hitForce;
+                        } else if (this.hitDirection == 'upright') {
+                            this.accel.x = this.hitForce;
+                            this.accel.y = -this.hitForce;
+                        }
+		    }
+                }
+
+                if (this.invulnerableTimer.delta() < 0) {
+                    this.currentAnim.alpha = .7;
+                } else {
+                    this.currentAnim.alpha = 1;
+                }
 
 			// move
 			this.parent();

@@ -64,10 +64,10 @@ MyGame = ig.Game.extend({
 	autoSort: true,
 	sortBy: ig.Game.SORT.Z_INDEX,
 
-	state: 'setup',
+	state: 'play',
 	playerIndex: 1,
 
-	numFlags: 4,
+	numFlags: 8,
 
 	init: function() {
 		//LUX INITIALIZATION
@@ -90,7 +90,7 @@ MyGame = ig.Game.extend({
 					this.state = 'play';
 				}
 			} else if (this.state == 'play') {
-				if (gameTime > 130000) {
+				if (gameTime > 1200000) {
 					this.state = 'end';
 				}
 			} else if (this.state == 'end') {
@@ -136,7 +136,7 @@ MyGame = ig.Game.extend({
 					'Capture Flags!',
 					xText, 0, ig.Font.ALIGN.CENTER );
 				this.font.draw(
-					(120 + 10 - (gameTime/1000)).toFixed(0),
+					(120 - (gameTime/1000)).toFixed(0),
 					xText, 0 + 30, ig.Font.ALIGN.CENTER );
 				this.font.draw(
 					'Flags:',
@@ -151,7 +151,11 @@ MyGame = ig.Game.extend({
 			}
 
 		}
-		//this.font.draw(player.pos.x - player.pos.y,ig.system.width/2, ig.system.height/2, ig.Font.ALIGN.CENTER );
+
+		player = this.getEntitiesByType(EntityPlayer)[0];
+		this.font.draw("x: " + player.pos.x,ig.system.width/2, ig.system.height - 80, ig.Font.ALIGN.CENTER );
+                this.font.draw("y: " + player.pos.y,ig.system.width/2, ig.system.height - 40, ig.Font.ALIGN.CENTER );
+
 
 	},
 /*
@@ -200,7 +204,7 @@ MyGame = ig.Game.extend({
 				}
 				if(data.hasOwnProperty("name") && (data.info.sender != player_id)){
 					//this.updateEntities(data);
-					if(data.hasOwnProperty("attackData")) {
+					if(data.hasOwnProperty("name")) {
 						console.log(JSON.stringify(data));
 					}
 					for(var property in data){
@@ -208,7 +212,7 @@ MyGame = ig.Game.extend({
 							if (property == "animName") { //Special case (animation)
 								ig.game.getEntityByName(data.name).currentAnim = ig.game.getEntityByName(data.name).anims[data[property]];
 							} else if (property == "attackData") {
-								ig.game.getEntityByName(data.attackData.to).receiveDamage(data.attackData.damage, ig.game.getEntitiesByName(data.attackData.from));	
+								ig.game.getEntityByName(data.attackData.to).receiveDamage(data.attackData.damage, ig.game.getEntityByName(data.attackData.from));	
 							} else { //Normal cases
 								ig.game.getEntityByName(data.name)[property] = data[property];
 							}
@@ -332,17 +336,30 @@ MyGame = ig.Game.extend({
 
 	initFlags: function() {
 		console.log("Init Flags");
-		var settings = {'index':1, 'name': 'flag1'};
-		this.spawnEntity(EntityFlag, 2172, 1300, settings);
 
-		settings = {'index':2, 'name': 'flag2'};
-		this.spawnEntity(EntityFlag, 3000, 1960, settings);
+                var settings = {'index':1, 'name': 'flag1a'};
+                this.spawnEntity(EntityFlag, 2038, 1033, settings);
 
-		settings = {'index':3, 'name': 'flag3'};
-		this.spawnEntity(EntityFlag, 1220, 2216, settings);
+                settings = {'index':1, 'name': 'flag1b'};
+                this.spawnEntity(EntityFlag, 2632, 1384, settings);
 
-		settings = {'index':4, 'name': 'flag4'};
-		this.spawnEntity(EntityFlag, 1952, 3112, settings);
+                settings = {'index':2, 'name': 'flag2a'};
+                this.spawnEntity(EntityFlag, 3225, 2273, settings);
+
+                settings = {'index':2, 'name': 'flag2b'};
+                this.spawnEntity(EntityFlag, 2964, 1662, settings);
+
+                settings = {'index':3, 'name': 'flag3a'};
+                this.spawnEntity(EntityFlag, 1200, 2753, settings);
+
+                settings = {'index':3, 'name': 'flag3b'};
+                this.spawnEntity(EntityFlag, 944, 2274, settings);
+
+                settings = {'index':4, 'name': 'flag4a'};
+                this.spawnEntity(EntityFlag, 1581, 3080, settings);
+
+                settings = {'index':4, 'name': 'flag4b'};
+                this.spawnEntity(EntityFlag, 2097, 3431, settings);
 	},
 
 	initFurniture: function() {

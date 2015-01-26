@@ -1,14 +1,14 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type, Content-Range, Content-Disposition, Content-Description");
+
 include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');
-
 $db = new Db();
 $OUTPUT = new Output();
 $collection = $db->selectCollection("Assets");
 $LF = new LuxFunctions();
-
-
 if($LF->is_avail("id")){
 	$query = array("_id" => new MongoId($LF->fetch_avail("id")));
 	$document = $collection->findOne($query);
@@ -27,6 +27,4 @@ if($LF->is_avail("id")){
 	$OUTPUT->success("Found Aggregate Values", $documents);
 }
 die();
-
 ?>
-

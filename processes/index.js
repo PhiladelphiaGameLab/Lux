@@ -39,9 +39,9 @@ mongoclient.open(function(err, mc){
 		console.log("getClientId open" + err); 
 	}else{
 		mongoConnection = mc;
-		console.log("Connecting to db");
+		console.log("Connecting to db" + " : " + new Date().getTime());
 		db = mc.db("Lux2");		
-		console.log("Connected to db");
+		console.log("Connected to db" + " : " + new Date().getTime());
 	}
 });
 // Delcare the list of Sockets Online
@@ -56,10 +56,10 @@ function getClientId(acc_tok, callback){ // done
 			if(err != null){ console.log("ERROR: getClientId Query Failed " + err); }else{
 				if(userDoc != null && userDoc.hasOwnProperty("_id")){
 					var userId = userDoc["_id"];
-					console.log("getClientId: Found socket corresponding to '_id'");
+					console.log("getClientId: Found socket corresponding to '_id'" + " : " + new Date().getTime());
 					callback(userId, acc_tok);
 				}else{
-					console.log("ERROR: getClientId user Not in Users collection");
+					console.log("ERROR: getClientId user Not in Users collection" + " : " + new Date().getTime());
 					callback(false, access_token);
 				}
 			}
@@ -77,10 +77,10 @@ function query(query, userId){
 				cursor.toArray(function(err, array){
 					if(err != null){console.log("ERROR: query Conversion to Array " + err);}else{
 						if(sockets.hasOwnProperty(userId) && sockets[userId] != undefined && sockets[userId] != null){
-							console.log("Query: Emitting Results");
+							console.log("Query: Emitting Results" + " : " + new Date().getTime());
 							sockets[userId].emit('query', array);
 						}else{
-							console.log("ERROR: query userId is not Registered");
+							console.log("ERROR: query userId is not Registered" + " : " + new Date().getTime());
 						}
 					}
 				});
@@ -98,7 +98,7 @@ function update(query, update, options, userId){
 		db.collection("Assets").update(query, update, options
 			,function(err, results){
 				if(err != null){console.log("ERROR: update Query Failed" + err);}else{
-					console.log("Update: Publishing Document");
+					console.log("Update: Publishing Document" + " : " + new Date().getTime());
 					publish(query, userId, true, false);
 				}
 			});
@@ -114,7 +114,7 @@ function insert(doc, userId){
 		db.collection("Assets").insert(doc
 			,function(err, results){
 				if(err != null){console.log("ERROR: insert Query Failed " + err);}else{
-					console.log("Insert: Publishing Document");
+					console.log("Insert: Publishing Document" + " : " + new Date().getTime());
 					publish(doc, userId, false, false);
 				}
 			});
@@ -131,7 +131,7 @@ function remove(query){
 		db.collection("Assets").remove(query
 			,function(err, results){
 				if(err != null){console.log("ERROR: remove Query Failed" + err);}else{
-					console.log("Remove: Document Removed");
+					console.log("Remove: Document Removed" + " : " + new Date().getTime());
 					// success publish needs to be done prior to removal
 					// so there is no operation to call here
 				}
@@ -151,7 +151,7 @@ function publish(doc, userId, multi, removed){
 					cursor.each(function(err, singleDocument){
 						if(err != null){console.log("ERROR: publish (multi) Iteration: " + err);}else{
 							if(singleDocument != null){
-								console.log("Publish: Publishing Documents");
+								console.log("Publish: Publishing Documents" + " : " + new Date().getTime());
 								publish(singleDocument, userId, false, false); 
 							}
 						}
@@ -173,7 +173,7 @@ function publish(doc, userId, multi, removed){
 			doc["info"] = {sender: userId, checked_by:{python:false, node:false}};
 			db.collection("Published").update({"_id":doc["_id"]}, doc, {upsert:true}
 				,function(err, results){
-					console.log("Publish: Document Published");
+					console.log("Publish: Document Published" + " : " + new Date().getTime());
 					if(err != null){console.log("ERROR: publish Query Failed: " + err);}
 				});
 		}
@@ -193,15 +193,15 @@ function upsert(data, userId){
 			}else{
 				var options = {upsert:true};
 			}
-			console.log("Upsert: Updating Document");
+			console.log("Upsert: Updating Document" + " : " + new Date().getTime());
 			update(data.query, data.update, options, userId);
 		}else if(data.hasOwnProperty("query")){
 			// remove
-			console.log("Upsert: Publishing Document");
+			console.log("Upsert: Publishing Document" + " : " + new Date().getTime());
 			publish(data.query, userId, true, true);
 		}else{
 			// insert	
-			console.log("Upsert: Upserting Document");
+			console.log("Upsert: Upserting Document" + " : " + new Date().getTime());
 			insert(data.update, userId);
 		} 
 	}else{
@@ -217,7 +217,7 @@ function subscribe(query, userId){
 		db.collection("Subscribers").update({query:query},
 				{'$addToSet':{'subscribers': {id: userId}}},
 				{upsert:true}, function(err, results){
-					console.log("Subscribe: Subscribed");
+					console.log("Subscribe: Subscribed" + " : " + new Date().getTime());
 					if(err != null){ console.log("ERROR: subscribe Query Failed " + err); }
 				});
 		}
@@ -230,7 +230,7 @@ function unsubscribeAll(userId){
 		db.collection("Subscribers").update({}, 
 				{'$pull':{'subscribers': {id: userId}}},
 				{upsert:true, multiple:true}, function(err, results){
-					console.log("Unsubscribe: Unsubscribing a User from ALl documents");
+					console.log("Unsubscribe: Unsubscribing a User from ALl documents" + " : " + new Date().getTime());
 					if(err != null){ console.log("ERROR: unsubscribe Query Failed " + err); }
 				});
 		}
@@ -248,14 +248,14 @@ io.on('connection', function(socket){
 				getClientId(data.access_token, function(userId, access_token){
 					if(userId != false && userId != null){
 						socket.userId = userId;
-						console.log("Join: Recieved Access_token: " + access_token);
+						console.log("Join: Recieved Access_token: " + access_token + " : " + new Date().getTime());
 						socket.access_token = access_token;
 						socket.connected = true;
 						sockets[userId] = socket;
 						socket.emit('joined', {status: 'connected', "id": userId, "time" : new Date().getTime()});
 						console.log("client joined " + userId);
 					}else{
-						console.log("ERROR: s.io join: access_token invalid");
+						console.log("ERROR: s.io join: access_token invalid" + " : " + new Date().getTime());
 						socket.emit('error_lux', {'error_lux': "access Token Invalid"});
 					}
 				});
@@ -272,7 +272,7 @@ io.on('connection', function(socket){
 	});
 	socket.on('query', function(data){	
 		query(data, socket.userId);
-		console.log("Recieved Query From: " + socket.access_token);
+		console.log("Recieved Query From: " + socket.access_token + "time : " + new Date().getTime());
 		subscribe(data.query, socket.userId);
 	});
 	socket.on('disconnect', function(){
@@ -296,6 +296,7 @@ io.on('connection', function(socket){
 function sendUpdates(){
 	//removeUpdated();
 	// only do this if someone is online
+	console.log("Running SendUpdates function" + " : " + new Date().getTime());
 	if(Object.keys(sockets).length != 0){
 		if(db == null){ console.log("ERROR: SU Database Not Open " + err); }else{
 			db.collection("Subscribers").find({'subscribers' : {$not: {$size:0}}},
@@ -307,7 +308,7 @@ function sendUpdates(){
 								var query = subscription.query;
 								var subscribers = subscription.subscribers;
 								query["info.checked_by.node"] = false;
-								console.log("SendUpdates: finding Published Docs");
+								console.log("SendUpdates: finding Published Docs" + " : " + new Date().getTime());
 								findPublishedDocs(query, subscribers);
 							}
 						}
@@ -316,7 +317,7 @@ function sendUpdates(){
 			});
 		}
 	}else{
-		//removeUpdated();
+		clearPublished();
 		removeAssets();
 	}
 }
@@ -332,9 +333,9 @@ function findPublishedDocs(query, subscribers){
 				publishedDocs.each(function(err, published){
 					if(err != null){ console.log("ERROR: FPD Iterating Documents " + err);}else{
 						if(published != null){
-							console.log("Find Published Docs: Emitting Updated Docs");
+							console.log("Find Published Docs: Emitting Updated Docs " + " : " + new Date().getTime());
 							emitUpdates(published, subscribers);
-							console.log("Find Published Docs: Updating Published Docs");
+							console.log("Find Published Docs: Updating Published Docs " + " : " + new Date().getTime());
 							updatePubDoc(published);
 						}
 					}
@@ -349,7 +350,7 @@ function emitUpdates(published, subscribers){
 	subscribers.forEach(function(subscriber){
 		if(sockets.hasOwnProperty(subscriber["id"])){
 			if(subscriber != null && sockets[subscriber["id"]] != null){
-				console.log("Emited message to: " + sockets[subscriber["id"]].access_token);
+				console.log("Emited message to: " + sockets[subscriber["id"]].access_token + " : " + new Date().getTime());
 				sockets[subscriber["id"]].emit('updated', published);
 			}
 		}
@@ -364,7 +365,7 @@ function updatePubDoc(published){
 		db.collection("Published").remove({"_id":published._id} //{$set:{"info.checked_by.node":true}}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: Query Failed" +err); }else{
-				console.log("Update PubDoc: Removed Published Docs");
+				console.log("Update PubDoc: Removed Published Docs" + " : " + new Date().getTime());
 			}
 		});
 	}
@@ -378,7 +379,17 @@ function removeUpdated(){
 		db.collection("Published").remove({"info.checked_by.node":true}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RU Query Failed" +err);}else{
-				console.log("remove Updated: Removed Updated Docs");
+				console.log("remove Updated: Removed Updated Docs" + " : " + new Date().getTime());
+			}
+		});
+	}
+}
+function clearPublished(){
+	if(db == null){ console.log("ERROR: RU Database Not Open" + err); }else{
+		db.collection("Published").remove({}//, "info.checked_by.python":true}
+		,function(err, results){
+			if(err != null){ console.log("ERROR: RU Query Failed" +err);}else{
+				console.log("remove Updated: Removed Updated Docs" + " : " + new Date().getTime());
 			}
 		});
 	}
@@ -388,14 +399,14 @@ function removeAssets(){
 		db.collection("Assets").remove({'pos':{'$exists':'true'}}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RA Query Failed" +err);}else{
-				console.log("Remove Assets: Removed Assets");
+				console.log("Remove Assets: Removed Assets" + " : " + new Date().getTime());
 			}
 		});
 	}
 }
 
 setTimeout(function(){
-	console.log("starting Broadcast");
+	console.log("starting Broadcast" + " : " + new Date().getTime());
 	setInterval(sendUpdates, 50);
 
 }, 5000);

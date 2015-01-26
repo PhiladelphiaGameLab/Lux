@@ -327,16 +327,17 @@ ig.module(
 			//Opponents
 			for (var i = 0; i < 3; i++) {
 			    var opponent = ig.game.getEntitiesByType(EntityOpponent)[i];
+			    var hitDir;
 			    if (opponent && opponent.distanceTo(this) < 100 && opponent.invulnerableTimer.delta() >= 0){
 				if (this.currentAnim == this.anims.downrightattack &&
 				    opponent.pos.x > this.pos.x &&
 				    opponent.pos.y > this.pos.y &&
 				    (opponent.pos.x - this.pos.x) + (opponent.pos.y - this.pos.y) < 200) {
-				    console.log('yes');
 				    opponent.invulnerableTimer.reset();
 				    opponent.hitAnimationTimer.reset();
-				    opponent.receiveDamage(5, this);
+				    //opponent.receiveDamage(5, this);
 				    opponent.hitDirection = 'downright';
+				    hitDir = "downright";
 				    opponent.anims.uplefthit.rewind();
 				} else if (this.currentAnim == this.anims.downleftattack &&
 				    opponent.pos.x < this.pos.x &&
@@ -344,8 +345,9 @@ ig.module(
 				    (-(opponent.pos.x - this.pos.x)) + (opponent.pos.y - this.pos.y) < 200) {
 				    opponent.invulnerableTimer.reset();
 				    opponent.hitAnimationTimer.reset();
-				    opponent.receiveDamage(5, this);
+				    //opponent.receiveDamage(5, this);
 				    opponent.hitDirection = 'downleft';
+                                    hitDir = "downleft";
 				    opponent.anims.uprighthit.rewind();
 				} else if (this.currentAnim == this.anims.uprightattack &&
 				    opponent.pos.x > this.pos.x &&
@@ -353,8 +355,9 @@ ig.module(
 				    (opponent.pos.x - this.pos.x) + (-(opponent.pos.y - this.pos.y)) < 200) {
 				    opponent.invulnerableTimer.reset();
 				    opponent.hitAnimationTimer.reset();
-				    opponent.receiveDamage(5, this);
+				    //opponent.receiveDamage(5, this);
 				    opponent.hitDirection = 'upright';
+                                    hitDir = "upright";
 				    opponent.anims.downlefthit.rewind();
 				} else if (this.currentAnim == this.anims.upleftattack &&
 				    opponent.pos.x < this.pos.x &&
@@ -362,19 +365,28 @@ ig.module(
 				    (-(opponent.pos.x - this.pos.x)) + (-(opponent.pos.y - this.pos.y)) < 200) {
 				    opponent.invulnerableTimer.reset();
 				    opponent.hitAnimationTimer.reset();
-				    opponent.receiveDamage(5, this);
+				    //opponent.receiveDamage(5, this);
 				    opponent.hitDirection = 'upleft';
+                                    hitDir = "upleft";
 				    opponent.anims.downrighthit.rewind();
 				}
+				console.log('yes');
 
-			    ig.game.socket.emit('upsert',
-                        {query: {group : ig.game.group, name : opponent.name}
-                        ,update: { "$set" : {group : ig.game.group, name: opponent.name,
+	   		        ig.game.socket.emit('upsert',
+        	                	{query: {group : ig.game.group, name : opponent.name}
+                       			,update: { "$set" : {group : ig.game.group, name: opponent.name,
 
-                                attackData: {from: this.name, to: opponent.name, damage: 5},
-                                 timeSent:  Date.now()}}});
+	                                attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
+        	                        timeSent:  Date.now()}}});
+				
+				console.log( {query: {group : ig.game.group, name : opponent.name}
+                                        ,update: { "$set" : {group : ig.game.group, name: opponent.name,
 
-			    }
+                                        attackData: {from: this.name, to: opponent.name, damage: 5, hitDirection: hitDir},
+                                        timeSent:  Date.now()}}})
+	
+				 }
+				
 			}
 
 			//Objects (NEEDS FIXING)
@@ -435,7 +447,7 @@ ig.module(
 */
         numFlags: function() {
             var f = 0;
-            for(var i = 0; i < 4; i++) {
+            for(var i = 0; i < ig.game.numFlags; i++) {
                 if (ig.game.getEntitiesByType(EntityFlag)[i].flagIndex == this.playerIndex) {
                     f++;
                 }
