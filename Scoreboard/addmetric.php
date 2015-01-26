@@ -11,13 +11,12 @@ $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
 
+$query = array(
+    "userID" => $AUTH->getClientId()
+);
 
 $metricarray = array(
     $LF->fetch_avail('metricname') => $LF->fetch_avail('metric')
-);
-
-$query = array(
-    "userID" => $AUTH->getClientId()
 );
 
 $update = array(
