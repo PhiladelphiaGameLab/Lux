@@ -10,19 +10,25 @@ $OUTPUT = new Output();
 $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "_id" => new MongoId(),
-    "userID" => $LF->fetch_avail("userID"), // must be unique
-    "username" => $LF->fetch_avail("username"),
-    "score" => array(
-        "raw" => 0
-    ),
-    "levels" => array(),
-    "assets" => array()
+    "userID" => $AUTH->getClientId()
 );
 
-$results = $collection->insert($query);
+$metricarray = array(
+    $LF->fetch_avail('metricname') => $LF->fetch_avail('metric')
+);
+
+$update = array(
+    '$push' => array("levels".$LF->fetch_avail('levelID')."metrics" => $metricarray)
+);
+
+$results = $collection->update(
+    $query,
+    $update,
+    array(
+        'upsert' => true
+    )
+);
 
 $OUTPUT->success("success", $results);

@@ -13,13 +13,11 @@ $AUTH = new Auth();
 $userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
-    "assets" => array('$in' => $LF->fetch_avail("oldasset"))
+    "_id" => $userID,
 );
 
 $update = array(
-    '$pull' => array("assets" => $LF->fetch_avail("oldasset")),
-    '$push' => array("assets" => $LF->fetch_avail("newasset"))
+    '$set' => array("score".$LF->fetch_avail("type") => $LF->fetch_avail("newscore"))
 );
 
 $results = $collection->findAndModify(
