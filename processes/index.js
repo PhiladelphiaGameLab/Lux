@@ -412,7 +412,7 @@ function clearPublished(){
 }
 function removeAssets(){
 	if(db == null){ console.log("ERROR: RA Database Not Open" + err); }else{
-		db.collection("Assets").remove({'pos':{'$exists':'true'}}//, "info.checked_by.python":true}
+		db.collection("Assets").remove({'LuxInfoSection':{'$exists':false}}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RA Query Failed" +err);}else{
 				console.log("\t\t\t\t\tRemove Assets: Removed Assets" + " : " + new Date().getTime());

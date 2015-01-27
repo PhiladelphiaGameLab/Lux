@@ -7,7 +7,7 @@ ig.module(
     .defines(function(){
         EntityObject = ig.Entity.extend({
 
-            collides: ig.Entity.COLLIDES.FIXED,
+            collides: ig.Entity.COLLIDES.NEVER,
             health: 20,
 
             type: ig.Entity.TYPE.B,
@@ -56,6 +56,20 @@ ig.module(
                 this.parent();
             },
 
+	//special fix for stoves only
+	    getSector: function() {
+		if (this.room == 1) {
+			return 0;
+		} else if (this.room == 2) {
+			return 1;
+		} else if (this.room == 3) {
+			return 8;
+		} else {
+			return 9;
+		}
+	    }
+
+/*
             getSector: function() {
                 if ((this.pos.x + this.offset.x + this.size.x/2) - (this.pos.y + this.offset.y + this.size.y) >= 557) {
                     if ((this.pos.x + this.offset.x + this.size.x/2) + (this.pos.y + this.offset.y + this.size.y) <= 4361) {
@@ -89,5 +103,6 @@ ig.module(
                     }
                 }
             }
-        });
+*/  
+      });
     });

@@ -19,8 +19,8 @@ ig.module(
 		}
                 this.addAnim( 'downleft', 1, [1] );
                 this.addAnim( 'downright', 1, [0] );
-                this.addAnim( 'upleft', 1, [1] );
-                this.addAnim( 'upright', 1, [0] );
+                this.addAnim( 'upleft', 1, [0] );
+                this.addAnim( 'upright', 1, [1] );
             },
 
             update: function() {
