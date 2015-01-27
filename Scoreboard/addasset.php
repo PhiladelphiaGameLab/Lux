@@ -16,7 +16,7 @@ $query = array(
 );
 
 $update = array(
-    '$push' => array('assets' => $LF->fetch_avail('asset_id'))
+    '$push' => array('assets' => $LF->fetch_avail('asset'))
 );
 
 $results = $collection->update(
@@ -27,4 +27,4 @@ $results = $collection->update(
     )
 );
 
-$OUTPUT->success('success', $results);
+$OUTPUT->success('Asset successfully added', $results);

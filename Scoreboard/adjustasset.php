@@ -16,7 +16,7 @@ $query = array(
 );
 
 $update = array(
-    '$pull' => array('assets' => $LF->fetch_avail('asset'))
+    '$set' => array('assets'.$LF->fetch_avail('asset') => $LF->fetch_avail('quantity')),
 );
 
 $results = $collection->update(
@@ -27,4 +27,4 @@ $results = $collection->update(
     )
 );
 
-$OUTPUT->success('Asset successfully removed', $results);
+$OUTPUT->success('Asset successfully adjusted', $results);
