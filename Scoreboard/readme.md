@@ -48,6 +48,7 @@ Functions required for Scoreboard are:
 * Add metric
 * Remove metric
 * Adjust metric
+* Get metric
 * Get user level
 * Get user scores
 * Get user scoreboard
