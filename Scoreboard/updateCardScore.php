@@ -32,4 +32,4 @@ $options = array(
 
 $results = $collection->update($query, $update, $options);
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success test 2.4.15", $results);
