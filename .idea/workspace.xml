@@ -2,26 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bfaabdab-69ce-4e67-8208-95961d4613d8" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Scoreboard/addlevelpong.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/addupvote.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/editcomment.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getrating.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/removecomment.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/t_avr.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php" />
-      <change type="DELETED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\aggregate.php" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\avr.php" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\upsertRating.php" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\upsertVote.php" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\upsertcomment.php" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/README.md" afterPath="$PROJECT_DIR$/AssetVotingAndRating/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/addcomment.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/addcomment.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/query.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/query.php" />
+      <change type="MOVED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\upsertRating.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Lux.iws" />
@@ -406,13 +387,20 @@
       <option name="project" value="LOCAL" />
       <updated>1422918049518</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Added one function to scoreboard for the pong demonstration&#10;&#10;Changed structure of AVR to have every comment be a distinct document">
+      <created>1423255958754</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1423255958754</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1378" height="744" extended-state="0" />
     <editor active="false" />
     <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20440252" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -428,7 +416,6 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20440252" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32861635" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -454,7 +441,8 @@
     <MESSAGE value="changed functions to reflect storage of users in a different collection 1.26.15" />
     <MESSAGE value="more scoreboard" />
     <MESSAGE value="more scoreboard changes, added a readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="more scoreboard changes, added a readme" />
+    <MESSAGE value="Added one function to scoreboard for the pong demonstration&#10;&#10;Changed structure of AVR to have every comment be a distinct document" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added one function to scoreboard for the pong demonstration&#10;&#10;Changed structure of AVR to have every comment be a distinct document" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
