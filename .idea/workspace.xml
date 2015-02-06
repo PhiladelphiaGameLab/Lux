@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="bfaabdab-69ce-4e67-8208-95961d4613d8" name="Default" comment="">
+    <list default="true" id="bfaabdab-69ce-4e67-8208-95961d4613d8" name="Default" comment="Added one function to scoreboard for the pong demonstration&#10;&#10;Changed structure of AVR to have every comment be a distinct document">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AssetVotingAndRating/addasset.php" />
+      <change type="MOVED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\t_avr.html" afterPath="$PROJECT_DIR$/Tests/t_avr.html" />
       <change type="MOVED" beforePath="C:\Users\Chuck\Documents\GitHub\Lux\AssetVotingAndRating\upsertRating.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Scoreboard/addlevelpong.php" afterPath="$PROJECT_DIR$/Scoreboard/addlevelpong.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/addupvote.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/addupvote.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/getrating.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getrating.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php" afterPath="$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Lux.iws" />
@@ -28,14 +38,61 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/README.md">
-          <provider editor-type-id="MarkdownPreviewEditor">
-            <state />
-          </provider>
+      <file leaf-file-name="addcomment.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addcomment.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-5.1" vertical-offset="0" max-vertical-offset="459">
-              <caret line="9" column="14" selection-start-line="9" selection-start-column="14" selection-end-line="9" selection-end-column="14" />
+            <state vertical-scroll-proportion="-3.5384614" vertical-offset="61" max-vertical-offset="646">
+              <caret line="9" column="11" selection-start-line="0" selection-start-column="0" selection-end-line="32" selection-end-column="57" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="addasset.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addasset.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-14.384615" vertical-offset="0" max-vertical-offset="510">
+              <caret line="22" column="37" selection-start-line="22" selection-start-column="37" selection-end-line="22" selection-end-column="37" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="removeupvote.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="removedownvote.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.4383057" vertical-offset="0" max-vertical-offset="543">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="addlevelpong.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Scoreboard/addlevelpong.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="459">
+              <caret line="0" column="5" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="upsertrating.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -51,83 +108,31 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="removecomment.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removecomment.php">
+      <file leaf-file-name="getdownvotes.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.115385" vertical-offset="0" max-vertical-offset="527">
-              <caret line="17" column="16" selection-start-line="17" selection-start-column="16" selection-end-line="17" selection-end-column="16" />
+            <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="removedownvote.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php">
+      <file leaf-file-name="getrating.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getrating.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-14.384615" vertical-offset="0" max-vertical-offset="527">
-              <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+            <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="addupvote.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addupvote.php">
+      <file leaf-file-name="getupvotes.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.769231" vertical-offset="0" max-vertical-offset="527">
-              <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="addlevel.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Scoreboard/addlevel.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.7692308" vertical-offset="89" max-vertical-offset="731">
-              <caret line="11" column="19" selection-start-line="0" selection-start-column="0" selection-end-line="37" selection-end-column="38" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="addlevelpong.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Scoreboard/addlevelpong.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.39177102" vertical-offset="70" max-vertical-offset="629">
-              <caret line="17" column="15" selection-start-line="17" selection-start-column="15" selection-end-line="17" selection-end-column="15" />
-              <folding>
-                <element signature="e#7#126#0#PHP" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="adjustmetric.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Scoreboard/adjustmetric.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="510">
-              <caret line="15" column="35" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="addcomment.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addcomment.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.1923077" vertical-offset="87" max-vertical-offset="646">
-              <caret line="10" column="25" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="adddownvote.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-12.423077" vertical-offset="0" max-vertical-offset="527">
-              <caret line="19" column="43" selection-start-line="19" selection-start-column="43" selection-end-line="19" selection-end-column="43" />
+            <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+              <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -177,28 +182,26 @@
         <option value="$PROJECT_DIR$/AssetVotingAndRating/t_avr.html" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/editcomment.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/addrating.php" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/addcomment.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/README.md" />
+        <option value="$PROJECT_DIR$/Scoreboard/addlevel.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/addupvote.php" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/README.md" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php" />
-        <option value="$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/getrating.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php" />
+        <option value="$PROJECT_DIR$/AssetVotingAndRating/addcomment.php" />
         <option value="$PROJECT_DIR$/AssetVotingAndRating/addasset.php" />
-        <option value="$PROJECT_DIR$/Scoreboard/addlevel.php" />
         <option value="$PROJECT_DIR$/Scoreboard/addlevelpong.php" />
       </list>
     </option>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" interpreter_name="PHP" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1378" />
-    <option name="height" value="744" />
+    <option name="width" value="1366" />
+    <option name="height" value="728" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -254,20 +257,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Tests" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Lux" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Lux" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="Scoreboard" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -299,6 +288,11 @@
     <property name="recentsLimit" value="5" />
     <property name="FullScreen" value="false" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Chuck\Documents\GitHub\Lux\Tests" />
+    </key>
   </component>
   <component name="RunManager" selected="PHP Script.addcomment.php">
     <configuration default="false" name="addcomment.php" type="PhpLocalRunConfigurationType" factoryName="PHP Console" temporary="true" path="$PROJECT_DIR$/AssetVotingAndRating/addcomment.php">
@@ -393,12 +387,18 @@
       <option name="project" value="LOCAL" />
       <updated>1423255958754</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added one function to scoreboard for the pong demonstration&#10;&#10;Changed structure of AVR to have every comment be a distinct document">
+      <created>1423255984110</created>
+      <option name="number" value="00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1423255984110</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1378" height="744" extended-state="0" />
-    <editor active="false" />
+    <frame x="0" y="0" width="1366" height="728" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20440252" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -408,7 +408,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20044053" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20222223" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
@@ -451,13 +451,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Scoreboard/removelevel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="408" max-vertical-offset="629">
-          <caret line="24" column="2" selection-start-line="24" selection-start-column="2" selection-end-line="24" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Scoreboard/getuser.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="187" max-vertical-offset="425">
@@ -713,66 +706,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/t_avr.html">
+    <entry file="file://$PROJECT_DIR$/Tests/t_avr.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="399">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="527">
-          <caret line="15" column="2" selection-start-line="15" selection-start-column="2" selection-end-line="15" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.423077" vertical-offset="0" max-vertical-offset="527">
-          <caret line="19" column="18" selection-start-line="0" selection-start-column="0" selection-end-line="25" selection-end-column="59" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.730769" vertical-offset="0" max-vertical-offset="459">
-          <caret line="21" column="27" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.730769" vertical-offset="0" max-vertical-offset="459">
-          <caret line="21" column="36" selection-start-line="0" selection-start-column="0" selection-end-line="21" selection-end-column="49" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getrating.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.115385" vertical-offset="0" max-vertical-offset="459">
-          <caret line="17" column="34" selection-start-line="17" selection-start-column="34" selection-end-line="17" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.423077" vertical-offset="0" max-vertical-offset="527">
-          <caret line="19" column="43" selection-start-line="19" selection-start-column="43" selection-end-line="19" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addcomment.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.1923077" vertical-offset="87" max-vertical-offset="646">
-          <caret line="10" column="25" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
           <folding />
         </state>
       </provider>
@@ -788,10 +725,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/editcomment.php">
+    <entry file="file://$PROJECT_DIR$/Scoreboard/adjustmetric.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.076923" vertical-offset="0" max-vertical-offset="544">
-          <caret line="20" column="37" selection-start-line="20" selection-start-column="37" selection-end-line="20" selection-end-column="37" />
+        <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="510">
+          <caret line="15" column="35" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Scoreboard/addlevel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-2.4615386" vertical-offset="140" max-vertical-offset="731">
+          <caret line="12" column="0" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -804,45 +749,99 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php">
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/adddownvote.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-14.384615" vertical-offset="0" max-vertical-offset="527">
-          <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addupvote.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.769231" vertical-offset="0" max-vertical-offset="527">
-          <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="31" selection-end-line="14" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Scoreboard/adjustmetric.php">
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/editcomment.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.807693" vertical-offset="0" max-vertical-offset="510">
-          <caret line="15" column="35" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
+        <state vertical-scroll-proportion="-13.076923" vertical-offset="0" max-vertical-offset="544">
+          <caret line="20" column="37" selection-start-line="20" selection-start-column="37" selection-end-line="20" selection-end-column="37" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Scoreboard/addlevel.php">
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getdownvotes.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.7692308" vertical-offset="89" max-vertical-offset="731">
-          <caret line="11" column="19" selection-start-line="0" selection-start-column="0" selection-end-line="37" selection-end-column="38" />
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getrating.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/getupvotes.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="459">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addcomment.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.5384614" vertical-offset="61" max-vertical-offset="646">
+          <caret line="9" column="11" selection-start-line="0" selection-start-column="0" selection-end-line="32" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/addasset.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-14.384615" vertical-offset="0" max-vertical-offset="510">
+          <caret line="22" column="37" selection-start-line="22" selection-start-column="37" selection-end-line="22" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/upsertrating.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Scoreboard/addlevelpong.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39177102" vertical-offset="70" max-vertical-offset="629">
-          <caret line="17" column="15" selection-start-line="17" selection-start-column="15" selection-end-line="17" selection-end-column="15" />
-          <folding>
-            <element signature="e#7#126#0#PHP" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="543">
+          <caret line="0" column="5" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removeupvote.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="527">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AssetVotingAndRating/removedownvote.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4383057" vertical-offset="0" max-vertical-offset="543">
+          <caret line="14" column="40" selection-start-line="14" selection-start-column="40" selection-end-line="14" selection-end-column="40" />
+          <folding />
         </state>
       </provider>
     </entry>

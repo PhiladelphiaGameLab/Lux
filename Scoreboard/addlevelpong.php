@@ -1,15 +1,5 @@
 <?php
 
-/*
- *
- * Ajax(
- * ""whereever you put this file,
- * {'leftscore': some input, 'rightscore': some input}
- *
- * ),
- *
- */
-
 include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');
