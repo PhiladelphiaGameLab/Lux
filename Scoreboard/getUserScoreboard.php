@@ -11,15 +11,6 @@ $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
 
-<<<<<<< HEAD
-$results = $collection->find(
-    array(
-	"userId"=> $AUTH->getClientId()
-	)
-);
-
-$OUTPUT->success($results);
-=======
 $userID = $AUTH->getClientId();
 $cardID = $LF->fetch_avail('cardID');
 $cardScore = $LF->fetch_avail('cardScore');
@@ -42,4 +33,3 @@ $options = array(
 $results = $collection->update($query, $update, $options);
 
 $OUTPUT->success("success", $results);
->>>>>>> 1466643d15cfc9d08a2ea73fc20b74241890a42e
