@@ -12,15 +12,16 @@ $LF = new LuxFunctions();
 $AUTH = new Auth();
 
 $query = array(
-    '_id' => $Lf->fetch_avail('comment_id')
+    '_id' => $AUTH->getClientId()
 );
 
 $update = array(
     '$set' => array(
-        'ratings'.$AUTH->getClientId() => $LF->fetch_avail('rating')
+        'comment_body' => $LF->fetch_avail('comment_body'),
+        'date' => new DateTime('now')
     )
 );
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("rating successfully upserted", $results);
+$OUTPUT->success("comment successfully edited", $results);
