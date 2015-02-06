@@ -12,6 +12,22 @@ function getJsonFromUrl(){
         return result;
 }
 
+function Ajax(where, who, what){
+	var xmlhttp;
+	if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp=new XMLHttpRequest();
+	}
+
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState==4 && xmlhttp.status==200){
+			document.getElementById(where).innerHTML=xmlhttp.responseText;
+		}
+	}
+
+	xmlhttp.open("POST",who,true);
+	xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	xmlhttp.send(JSON.stringify(what));
+}
 
 ig.module( 
 	'game.main' 
@@ -33,12 +49,15 @@ group = url.group;
 
 MyGame = ig.Game.extend({
 
+	name: "game",
+
 	ballSpeed: 400,
 	paddleAccel: 1500,
 	ballMaxY: 400,
 	aiAccel: 1000,
 	points: {left: 0, right: 0},
-	
+	opponentView: {ballLocation: {x: 500, y: 300}},
+
 	// Load a font
 	font: new ig.Font( 'media/font.png' ),
 	state: 'waiting',
@@ -59,6 +78,8 @@ MyGame = ig.Game.extend({
 		var settings = {'name': "rightpaddle"};
 		this.spawnEntity(EntityPaddle, 955, 255, settings);
 
+		this.ballTimer = new ig.Timer();
+		this.opponentTimer = new ig.Timer();
 	},
 	
 	update: function() {
@@ -83,6 +104,7 @@ MyGame = ig.Game.extend({
 
 			this.opponentMove();
 
+			//Somebody scores
 			if (ball.pos.x < -30 || ball.pos.x > 1045) {
 				ig.game.state = 'waiting';
 
@@ -90,6 +112,16 @@ MyGame = ig.Game.extend({
 					this.points.right += 1;
 				} else {
 					this.points.left += 1;
+				}
+		
+				if (this.points.right >= 1 || this.points.left >= 1) {
+					console.log("game end");
+
+					ig.game.state = 'gameEnd';
+					
+		                        //SCOREBOARD CODE
+                		        //Ajax(url, data, callback);
+                		        Ajax("addlevelpong.php",{"leftscore": ig.game.points.left, "rightscore": ig.game.points.right}, function(data){});
 				}
 
 				yourPaddle.accel.y = 0;
@@ -104,6 +136,10 @@ MyGame = ig.Game.extend({
 				ball.vel = {x: 0, y: 0};
 				ball.pos = {x: 492, y: 293};
 			}
+		} else if (ig.game.state == 'gameEnd') {
+			if (ig.input.state == 'space') {
+				ig.game.state == 'waiting';
+			}
 		}
 
 		//Your movement
@@ -115,6 +151,18 @@ MyGame = ig.Game.extend({
 			} else {
 				yourPaddle.accel.y = 0;
 			}
+		}
+
+                if (ig.game.ballTimer.delta() > 0) {
+			//Send ball location
+                	ig.game.socket.emit('upsert',
+                	       {query: {group : ig.game.group, name : theirPaddle.name}
+                	         ,update: { "$set" : {group : ig.game.group, 
+					       name: theirPaddle.name,
+                	               ballLocation: {x: ball.pos.x, y: ball.pos.y},
+                	                   timeSent:  Date.now()}}});
+
+			ig.game.ballTimer.set(.05)
 		}
 
 		// I like to move it move it
@@ -159,19 +207,20 @@ MyGame = ig.Game.extend({
 
                 ig.game.socket.on('updated',
                         function(data){
-				console.log('!!');
                                 if(data.hasOwnProperty("timeSent") && Math.floor((Math.random() * 501))%250 == 0){
                                         timeDif = parseInt(Date.now()) - parseInt(JSON.stringify(data.timeSent));
                                         console.log("s.io updated: " + timeDif);
                                 }
-                                if(data.hasOwnProperty("name")){
-					console.log('!');
+                                if(data.hasOwnProperty("name") && (ig.game.state == 'playing')){
                                         if(data.hasOwnProperty("name")) {
                                                 console.log(JSON.stringify(data));
                                         }
                                         for(var property in data){
-                                                if(property != "name" && property != "info"     ){
-                                                        if(data.hasOwnProperty("name")){ //Normal cases
+                                                if(property != "name" && property != "info"){
+							if (property == "ballLocation") { //Special case: ball location for opponent
+								ig.game.opponentView.ballLocation.x = data[property].x;
+                                                                ig.game.opponentView.ballLocation.y = data[property].y;
+							} else if(data.hasOwnProperty("name")){ //Normal cases
                                                                 ig.game.getEntityByName(data.name)[property] = data[property];
                                                         }
                                                 }
@@ -203,28 +252,32 @@ MyGame = ig.Game.extend({
 	opponentMove: function() {
 
 		var theirPaddle = this.getEntityByName("rightpaddle");
-		var ball = this.getEntitiesByType(EntityBall)[0];
+		var ballPos = ig.game.opponentView.ballLocation;
 		var newAccel;
 
-		/*
-		 if (Math.abs(theirPaddle.pos.y+45 - (ball.pos.y + 7)) <= 2) {
+		 /*
+		 if (Math.abs(theirPaddle.pos.y+45 - (ballPos.y + 7)) <= 2) {
 		 	newAccel = 0;
-		 } else if (theirPaddle.pos.y >= ball.pos.y + 7) {
-		 	newAccel = -this.aiAccel;
+		 } else if (theirPaddle.pos.y >= ballPos.y + 7) {
+			newAccel = -this.aiAccel;
 		 } else {
 		 	newAccel = this.aiAccel;
 		 }
-		 */
+		*/
 
-		newAccel = (theirPaddle.pos.y+45 - (ball.pos.y + 7))/100 * -this.aiAccel;
-
+		newAccel = (theirPaddle.pos.y+45 - (ballPos.y + 7))/100 * -this.aiAccel;
 		
+		if (this.opponentTimer.delta() > 0) {
+
                             ig.game.socket.emit('upsert',
-                                {query: {group : ig.game.group, name : theirPaddle.name}
-                                ,update: { "$set" : {group : ig.game.group, name: theirPaddle.name,
+                                {query: {group : "5", name : theirPaddle.name}
+                                ,update: { "$set" : {group : "5", name: theirPaddle.name,
 
                                    accel: {y: newAccel},
                                        timeSent:  Date.now()}}});
+		
+			this.opponentTimer.set(.1);
+		}
 
 	}
 });
@@ -234,3 +287,4 @@ MyGame = ig.Game.extend({
 ig.main( '#canvas', MyGame, 60, 1000, 600, 1);
 
 });
+
