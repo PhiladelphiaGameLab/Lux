@@ -10,25 +10,21 @@ $OUTPUT = new Output();
 $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
-    "assets" => array('$in' => $LF->fetch_avail("oldasset"))
+    "userID" => $AUTH->getClientId(),
+    "levels.levelID" => $LF->fetch_avail("levelID")
 );
 
 $update = array(
-    '$pull' => array("assets" => $LF->fetch_avail("oldasset")),
-    '$push' => array("assets" => $LF->fetch_avail("newasset"))
+    '$set' => array(
+        "levelposition"=> $LF->fetch_avail("levelposition")),
+        "levelname" => $LF->fetch_avail("levelname")
 );
 
-$results = $collection->findAndModify(
+$results = $collection->update(
     $query,
-    $update,
-    null,
-    array(
-        "new" => true
-    )
+    $update
 );
 
 $OUTPUT->success("success", $results);

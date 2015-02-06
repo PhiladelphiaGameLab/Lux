@@ -8,7 +8,7 @@ include_once('../Core/auth.php');
 
 $db = new Db();
 $OUTPUT = new Output();
-$collection = $db->selectCollection("Assets");
+$collection = $db->selectCollection("test_Assets");
 $AUTH = new Auth();
 $LF = new LuxFunctions();
 

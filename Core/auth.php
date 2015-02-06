@@ -39,6 +39,10 @@ class Auth{
 	function getClientName(){
 		return $this->client_doc["name"];
 	}
+	
+	function getClientAdmin(){
+		return $this->client_doc["admin"];
+	}
 }
 
 class AuthLogin{

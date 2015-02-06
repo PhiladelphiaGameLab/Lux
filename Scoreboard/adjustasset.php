@@ -7,26 +7,24 @@ include_once('../Core/auth.php');
 
 $db = new Db();
 $OUTPUT = new Output();
-$collection = $db->selectCollection("Scoreboard");
+$collection = $db->selectCollection('Scoreboard');
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
+    'userID' => $AUTH->getClientId(),
 );
 
 $update = array(
-    '$set' => array("score".$LF->fetch_avail("type") => $LF->fetch_avail("newscore"))
+    '$set' => array('assets'.$LF->fetch_avail('asset') => $LF->fetch_avail('quantity')),
 );
 
-$results = $collection->findAndModify(
+$results = $collection->update(
     $query,
     $update,
-    null,
     array(
-        "new" => true
+        'upsert' => true
     )
 );
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success('Asset successfully adjusted', $results);

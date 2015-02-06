@@ -1,0 +1,58 @@
+<html>
+<head>
+<script>
+function Ajax(where, who, what){
+var xmlhttp;
+if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+  xmlhttp=new XMLHttpRequest();
+  }
+xmlhttp.onreadystatechange=function(){
+  if (xmlhttp.readyState==4 && xmlhttp.status==200){
+    document.getElementById(where).innerHTML=xmlhttp.responseText;
+    }
+  }
+xmlhttp.open("POST",who,true);
+xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+xmlhttp.send(JSON.stringify(what));
+}
+
+
+Ajax("getUser", "../Scoreboard/getuser.php", {access_token:"alpha59"});
+Ajax("getUserLevel", "../Scoreboard/getuser.php", {access_token:"alpha59"});
+Ajax(
+	"updateCardScore",
+	"../Scoreboard/updateCardScore.php",
+	{access_token:"alpha59", cardID:"vowelCard1", cardScore:5}
+);
+Ajax(
+	"updateLevelScore",
+	"../Scoreboard/updateLevelScore.php",
+	{access_token:"alpha59", levelID:"level001", levelScore: 6}
+);
+Ajax("getUser2", "../Scoreboard/getuser.php", {access_token:"alpha59"});
+Ajax("getUserLevel2", "../Scoreboard/getuser.php", {access_token:"alpha59"});
+
+
+</script>
+</head>
+<body>
+<h1>Scoreboard Tests</h1>
+<ol>
+	<li>get the user scoreboard</li>
+	<li>get the user level</li>
+	<li>update a card score</li>
+	<li>update a level score</li>
+	<li>get the user scoreboard 2</li>
+	<li>get the user level 2</li>
+</ol>
+
+1. get user scoreboard <div id="getUser"></div>
+2. get the user level <div id="getUserLevel"></div>
+3. update a card score <div id="updateCardScore"></div>
+4. update a level score <div id="updateLevelScore"></div>
+5. get the user scoreboard 2 <div id="getUser2"></div>
+6. get the user level 2 <div id="getUserLevel2"></div> 
+
+</body>
+</html>

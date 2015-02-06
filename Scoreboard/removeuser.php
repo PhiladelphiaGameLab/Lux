@@ -10,16 +10,11 @@ $OUTPUT = new Output();
 $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID"),
+    "userID" => $AUTH->getClientId()
 );
 
-$update = array(
-    '$push' => array("levels".$LF->fetch_avail('levelID')."metrics" => $LF->fetch_avail("metricarray"))
-);
-
-$results = $collection->update($query, $update);
+$results = $collection->remove($query, array("justOne" => true));
 
 $OUTPUT->success("success", $results);

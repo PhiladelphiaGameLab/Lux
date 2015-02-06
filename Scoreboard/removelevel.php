@@ -10,12 +10,23 @@ $OUTPUT = new Output();
 $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
-$userID = $AUTH->getClientId();
 
 $query = array(
-    "userID" => $LF->fetch_avail("userID")
+    "userID" => $AUTH->getClientId(),
+    "levels.levelID" => $LF->fetch_avail("levelID")
 );
 
-$results = $collection->findOne($query);
+$update = array(
+    '$pull' => array(
+        "levels" => array(
+            "levelID" => $LF->fetch_avail("levelID")
+        )
+    )
+);
+
+$results = $collection->update(
+    $query,
+    $update
+);
 
 $OUTPUT->success("success", $results);

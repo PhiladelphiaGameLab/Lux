@@ -365,6 +365,7 @@ function emitUpdates(published, subscribers){
 	subscribers.forEach(function(subscriber){
 		if(sockets.hasOwnProperty(subscriber["id"])){
 			if(subscriber != null && sockets[subscriber["id"]] != null){
+				console.log("Emited message to: " + sockets[subscriber["id"]].access_token + " : " + new Date().getTime());
 				console.log("\t\t\t\t\tEmited message to: " + sockets[subscriber["id"]].access_token + " : " + new Date().getTime());
 				sockets[subscriber["id"]].emit('updated', published);
 			}
@@ -415,6 +416,7 @@ function removeAssets(){
 		db.collection("Assets").remove({'LuxInfoSection':{'$exists':false}}//, "info.checked_by.python":true}
 		,function(err, results){
 			if(err != null){ console.log("ERROR: RA Query Failed" +err);}else{
+				console.log("Remove Assets: Removed Assets" + " : " + new Date().getTime());
 				console.log("\t\t\t\t\tRemove Assets: Removed Assets" + " : " + new Date().getTime());
 			}
 		});
