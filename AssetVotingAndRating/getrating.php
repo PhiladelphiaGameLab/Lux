@@ -15,12 +15,8 @@ $query = array(
     '_id' => $Lf->fetch_avail('comment_id')
 );
 
-$update = array(
-    '$set' => array(
-        'ratings'.$AUTH->getClientId() => $LF->fetch_avail('rating')
-    )
-);
+$doc = $collection->findOne($query);
 
-$results = $collection->update($query, $update);
+$results = count($doc['upvotes']);
 
-$OUTPUT->success("rating successfully upserted", $results);
+$OUTPUT->success("upvotes quantified", $results);

@@ -16,11 +16,11 @@ $query = array(
 );
 
 $update = array(
-    '$set' => array(
-        'ratings'.$AUTH->getClientId() => $LF->fetch_avail('rating')
+    '$addToSet' => array(
+        'upvotes' => $AUTH->getClientId()
     )
 );
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("rating successfully upserted", $results);
+$OUTPUT->success("upvote successfully added", $results);
