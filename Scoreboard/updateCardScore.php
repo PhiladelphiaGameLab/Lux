@@ -20,7 +20,7 @@ $query = array(
 
 $update = array(
     '$set' => array(
-        'metric.$.cardScore' => $cardScore
+        'metric.cardScore' => $cardScore
     )
 );
 
