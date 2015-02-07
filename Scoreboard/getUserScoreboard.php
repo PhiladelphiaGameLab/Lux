@@ -11,10 +11,12 @@ $collection = $db->selectCollection("Scoreboard");
 $LF = new LuxFunctions();
 $AUTH = new Auth();
 
-$results = $collection->find(
+$results = $collection->findOne(
     array(
-	"userId"=> $AUTH->getClientId()
+	"user_id"=> $AUTH->getClientId()
 	)
 );
 
+
 $OUTPUT->success($results);
+?>
