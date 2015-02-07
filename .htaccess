@@ -1,7 +1,0 @@
-Header set Access-Control-Allow-Origin "*"
-Header set Access-Control-Allow-Methods: "GET,POST,OPTIONS,DELETE,PUT"
-Header set Access-Control-Allow-Origin: "*"
-Header set Access-Control-Allow-Headers: "Content-Type, Content-Range, Content-Disposition, Content-Description"
-Header set Access-Control-Allow-Credentials: true
-
-

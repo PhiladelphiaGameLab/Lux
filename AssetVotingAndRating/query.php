@@ -1,4 +1,7 @@
 <?php
+
+// This is called somewhere else and can't delete
+
 include_once('../core/query.php');
 query(
         array(

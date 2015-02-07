@@ -1,37 +1,26 @@
 <?php
-include_once('../core/upsert.php');
-// Format a rating into a usable number for the system
 
-$assetID = $_POST["assetID"];
-$userID = $_POST["userID"];
-$rating = $_POST["rating"];
+include_once('../Core/lux-functions.php');
+include_once('../Core/output.php');
+include_once('../Core/db.php');
+include_once('../Core/auth.php');
 
-$results = [
-    "assetID" => $assetID,
-    "userID" => $userID,
-    "rating" => $rating
-];
+$db = new Db();
+$OUTPUT = new Output();
+$collection = $db->selectCollection("AssetVotingAndRating");
+$LF = new LuxFunctions();
+$AUTH = new Auth();
 
-$doc = json_encode($results);
-
-upsert(
-        array(
-                "collectionName" => "AssetVotingAndRating"
-                ,"enqueue" => false
-                ,"pubsub" => false
-                ,"priority" => "Low"
-                ,"doc" => $doc
-        )
+$query = array(
+    '_id' => $Lf->fetch_avail('comment_id')
 );
 
-/*
- So many questions...
+$update = array(
+    '$set' => array(
+        'ratings'.$AUTH->getClientId() => $LF->fetch_avail('rating')
+    )
+);
 
-1. I added an entry to the array passed to upsert called doc. Can upsert take more than the four initial arguments?
-2. How are we getting the identity of the user? I assumed it was posted because I couldn't find session code anywhere in the core directory. Is it post?
+$results = $collection->update($query, $update);
 
- */
-?>
-
-
-
+$OUTPUT->success("rating successfully upserted", $results);

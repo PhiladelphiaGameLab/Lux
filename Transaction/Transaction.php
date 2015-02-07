@@ -58,15 +58,15 @@
 			"id0" => $transaction["id1"],
 			"id1" => $transaction["id0"],
 			"subId0" => $transaction["subId1"],
-			"subId1" => $transaction["subId0"]);
+			"subId1" => $transaction["subId0"],
+			"type" => $transaction["type"],
+			"type_code" => $transaction["type_code"],
+			"date" => $transaction["date"]);
 		if(isset($transaction["itemsId1"])) {
 			$flipped["itemsId0"] = $transaction["itemsId1"];
 		}
 		if(isset($transaction["itemsId0"])) {
 			$flipped["itemsId1"] = $transaction["itemsId0"];
-		}
-		if(isset($transaction["type"])) {
-			$flipped["type"] = $transaction["type"];
 		}
 		return $flipped;
 	}
