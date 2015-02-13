@@ -2,9 +2,95 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title></title>
+    <title>AVR Test</title>
+    <script>
+        function Ajax(where, who, what) {
+            var xmlhttp;
+            if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp = new XMLHttpRequest();
+            }
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    document.getElementById(where).innerHTML = xmlhttp.responseText;
+                }
+            };
+            xmlhttp.open("POST", who, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xmlhttp.send(JSON.stringify(what));
+        }
+
+        Ajax("upvoteasset, ../AssetVotingAndRating/addupvote.php", {access_token:"alpha59", _id:"marioimage"});
+        Ajax("downvoteasset", "../AssetVotingAndRating/adddownvote.php", {access_token:"alpha59", _id:"marioimage"});
+        Ajax("rateasset", "../AssetVotingAndRating/upsertrating.php", {access_token:"alpha59", _id:"marioimage", rating:5});
+        Ajax("commentasset1", "../AssetVotingAndRating/addcomment.php",
+                {
+                    access_token:"alpha59",
+                    _id:"comment1",
+                    comment_type:"new",
+                    parent_id:null,
+                    asset_id:"marioimage",
+                    comment_body:"This is the best picture of Mario on the web!"
+                }
+        );
+        Ajax("commentasset2", "../AssetVotingAndRating/addcomment.php",
+                {
+                    access_token:"alpha59",
+                    _id:"comment1",
+                    comment_type:"reply",
+                    parent_id:"comment1",
+                    asset_id:"marioimage",
+                    comment_body:"No it's not"
+                }
+        );
+        Ajax("editparent", "../AssetVotingAndRating/editcomment.php", {access_token:"alpha59", comment_body:"Just kidding! Hello World Test 2"});
+        //Ajax("downvoteasset", "../AssetVotingAndRating/adddownvote.php", {access_token:"alpha59", _id:"marioimage"});
+
+
+    </script>
 </head>
 <body>
+<h1>AVR Test</h1>
+<img src="http://supermario3dworld.nintendo.com/_ui/img/views/power-ups/char-dobble-mario.png">
+
+<ol>
+    <li>empty the collection</li>
+    <li>insert an asset (the above picture)</li>
+    <li>upvote the asset</li>
+    <li>downvote the asset</li>
+    <li>rate the asset</li>
+    <li>comment on the asset</li>
+    <li>comment on the comment made in the last step</li>
+    <li>rate the child comment</li>
+    <li>edit the parent comment</li>
+    <li>delete the child comment</li>
+</ol>
+
+1. empty the collection
+<div id="emptyCollection">
+    <p>-- THIS MUST BE DONE MANUALLY WITH THE FOLLOWING QUERIES --</p>
+    <p>use Lux2</p>
+    <p>db.AssetVotingAndRating.remove({})</p>
+</div>
+2. insert an asset
+<div id="insertAsset">
+    <p>-- THIS MUST BE DONE MANUALLY --</p>
+    <p>use Lux2</p>
+    <p>db.AssetVotingAndRating.insert(
+        {
+            _id: "marioimage",
+            type: "image",
+            source: "http://supermario3dworld.nintendo.com/_ui/img/views/power-ups/char-dobble-mario.png"
+        }
+        )
+    </p>
+</div>
+3. upvote the asset <div id="upvoteasset"></div>
+4. downvote an asset <div id="downvoteasset"></div>
+5. rate the asset <div id="rateasset"></div>
+6. comment on the asset <div id="commentasset1"></div>
+7. reply to the comment made in the last step<div id="commentasset2"></div>
+8. edit the parent comment <div id="editparent">></div>
+
 
 </body>
 </html>
