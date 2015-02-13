@@ -21,19 +21,29 @@
 
         Ajax("upvoteasset, ../AssetVotingAndRating/addupvote.php", {access_token:"alpha59", _id:"marioimage"});
         Ajax("downvoteasset", "../AssetVotingAndRating/adddownvote.php", {access_token:"alpha59", _id:"marioimage"});
-        Ajax("getUserLevel", "../Scoreboard/getuser.php", {access_token:"alpha59"});
-        Ajax(
-                "updateCardScore",
-                "../Scoreboard/updateCardScore.php",
-                {access_token:"alpha59", cardID:"vowelCard1", cardScore:5}
+        Ajax("rateasset", "../AssetVotingAndRating/upsertrating.php", {access_token:"alpha59", _id:"marioimage", rating:5});
+        Ajax("commentasset1", "../AssetVotingAndRating/addcomment.php",
+                {
+                    access_token:"alpha59",
+                    _id:"comment1",
+                    comment_type:"new",
+                    parent_id:null,
+                    asset_id:"marioimage",
+                    comment_body:"This is the best picture of Mario on the web!"
+                }
         );
-        Ajax(
-                "updateLevelScore",
-                "../Scoreboard/updateLevelScore.php",
-                {access_token:"alpha59", levelID:"level001", levelScore: 6}
+        Ajax("commentasset2", "../AssetVotingAndRating/addcomment.php",
+                {
+                    access_token:"alpha59",
+                    _id:"comment1",
+                    comment_type:"reply",
+                    parent_id:"comment1",
+                    asset_id:"marioimage",
+                    comment_body:"No it's not"
+                }
         );
-        Ajax("getUser2", "../Scoreboard/getuser.php", {access_token:"alpha59"});
-        Ajax("getUserLevel2", "../Scoreboard/getuser.php", {access_token:"alpha59"});
+        Ajax("editparent", "../AssetVotingAndRating/editcomment.php", {access_token:"alpha59", comment_body:"Just kidding! Hello World Test 2"});
+        //Ajax("downvoteasset", "../AssetVotingAndRating/adddownvote.php", {access_token:"alpha59", _id:"marioimage"});
 
 
     </script>
@@ -51,7 +61,7 @@
     <li>comment on the asset</li>
     <li>comment on the comment made in the last step</li>
     <li>rate the child comment</li>
-    <li>edit the <pare></pare>nt comment</li>
+    <li>edit the parent comment</li>
     <li>delete the child comment</li>
 </ol>
 
@@ -77,7 +87,9 @@
 3. upvote the asset <div id="upvoteasset"></div>
 4. downvote an asset <div id="downvoteasset"></div>
 5. rate the asset <div id="rateasset"></div>
-6. get the user level 2 <div id="getUserLevel2"></div>
+6. comment on the asset <div id="commentasset1"></div>
+7. reply to the comment made in the last step<div id="commentasset2"></div>
+8. edit the parent comment <div id="editparent">></div>
 
 
 </body>
