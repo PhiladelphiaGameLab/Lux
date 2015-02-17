@@ -13,7 +13,7 @@ $AUTH = new Auth();
 
 $asset = array(
     'user_id' => $AUTH->getClientId(),
-    'asset_id' => $LF->fetch_avail('asset_id'),
+    'source' => $LF->fetch_avail('source'),
     'date' => new DateTime('now'),
     'ratings' => array(),
     'upvotes' => array(),
@@ -22,4 +22,4 @@ $asset = array(
 
 $results = $collection->insert($asset);
 
-$OUTPUT->success("comment successfully added", $results);
+$OUTPUT->success("asset successfully added", $results);

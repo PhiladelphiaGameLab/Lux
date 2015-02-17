@@ -17,5 +17,6 @@ The functions are:
 * Get Asset
 * Get Comment Thread
 * Upsert Rating
+* Resolve Asset
 
 The System is ideal  for e-commerce and/or for content sharing websites/Applications. 

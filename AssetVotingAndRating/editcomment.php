@@ -12,7 +12,8 @@ $LF = new LuxFunctions();
 $AUTH = new Auth();
 
 $query = array(
-    '_id' => $AUTH->getClientId()
+    '_id' => $LF->fetch_avail('comment_id'),
+    'user_id' => $AUTH->getClientId()
 );
 
 $update = array(

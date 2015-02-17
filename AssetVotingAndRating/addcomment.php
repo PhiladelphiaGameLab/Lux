@@ -13,8 +13,11 @@ $AUTH = new Auth();
 
 if ($LF->fetch_avail('comment_type') == 'reply') {
     $parent_id = $LF->fetch_avail('parent_id');
+    $parent_array = $LF->fetch_avail('parent_array');
+    array_push($parent_array, $parent_id);
 } else {
     $parent_id = null;
+    $parent_array = array();
 }
 
 $comment = array(
@@ -25,7 +28,8 @@ $comment = array(
     'date' => new DateTime('now'),
     'ratings' => array(),
     'upvotes' => array(),
-    'downvotes' => array()
+    'downvotes' => array(),
+    'parent_array' => $parent_array
 );
 
 $results = $collection->insert($comment);
