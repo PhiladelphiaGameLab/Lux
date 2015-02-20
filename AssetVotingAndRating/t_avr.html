@@ -42,7 +42,13 @@
                     comment_body:"No it's not"
                 }
         );
-        Ajax("editparent", "../AssetVotingAndRating/editcomment.php", {access_token:"alpha59", comment_body:"Just kidding! Hello World Test 2"});
+        Ajax("editparent", "../AssetVotingAndRating/editcomment.php",
+                {
+                    access_token:"alpha59",
+                    comment_id:null, // we need the comment ID here
+                    comment_body:"Just kidding! Hello World Test 2"
+                }
+        );
         //Ajax("downvoteasset", "../AssetVotingAndRating/adddownvote.php", {access_token:"alpha59", _id:"marioimage"});
 
 

@@ -12,16 +12,9 @@ $LF = new LuxFunctions();
 $AUTH = new Auth();
 
 $query = array(
-    '_id' => $LF->fetch_avail('comment_id'),
-    'user_id' => $AUTH->getClientId()
+    '_id' => $LF->fetch_avail('asset_id')
 );
 
-$update = array(
-    '$set' => array(
-        'comment_body' => '[deleted]'
-    )
-);
+$results = $collection->findOne($query);
 
-$results = $collection->update($query, $update);
-
-$OUTPUT->success("comment successfully deleted", $results);
+$OUTPUT->success("asset retrieved", $results);

@@ -17,6 +17,6 @@ $query = array(
 
 $doc = $collection->findOne($query);
 
-$results = count($doc['upvotes']);
+$results = array_sum($doc['ratings']) / count($doc['ratings']);
 
-$OUTPUT->success("upvotes quantified", $results);
+$OUTPUT->success("average rating quantified", $results);

@@ -12,7 +12,7 @@ $LF = new LuxFunctions();
 $AUTH = new Auth();
 
 $query = array(
-    '_id' => $Lf->fetch_avail('object_id')
+    '_id' => $LF->fetch_avail('object_id')
 );
 
 $update = array(
