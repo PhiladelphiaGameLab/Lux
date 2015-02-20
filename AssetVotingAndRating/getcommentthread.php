@@ -4,6 +4,7 @@ include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');
 include_once('../Core/auth.php');
+include_once('../Core/resolve.php');
 
 $db = new Db();
 $OUTPUT = new Output();
@@ -12,15 +13,11 @@ $LF = new LuxFunctions();
 $AUTH = new Auth();
 
 $query = array(
-    '_id' => $LF->fetch_avail('object_id')
+    '_id' => $Lf->fetch_avail('object_id')
 );
 
-$update = array(
-    '$set' => array(
-        'ratings'.$AUTH->getClientId() => $LF->fetch_avail('rating')
-    )
-);
+$results = $collection->findOne($query);
 
-$results = $collection->update($query, $update);
-
-$OUTPUT->success("rating successfully upserted", $results);
+$commentThread = resolve($results['parent_ids'], "AssetVotingAndRating");
+array_push($commentThread, $results);
+$OUTPUT->success("comment thread resolved", $commentThread);

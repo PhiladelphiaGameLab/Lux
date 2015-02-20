@@ -15,6 +15,7 @@ $asset = array(
     'user_id' => $AUTH->getClientId(),
     'source' => $LF->fetch_avail('source'),
     'date' => new DateTime('now'),
+    'comment_ids' => array(),
     'ratings' => array(),
     'upvotes' => array(),
     'downvotes' => array()
