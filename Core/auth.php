@@ -101,45 +101,95 @@ class OAuth{
                                 $url = "https://accounts.google.com/o/oauth2/auth?state=$state&scope=$scope&redirect_uri=$call&response_type=code&client_id=$cli_id&approval_prompt=force&access_type=offline";
                                 $this->redirect_url = $_GET["href"];
                                 return $url;
+
+					case "Facebook":
+						$client_id = '667935273252932';
+						$redirect_uri = 'http://'. $_SERVER['HTTP_HOST'] .'/Auth/facebook.php';
+						$state = 'done';
+						$scope = 'public_profile,email,user_friends';
+						$url = "https://www.facebook.com/dialog/oauth?
+							client_id=$client_id
+							&redirect_uri=$redirect_uri
+							&state=$state
+							&scope=$scope";
+						$this->redirect_url = $_GET["href"];
+						return $url;
                 }
         }
 
 
-	function saveToDb(){
-		$code = $_GET['code'];
-        	$url = 'https://accounts.google.com/o/oauth2/token';
-		$params = array(
-			"code" => $code,
-			"client_id" => "1006161612314-1qct7m1r0bqt5ecb2sntrci253dv41s1.apps.googleusercontent.com",
-			"client_secret" => "Uka8meQZbY0KMFCnQ6nYb0Tw",
-			"redirect_uri" => "http://".$_SERVER["HTTP_HOST"]."/Auth/google.php",
-			"grant_type" => "authorization_code"
-		);
-		var_dump($params);
-		
-		$curl = curl_init($url);
-		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
-		curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-	        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-    		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		
-		$json_response = curl_exec($curl);
-		$authObj = json_decode($json_response);
-		$access_tok = $authObj->{'access_token'};
-        	$getUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=".$access_tok;
-                $getResponse = file_get_contents($getUrl);
-                $get = json_decode($getResponse, true);
-		var_dump($get);
+	function saveToDb()
+	{
+		if ($this->service == 'google') {
+			$code = $_GET['code'];
+			$url = 'https://accounts.google.com/o/oauth2/token';
+			$params = array(
+				"code" => $code,
+				"client_id" => "1006161612314-1qct7m1r0bqt5ecb2sntrci253dv41s1.apps.googleusercontent.com",
+				"client_secret" => "Uka8meQZbY0KMFCnQ6nYb0Tw",
+				"redirect_uri" => "http://" . $_SERVER["HTTP_HOST"] . "/Auth/google.php",
+				"grant_type" => "authorization_code"
+			);
+			var_dump($params);
 
-		$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
-		if(!isset($prevCheck)){
-			$get["access_token"] = $this->acc_token;
-			$this->clientInfo->insert($get);
-		}else{
+			$curl = curl_init($url);
+			curl_setopt($curl, CURLOPT_POST, true);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+			curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
+			$json_response = curl_exec($curl);
+			$authObj = json_decode($json_response);
+			$access_tok = $authObj->{'access_token'};
+			$getUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=" . $access_tok;
+			$getResponse = file_get_contents($getUrl);
+			$get = json_decode($getResponse, true);
+			var_dump($get);
+
+			$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
+			if (!isset($prevCheck)) {
+				$get["access_token"] = $this->acc_token;
+				$this->clientInfo->insert($get);
+			} else {
+
+			}
+			header("Location: http://" . $_SERVER['HTTP_HOST'] . "/" . $this->redirect_url . "?access_token=" . $access_tok);
+		} elseif ($this->service == 'Facebook') {
+			$code = $_GET['code'];
+			$url = "https://graph.facebook.com/oauth/access_token?";
+			$params = array(
+				"code" => $code,
+				"client_id" => "667935273252932",
+				"client_secret" => "3f941632d386d46360679818b0e3fec9",
+				"redirect_uri" => "http://" . $_SERVER["HTTP_HOST"] . "/Auth/facebook.php",
+				"grant_type" => "authorization_code"
+			);
+			var_dump($params);
+
+			$curl = curl_init($url);
+			curl_setopt($curl, CURLOPT_POST, true);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+			curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+			$json_response = curl_exec($curl);
+			$authObj = json_decode($json_response);
+			$access_tok = $authObj->{'access_token'};
+			$getUrl = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=" . $access_tok;
+			$getResponse = file_get_contents($getUrl);
+			$get = json_decode($getResponse, true);
+			var_dump($get);
+
+			$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
+			if (!isset($prevCheck)) {
+				$get["access_token"] = $this->acc_token;
+				$this->clientInfo->insert($get);
+			} else {
+
+			}
 		}
-		header("Location: http://". $_SERVER['HTTP_HOST']. "/" .$this->redirect_url."?access_token=".$access_tok);
 	}
 
 }
