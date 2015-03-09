@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <script src="transaction_client.js"></script>
+        <script>
+            function test() {
+                server = "http://localhost:8888/ts/transactionServer.php?";
+                result = document.getElementById("result");
+                //INIT
+                res = makeRequest(server, 100, "acc_token=123&method=initTreeStruct&testing=true&admin&force=true");
+                result.innerHTML += "INIT: " + res['message'] + "<br>";
+                //ADD USER ACCOUNT
+                addUserAccount(server, 001);
+                addUserAccount(server, 100);
+                res = addUserAccount(server, 200);
+                result.innerHTML += "ADD USER ACCOUNT: " + res['message'] + "<br>";
+                //REMOVE USER ACCOUNT
+                res = removeUserAccount(server, 001);
+                result.innerHTML += "REMOVE USER ACCOUNT: " + res['message'] + "<br>";
+                //ADD SUBACCOUNT
+                res = addSubaccount(server, 100, "1 stuff"); 
+                var subId0 = res['added'];
+                res = addSubaccount(server, 200, "2 stuff");
+                result.innerHTML += "ADD SUBACCOUNT: " + res['message'] + "<br>"; 
+                var subId1 = res['added'];
+                res = addSubaccount(server, 200, "2 stuff 2");  
+                //REMOVE SUBACCOUNT
+                res = removeSubaccount(server, 200, res['added']);             
+                result.innerHTML += "REMOVE SUBACCOUNT: " + res['message'] + "<br>"; 
+                //ADD ITEM TO SUBACCOUNT
+                addItemToSubaccount(server, 100, subId0, 111);
+                addItemToSubaccount(server, 200, subId1, 222);
+                addItemToSubaccount(server, 200, subId1, 223);
+                res = addItemToSubaccount(server, 200, subId1, 224);
+                result.innerHTML += "ADD ITEM TO SUBACCOUNT: " + res['message'] + "<br>"; 
+                //TRANSACTION
+                try{
+                    transaction(server, 100, 200, subId0, subId1, 1, [222,223,224]);   
+                } catch(error) {
+                    result.innerHTML += "TRANSACTION (ERROR): " + error + "<br>";       
+                }
+                res = transaction(server, 100, 200, subId0, subId1, [], [222,223,224]);
+                result.innerHTML += "TRANSACTION (PENDING): " + res['message'] + "<br>"; 
+                res = transaction(server, 200, 100, subId1, subId0, [222,223,224], null);
+                result.innerHTML += "TRANSACTION (EXECUTED): " + res['message'] + "<br>"; 
+            }
+        </script>
+    </head>
+    <body>
+        <div id="result"></div>
+        <script>test()</script>
+    </body>
+</html>

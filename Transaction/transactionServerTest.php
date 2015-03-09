@@ -382,15 +382,25 @@
         echo json_encode($result) . "<br><br>";
     }
 
-    testInitTreeStruct();
-    testAddandRemoveUserAccount();
-    testAddandRemoveGlobalAccount();
-    testAddandRemoveSubaccount();
-    testTransactionIncompleteDetails();
-    testAddItemToSubaccount();
-    testMakeTransactionWithGlobal();
-    testMakePendingTransaction();
-    testRemoveItemFromSubaccount();
-    testMakeTransactionWithUser();
+            $query = array( 
+            "acc_token" => "111",
+            "id1" => "000",
+            "subId0" => "222",
+            "subId1" => "333",
+            "itemsId0" => ["0.2"],
+            "itemsId1" => ["1.0", "1.1"]);
+        $query_string = "&" . http_build_query($query);
+        echo $query_string;
+
+    // testInitTreeStruct();
+    // testAddandRemoveUserAccount();
+    // testAddandRemoveGlobalAccount();
+    // testAddandRemoveSubaccount();
+    // testTransactionIncompleteDetails();
+    // testAddItemToSubaccount();
+    // testMakeTransactionWithGlobal();
+    // testMakePendingTransaction();
+    // testRemoveItemFromSubaccount();
+    // testMakeTransactionWithUser();
 
 ?>
