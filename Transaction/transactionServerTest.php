@@ -368,7 +368,7 @@
         $query_string = "&" . http_build_query($query);
         $result = makeRequest("transaction", $query_string);
         assert($result->{"result"} == "success");
-        echo json_encode($result) . "<br><br>";
+        echo json_encode($result) . "<br>";
         $query = array( 
             "acc_token" => "111",
             "id1" => "000",
