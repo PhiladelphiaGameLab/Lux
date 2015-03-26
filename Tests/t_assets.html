@@ -1,73 +1,26 @@
-<!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
 <script>
-
-// Assets
-// Users
-// Groups
-//
-
-
-function loadXMLDoc()
-{
-var xmlhttp;
-if (window.XMLHttpRequest)
-  {// code for IE7+, Firefox, Chrome, Opera, Safari
-  xmlhttp=new XMLHttpRequest();
-  }
-else
-  {// code for IE6, IE5
-  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-  }
-xmlhttp.onreadystatechange=function()
-  {
-  if (xmlhttp.readyState==4 && xmlhttp.status==200)
-    {
-    document.getElementById("myDiv").innerHTML=xmlhttp.responseText;
-    }
-  }
-xmlhttp.open("POST","../Assets/upsert.php",true);
-xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-xmlhttp.send(JSON.stringify({query:{last:"Ailor"}, doc:{last:"Alpha"}}));
-
-}
-
-function loadXMLDoc2(i)
-{
-var xmlhttp;
-if (window.XMLHttpRequest)
-  {// code for IE7+, Firefox, Chrome, Opera, Safari
-  xmlhttp=new XMLHttpRequest();
-  }
-else
-  {// code for IE6, IE5
-  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-  }
-xmlhttp.onreadystatechange=function()
-  {
-  if (xmlhttp.readyState==4 && xmlhttp.status==200)
-    {
-    document.getElementById("myDiv2").innerHTML=xmlhttp.responseText;
-    }
-  }
-xmlhttp.open("POST","../Assets/query.php",true);
-xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-xmlhttp.send(JSON.stringify({query:{name: "Jake Ailor"}}));
-
-}
-
-
-
+	Test("Upsert 1", "../Assets/upsert.php", {update:{"Test":"File", "number":1}, coll:"Test"});
+	Test("Upsert 2", "../Assets/upsert.php", {update:{"Test":"File", "number":2}, coll:"Test"});
+	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"File", "number":3} , coll:"Test"});
+	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"Filed"}, query:{"number":3} , coll:"Test"});
+	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"Filer"}, query:{"number":2} , coll:"Test"});
+	Test("Adjust 1", "../Assets/adjust.php", {update:{"Adjust":{"Test":"File"}}, query:{"number":2} , coll:"Test"});
+	Test("Adjust 2", "../Assets/adjust.php", {update:{"Adjust":{"Test":"File"}}, query:{"number":1} , coll:"Test"});
+	Test("Adjust 3", "../Assets/adjust.php", {update:{"Adjust.Test":"Filling"}, query:{"number":2} , coll:"Test"});
+	Test("Adjust 4", "../Assets/adjust.php", {update:{"Adjust.Test":"File"}, query:{"number":3} , coll:"Test"});
+	Test("Query 1" , "../Assets/query.php", {query:{"number":1} , coll:"Test"});
+	Test("Query 2" , "../Assets/query.php", {query:{"number":2} , coll:"Test"});
+	Test("Query 3" , "../Assets/query.php", {query:{"number":3} , coll:"Test"});
+	Test("Remove 1", "../Assets/upsert.php", {query:{"number":1}, coll:"Test"});
+	Test("Remove 2", "../Assets/upsert.php", {query:{"number":2}, coll:"Test"});
+	Test("Remove 3", "../Assets/upsert.php", {query:{"number":3}, coll:"Test"});
 </script>
 </head>
 <body>
 
-<h2>AJAX</h2>
-<button type="button" onclick="loadXMLDoc()">Request data</button>
-<div id="myDiv"></div>
- <button type="button" onclick="loadXMLDoc2()">Request data</button>
-<div id="myDiv2"></div>
-
 </body>
-</html
+</html>
