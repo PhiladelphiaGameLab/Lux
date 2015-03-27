@@ -17,6 +17,7 @@ if($LF->is_avail("update")){
 // we got a query or an id
 // If an id is used instead of a query, then a query must be built
 if($LF->is_avail("id")){
+	UserAssetOwnership::check($LF->fetch_avail("id"), $collectionName, 1);
 	$query = array("_id" => new MongoId($LF->fetch_avail("id")));
 }else if($LF->is_avail("query")){
 	$query = $LF->fetch_avail("query");
@@ -30,6 +31,13 @@ if(isset($update) && isset($query)){
 	$options["upsert"] = true;
 	if(isset($update['$set'])){
 		$options["multiple"] = true;
+	}else{
+		$update["permissions"]["3"] = 1;
+		$update["permissions"]["2"] = 1;
+	}
+	$documents = $collection->find($query);
+	foreach($documents as $key=>$value){
+		UserAssetOwnership::check($key, $collectionName, 1);
 	}
 	$results = $collection->update($query, $update, $options);
 	$documents = $collection->find($query);
@@ -38,12 +46,17 @@ if(isset($update) && isset($query)){
 }else if(isset($query) && !isset($update)){
 	// remove
 	$documents = $collection->find($query);
+	foreach($documents as $key=>$value){
+		UserAssetOwnership::check($key, $collectionName, 1);
+	}
 	$results = $collection->remove($query);
 	$removed = true;
 	$OUTPUT->success(2, $documents, $results);
 }else if(isset($update) && !isset($query)){
 	// insert
 	$update["timestamp"] = microtime();
+	$update["permissions"]["3"] = 1;
+	$update["permissions"]["2"] = 1;
 	$results = $collection->insert($update);
 	$documents = $collection->find($update); 
 	$OUTPUT->success(0, $documents, $results);

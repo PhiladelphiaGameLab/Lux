@@ -3,6 +3,7 @@
 include_once('../Core/lux-functions.php');
 include_once('../Core/output.php');
 include_once('../Core/db.php');
+include_once('../UserAssetOwnership/userAssetOwnership.php');
 include_once('../Core/auth.php');
 
 // creates standard classes for the core modules

@@ -12,11 +12,14 @@ class Auth{
 		$LuxFunctions = new LuxFunctions();
 		$OUTPUT = new Output(); 
 		$access_token = $LuxFunctions->fetch_avail("access_token");
-		$DB = new db();
+		$DB = new db("System");
 		$clientInfo = $DB->selectCollection("Users");
-		$this->client_doc = $clientInfo->findOne(array("access_token" => $access_token));
+		$this->client_doc = $clientInfo->findOne(array("lux_info.access_token" => $access_token));
 		if(!isset($this->client_doc)){
-			$OUTPUT->error("Access Code is invalid or has Expired");
+			$OUTPUT->error(1,"Access Code is invalid, missing, or has Expired");
+		}
+		if($this->isAdmin() && $LuxFunctions->is_avail("uid")){
+			$this->client_doc = $clientInfo->findOne(array("_id" => new MongoId($LuxFunctions->fetch_avail("uid"))));
 		}
 	}
 	
@@ -39,31 +42,14 @@ class Auth{
 	function getClientName(){
 		return $this->client_doc["name"];
 	}
-	
-	function getClientAdmin(){
-		return $this->client_doc["admin"];
+	function getPermissions(){
+		return $this->client_doc["permissions"];
+	}	
+	function isAdmin(){
+		return $this->client_doc["lux_info"]["admin"];
 	}
 }
 
-class AuthLogin{
-
-	private $client_doc;
-	
-	function __construct($identifier){
-
-		$OUTPUT = new Output();
-		$DB = new db();
-		$clientInfo = $DB->selectCollection("ClientInfo");
-		
-		// find user by the identifier
-		// if the user is found
-		// return the users current access token if one exists
-		// otherwise, create a new access token and return that
-		// do other stuff
-	}
-
-
-}
 
 class OAuth{
 
@@ -144,8 +130,8 @@ class OAuth{
 
 	//	$prevCheck = $this->clientInfo->findOne(array("id" => $get["id"]));
 
-		$get["access_token"] = $access_tok;
-		$results = $this->clientInfo->update(array("id" => $get["id"]), array('$set' => $get), array("upsert" => true));
+		$get["lux_info.access_token"] = $access_tok;
+		$results = $this->clientInfo->update(array("id" => $get["id"]), array('$set' => array("lux_info.access_token"=>$access_tok, $values=>$get)), array("upsert" => true));
 	/*	if(!isset($prevCheck)){
 			$get["access_token"] = $this->acc_token;
 			$this->clientInfo->insert($get);

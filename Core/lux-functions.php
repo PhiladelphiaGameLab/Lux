@@ -20,6 +20,9 @@ class LuxFunctions{
 		}
 	}
 
+	function getParameters(){
+		return $this->parameters;
+	}
 	function checkGroups($documentGroup, $clientGroups){
 		return array_search($documentGroup, $clientGroups);
 		// check that the group permission includes "copyable"

@@ -29,28 +29,29 @@ class Output{
 			);
 				
 	}	
-	function success($code, $data, $results){
+	function success($code, $data, $results=null){
 		switch($code){
 			case 0:
 				$this->output["status"]["request"]["type"] = "update";
 				break;
 			case 1:
 				$this->output["status"]["request"]["type"] = "query";
+				$this->output["response"] = $results;
 				break;
 			case 2:
 				$this->output["status"]["request"]["type"] = "remove";
+				$this->output["response"] = $results;
 				break;
 		}
 		$this->output["status"]["request"]["code"] = $code;
-		if(!is_array($data)){
+		if(!is_array($data) && !is_null($data)){
 			$data = iterator_to_array($data);
 		}
-		if(!is_array($results)){
+		if(!is_array($results) && !is_null($results)){
 			$results = iterator_to_array($results);
 		}
 		$this->output["data"] =  $data;
-		$this->output["response"] = $results;
-		$this->output["request"]["elapsed"] = (microtime(true) - $this->time)*1000;
+		$this->output["request"]["execution_time"] = (microtime(true) - $this->time)*1000;
 		echo json_encode($this->output);	
 	}
 	function error($code, $message){
@@ -61,8 +62,18 @@ class Output{
 		switch($code){
 			case 0:
 				$this->output["error"]["status"] = "Required Parameter was not found";
+				break;
+			case 1:
+				$this->output["error"]["status"] = "Access Token is invalid";
+				break;
+			case 2:
+				$this->output["error"]["status"] = "Invalid use of API call";
+				break;
+			case 3:
+				$this->output["error"]["status"] = "Permission Level Denied";
+				break;
 		}
-		$this->output["request"]["elapsed"] = (microtime(true) - $this->time)*1000;
+		$this->output["request"]["execution_time"] = (microtime(true) - $this->time)*1000;
 		echo json_encode($this->output);	
 		die();
 	}

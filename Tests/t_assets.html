@@ -8,10 +8,12 @@
 	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"File", "number":3} , coll:"Test"});
 	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"Filed"}, query:{"number":3} , coll:"Test"});
 	Test("Upsert 3", "../Assets/upsert.php", {update:{"Test":"Filer"}, query:{"number":2} , coll:"Test"});
-	Test("Adjust 1", "../Assets/adjust.php", {update:{"Adjust":{"Test":"File"}}, query:{"number":2} , coll:"Test"});
-	Test("Adjust 2", "../Assets/adjust.php", {update:{"Adjust":{"Test":"File"}}, query:{"number":1} , coll:"Test"});
-	Test("Adjust 3", "../Assets/adjust.php", {update:{"Adjust.Test":"Filling"}, query:{"number":2} , coll:"Test"});
-	Test("Adjust 4", "../Assets/adjust.php", {update:{"Adjust.Test":"File"}, query:{"number":3} , coll:"Test"});
+
+	Test("Adjust 1", "../Assets/adjust.php", {key:"Adjust", value:{"Test":"File"}, query:{"number":2} , coll:"Test"});
+	Test("Adjust 2", "../Assets/adjust.php", {key:"Adjust", value:{"Test":"File"}, query:{"number":1} , coll:"Test"});
+	Test("Adjust 3", "../Assets/adjust.php", {key:"Adjust.Test",value:"Filling", query:{"number":2} , coll:"Test"});
+	Test("Adjust 4", "../Assets/adjust.php", {key:"Adjust.Test",value:"File", query:{"number":3} , coll:"Test"});
+
 	Test("Query 1" , "../Assets/query.php", {query:{"number":1} , coll:"Test"});
 	Test("Query 2" , "../Assets/query.php", {query:{"number":2} , coll:"Test"});
 	Test("Query 3" , "../Assets/query.php", {query:{"number":3} , coll:"Test"});

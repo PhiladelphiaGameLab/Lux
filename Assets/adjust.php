@@ -17,6 +17,10 @@ if($LF->is_avail("id")){
 }else{
 	$OUTPUT->error(0, "Query or Id is required");
 }
+$documents = $collection->find($query);
+foreach($documents as $key=>$value){
+	UserAssetOwnership::check($key, $collectionName, 1);
+}
 $update = array('$set' => array($LF->fetch_avail("key") => $LF->fetch_avail("value")));
 $results = $collection->update($query, $update, $options);
 $documents = $collection->find($query);
