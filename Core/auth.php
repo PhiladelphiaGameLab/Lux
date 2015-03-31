@@ -45,8 +45,13 @@ class Auth{
 	function getPermissions(){
 		return $this->client_doc["permissions"];
 	}	
-	function isAdmin(){
-		return $this->client_doc["lux_info"]["admin"];
+	function isAdmin($dept="all"){
+		switch($dept){
+			case "all":
+				return $this->client_doc["lux_info"]["admin"];
+			default:
+				return $this->client_doc["lux_info"]["admin_depts"][$dept];
+		}
 	}
 }
 

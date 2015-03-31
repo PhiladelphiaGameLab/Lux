@@ -1,0 +1,20 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Adjust 1", "../CMS/adjust.php", {field:"about", "content.full":"This is the best about field ever", "header.sub":"is it though?", "header.text":"Thadsais is Awesome"});
+	Test("Adjust 2", "../CMS/adjust.php", {field:"contact", "content.full":"This is the best about fisdeld ever", "header.sub":"is it adsthough?", "header.text":"Thisasd is Awesome"});
+	Test("Adjust 3", "../CMS/adjust.php", {field:"home", "content.full":"This is the best about field asdasever", "header.sub":"is it thosaugh?", "header.text":"This is asdasAwesome"});
+	Test("Adjust 4", "../CMS/adjust.php", {field:"Board of Directors", "content.full":"This is the best aboasdasdut field ever", "header.sub":"is it thoasdasugh?", "header.text":"Tome"});
+	Test("Get 1", "../CMS/getField.php", {field:"about"});
+	Test("Get 2", "../CMS/getField.php", {field:"contact"});
+	Test("Get 3", "../CMS/getField.php", {field:"home"});
+	Test("Get 4", "../CMS/getField.php", {field:"Board of Directors"});
+	Test("Get Multi 1", "../CMS/getField.php", {field:["Board of Directors", "about","home"]});
+</script>
+</head>
+<body>
+
+</body>
+</html>

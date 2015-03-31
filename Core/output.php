@@ -46,11 +46,16 @@ class Output{
 		$this->output["status"]["request"]["code"] = $code;
 		if(!is_array($data) && !is_null($data)){
 			$data = iterator_to_array($data);
+			$this->output["data"] =  array_values($data);
+		}else if(!is_null($data)){
+			$this->output["data"] =  $data;
 		}
 		if(!is_array($results) && !is_null($results)){
 			$results = iterator_to_array($results);
+			$this->output["results"] =  array_values($results);
+		}else if(!is_null($results)){
+			$this->output["results"] =  $results;
 		}
-		$this->output["data"] =  $data;
 		$this->output["request"]["execution_time"] = (microtime(true) - $this->time)*1000;
 		echo json_encode($this->output);	
 	}

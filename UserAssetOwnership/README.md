@@ -5,6 +5,8 @@ Assets need to be 0,1,2 in order to be altered, and 0,1,2,3 in order to be viewe
 
 Some Assets will be globally alterable, and should thus be marked as such in their lux\_info. Some assets will be alterable by multiple users, and will therefore need multiple users to reference the Assset's Id.
 
+The script "userAssetOwnership" is called from within the Assets API in order to determine if the User has the correct permissions to edit the file. 
+
 ## API
 ### Adjust Permission level
 Sets the permission level for a given asset by \_id. Revoke can be used to remove permissions from that \_id.
