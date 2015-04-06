@@ -1,0 +1,13 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Render 1", "../Templates/getTemplate.php", {template:"test.html"});
+	Test("Render 2", "../Templates/getTemplate.php", {template:["header.html", "test.html", "footer.html"]});
+</script>
+</head>
+<body>
+
+</body>
+</html>
