@@ -57,6 +57,7 @@ class Output{
 			$this->output["results"] =  $results;
 		}
 		$this->output["request"]["execution_time"] = (microtime(true) - $this->time)*1000;
+		$this->output["request"]["execution_time_units"] = "ns";
 		echo json_encode($this->output);	
 	}
 	function error($code, $message){

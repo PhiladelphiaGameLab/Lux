@@ -1,0 +1,16 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Adjust 1", "../Geo/adjust.php", {lat:-74.00, lon: -45.09});
+	Test("Fetch User 1", "../Geo/fetchUser.php", {});
+	Test("get Near 1", "../Geo/getNear.php", {lat:-74, lon: -45});
+	Test("get Near 2", "../Geo/getNear.php", {lat:74, lon: 45, max:1});
+	Test("Fetch User 2", "../Geo/fetchUser.php", {});
+</script>
+</head>
+<body>
+
+</body>
+</html>

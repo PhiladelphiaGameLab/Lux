@@ -1,0 +1,18 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Add Tag 1", "../Tag/adjust.php", {coll:'Test', id:"55144999ed18fab2d65969b1", tags:["red", "blue", "purple"]});
+	Test("Add Tag 2", "../Tag/adjust.php", {coll:'Test', id:"5514491ded18fab2d65969ae", tags:"orange"});
+	Test("Add Tag 3", "../Tag/adjust.php", {coll:'Test', id:"55144999ed18fab2d65969b1", tags:"silver"});
+	Test("Add Tag 4", "../Tag/adjust.php", {coll:'Test', id:"5514491ded18fab2d65969ad", tags:["amazing", "awesome", "awful", "blue"]});
+	Test("Get By Tag 1","../Tag/getByTag.php", {coll:'Test', tags:["red", "orange"]});
+	Test("Get By Tag 2","../Tag/getByTag.php", {coll:'Test', tags:["amazin"]});
+	Test("Get By Tag 3","../Tag/getByTag.php", {coll:'Test', tags:"orange"});
+</script>
+</head>
+<body>
+
+</body>
+</html>
