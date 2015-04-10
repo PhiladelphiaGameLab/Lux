@@ -7,13 +7,21 @@ Sessions are held in both the Mongo DB and the PHP Session.
 
 ## API
 ### Adjust attribute 
+* Session id?
+* key
+* Value
+
 ### Fetch session
-### Fetch attribute
+* Session id?
+
 ### Renew Session
+* Session id?
+
+### Annihilate Session
+* Session id?
+
 ### Adjust attribute timeout
 ### Adjust Session Timeout
-### Fetch attribute
-### Annihilate Session
 ### Mimic User Session (admin)
 
 ### API Elaborations

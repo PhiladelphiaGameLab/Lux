@@ -33,22 +33,22 @@ class LuxFunctions{
 		if(is_array($decoded)){
 			foreach($decoded as $key => $value){
 				$_POST[$key] = $value;
-				$this->parameters[$key] = $value;
+				$this->parameters[strtolower($key)] = $value;
 			}
 		}
 		if(is_array($_POST)){
 			foreach($_POST as $key => $value){
-				$this->parameters[$key] = $value;
+				$this->parameters[strtolower($key)] = $value;
 			}
 		}
 		if(is_array($_GET)){
 			foreach($_GET as $key => $value){
-				$this->parameters[$key] = $value;
+				$this->parameters[strtolower($key)] = $value;
 			}
 		}
 		if(isset($_SESSION) && is_array($_SESSION)){
 			foreach($_SESSION as $key => $value){
-				$this->parameters[$key] = $value;
+				$this->parameters[strtolower($key)] = $value;
 			}
 		}
 	}
@@ -58,7 +58,7 @@ class LuxFunctions{
 			$this->docSet = true;
 			if(is_array($doc)){
 				foreach($doc as $key => $value){
-					$this->parameters[$key] = $value;
+					$this->parameters[strtolower($key)] = $value;
 				}
 			}
 		}
@@ -66,7 +66,7 @@ class LuxFunctions{
 
 	function is_avail($var, $doc=""){
 		$this->setDocument($doc);
-		if(!isset($this->parameters[$var])){
+		if(!isset($this->parameters[strtolower($var)])){
 			return false;
 		}else{
 			return true;
@@ -75,14 +75,14 @@ class LuxFunctions{
 
 	function fetch_avail($var, $die=true, $doc=""){
 		$this->setDocument($doc);
-		if(!isset($this->parameters[$var])){
+		if(!isset($this->parameters[strtolower($var)])){
 			if($die){
 				$this->OUTPUT->error("Required Variable is undefined", array("variable" => $var));
 			}else{
 				return false;
 			}
 		}
-		return $this->parameters[$var];
+		return $this->parameters[strtolower($var)];
 	}
 
 	function is_get($var, $die=true){
