@@ -2436,55 +2436,74 @@ The second concept is the combination of event/trigger and integrated passive an
 
 Analytics can be customized by creating new MapReduce functions, or triggering existing MapReduce functions with new variables. All analytics information can be accessed back into the application for adaptive environments, pulling back in user personality profiles, or even recommendations without developers needing to create custom algorithms.  
 
+All analytics have an optional access\_token included in the request, which allows tracking based on the user's lux identity. If the access\_token is not included, then a temporary identity will be created for the user. This temporary identity is less accurate and may include the same user under multiple identities, but should not include multiple users in one identity. This may lead to skews in results. This identity is similar to a server-side Session. 
+
 ### Event/trigger Analytics
 The analytics contained in this section need to be integrated into your application by the developer, but will be automatically processed by the scripts that run in the MapReduce architecture. This entire section is contained in a single call to `record.php` and we primarily provide standard codes for developers to follow. 
 
 When an event is triggered in the developer's application, they should call record.php to notify the lux application that this has happened. For Event/Trigger Analytics, access to data is more manual and may need to be pulled through a standard call such as `fetch.php` or `get.php`. 
 
+Events can be given a severity level which is measured from -100 to 100. For some calls this will always be 100, and for others (User Personality) the measured level becomes very important. 
+
+| Event Object | Event Code | Trigger | Trigger Code | Desc |
+|--------------|------------|---------|--------------|------|
+| Application Loaded | 000 | Mobile | 0000 | Application was opened in a native Mobile wrapper | 
+| Application Error | 001 | Error Caught in Code | 0000-0500 | An error was caught with a try:catch statement within the application code |
+| Application Error | 001 | Error Caused Application Crash | 0501-1000 | A Crash Report was present upon Application start-up | 
+| Application Error | 001 | Non-Fatal Error | 1001-1500 | Application does not handle the current state, or an unexpected state reached |
+| User Personality | 005 | Extroversion | 0000-0999 | User demonstrated Extroverted personality traits |
+| User Personality | 005 | Agreeableness | 1000-1999 | User demonstrated Agreeableness personality traits |
+| User Personality | 005 | Contentiousness | 2000-2999 | User demonstrated Contentiousness personality traits |
+| User Personality | 005 | Neurotic | 3000-3999 | User demonstrated Neurotic personality traits |
+| User Personality | 005 | Openness | 4000-4999 | User demonstrated Openness personality traits |
+| Custom Event Object | 050-999 | Custom Triggers | 0-1000 | Developer Defined Analytic's objects | 
+
+#### Custom Event Objects
+The custom event objects are anything that a developer wishes to track in the system, whether this be  the number of times that a user walks through a door in a game, or the number of times a user clicks a given button the page. These Custom Event Objects can still take full advantage of the MapReduce functions for whatever information they would like to know. 
+
+
+#### App Promotion Campaigning Analytics
+Analaytics that are tied to App downloads from Promotions, App opens due to promotions, and app engagement due to promotions. All of these tied in via an analytics Rest Call which allows an update to the analytics when an App is opened or a Promotional code is input. Promotional code analytics should be directly monitored via the back-end services. App views and app opens can be triggered automatically from front-end functionality. 
+
+#### Crash Analytics 
+Crash analytics allows you to view crashes and how they can be avoided. Works by sending an update when App is reloaded after a crash. 
+
+#### User Analytics 
+User analytics focus on user engagement, and game-play to see how the app is being used. This is the core of the Lux Analytics engine, and focuses on promoting a better App experience- as well as providing insights about the Application's user base. 
+
+#### User Character Tree Analysis
+
+#### Cohort/User interaction Analysis
+
+
+
 ### Integrated Analytics
-Integrated Analytics happen without any developer interaction. They are based on existing lux features that can be altered and changed according to developer needs. An example of an integrated Analytics application is the use of Scoreboard, which developers use in their application, and need to update on a regular basis. When a developer does update the user scoreboard, this change will be reflected in their Analytics without needing to add any additional code.  
+Integrated Analytics happen without any developer interaction. 
+They are based on existing lux features that can be altered and changed according to developer needs. An example of an integrated Analytics application is the use of Scoreboard, which developers use in their application, and need to update on a regular basis. When a developer does update the user scoreboard, this change will be reflected in their Analytics without needing to add any additional code.  
 
 For integrated analytics access to information is available through pre-made APIs. 
 
-
-## App Promotion Campaigning Analytics
-Analaytics that are tied to App downloads from Promotions, App opens due to promotions, and app engagement due to promotions. All of these tied in via an analytics Rest Call which allows an update to the analytics when an App is opened or a Promotional code is input. Promotional code analytics should be directly monitored via the back-end services. App views and app opens can be triggered automatically from front-end functionality. 
-
-
-## App Store Analytics
-Automatically pulls all app store information related to your app, including competition and more. Allows developers to see how their app does in different environments- and how it compares to similar competitor products. 
-
-
-## Crash Analytics 
-Crash analytics allows you to view crashes and how they can be avoided. Works by sending an update when App is reloaded after a crash. 
-
-
-## User Analytics 
-User analytics focus on user engagement, and game-play to see how the app is being used. This is the core of the Lux Analytics engine, and focuses on promoting a better App experience- as well as providing insights about the Application's user base. 
-
-
-## Buy Tracking
+#### Buy Tracking
 This tracks the number of purchases and the number of downloads for an App, as well as the in-app purchases to see how to best monetize your application. 
 
 
-## E-Commerce Analytics
+#### E-Commerce Analytics
 Similar to buy tracking, but is focused on the purchase of physical goods and is more closely tied to the shopping cart, wishlist, and order system.
 
 
-## Location Analytics
+#### Location Analytics
 Location Analytics focus on using user data to find where the primary user-base is and how it grows, changes, and develops- as well as Where people are using the application (doctor's office, bars, at home). 
+
+
+#### App Store Analytics
+Automatically pulls all app store information related to your app, including competition and more. Allows developers to see how their app does in different environments- and how it compares to similar competitor products. 
+
 
 
 ## Split Testing
 
 
 ## Info-Graphic Generator
-
-
-## User Character Tree Analysis
-
-
-## Cohort/User interaction Analysis
 
 --------------------
 --------------------
