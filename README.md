@@ -2475,8 +2475,6 @@ User analytics focus on user engagement, and game-play to see how the app is bei
 
 #### Cohort/User interaction Analysis
 
-
-
 ### Integrated Analytics
 Integrated Analytics happen without any developer interaction. 
 They are based on existing lux features that can be altered and changed according to developer needs. An example of an integrated Analytics application is the use of Scoreboard, which developers use in their application, and need to update on a regular basis. When a developer does update the user scoreboard, this change will be reflected in their Analytics without needing to add any additional code.  
@@ -2492,7 +2490,7 @@ Similar to buy tracking, but is focused on the purchase of physical goods and is
 
 
 #### Location Analytics
-Location Analytics focus on using user data to find where the primary user-base is and how it grows, changes, and develops- as well as Where people are using the application (doctor's office, bars, at home). 
+Location Analytics focus on using user data to find where the primary user-base is and how it grows, changes, and develops- as well as Where people are using the application (doctor's office, bars, at home). These can also be applied to in-game locations, and can be applied to both physical world and in-game locations at the same time.
 
 
 #### App Store Analytics
