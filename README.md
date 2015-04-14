@@ -2427,362 +2427,64 @@ The AI/Neural Network is a machine learning interface that plays simple games an
 
 
 # Analytics
+
+The analytics functions for lux are built on a few key concepts.  The first of these concepts is the Mongo+Hadoop architecture, and the use of Hadoop's MapReduce functions for processing Analytics data that is saved into Mongo. This allows for scalability within the lux, which means that as the application scales to multiple servers, hadoop can be used to process analytics on these servers. 
+
+The Lux team would however prefer to replace the use of Hadoop with a similar architecture which is controlled by lux's built in scalability model. This new architecture would still use Mongo and the MapReduce model- but can either be a customized version of Hadoop or a new system all together. 
+
+The second concept is the combination of event/trigger and integrated passive analytics. The passive nature of both analytics is that user's need not know they are being analyized (unless the developer wishes for them to be aware), and just their interactions in the system is enough to update the system. 
+
+Analytics can be customized by creating new MapReduce functions, or triggering existing MapReduce functions with new variables. All analytics information can be accessed back into the application for adaptive environments, pulling back in user personality profiles, or even recommendations without developers needing to create custom algorithms.  
+
+### Event/trigger Analytics
+The analytics contained in this section need to be integrated into your application by the developer, but will be automatically processed by the scripts that run in the MapReduce architecture. This entire section is contained in a single call to `record.php` and we primarily provide standard codes for developers to follow. 
+
+When an event is triggered in the developer's application, they should call record.php to notify the lux application that this has happened. For Event/Trigger Analytics, access to data is more manual and may need to be pulled through a standard call such as `fetch.php` or `get.php`. 
+
+### Integrated Analytics
+Integrated Analytics happen without any developer interaction. They are based on existing lux features that can be altered and changed according to developer needs. An example of an integrated Analytics application is the use of Scoreboard, which developers use in their application, and need to update on a regular basis. When a developer does update the user scoreboard, this change will be reflected in their Analytics without needing to add any additional code.  
+
+For integrated analytics access to information is available through pre-made APIs. 
+
+
 ## App Promotion Campaigning Analytics
 Analaytics that are tied to App downloads from Promotions, App opens due to promotions, and app engagement due to promotions. All of these tied in via an analytics Rest Call which allows an update to the analytics when an App is opened or a Promotional code is input. Promotional code analytics should be directly monitored via the back-end services. App views and app opens can be triggered automatically from front-end functionality. 
-
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
 
 
 ## App Store Analytics
 Automatically pulls all app store information related to your app, including competition and more. Allows developers to see how their app does in different environments- and how it compares to similar competitor products. 
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## Crash Analytics 
 Crash analytics allows you to view crashes and how they can be avoided. Works by sending an update when App is reloaded after a crash. 
-
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
 
 
 ## User Analytics 
 User analytics focus on user engagement, and game-play to see how the app is being used. This is the core of the Lux Analytics engine, and focuses on promoting a better App experience- as well as providing insights about the Application's user base. 
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## Buy Tracking
 This tracks the number of purchases and the number of downloads for an App, as well as the in-app purchases to see how to best monetize your application. 
-
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
 
 
 ## E-Commerce Analytics
 Similar to buy tracking, but is focused on the purchase of physical goods and is more closely tied to the shopping cart, wishlist, and order system.
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## Location Analytics
 Location Analytics focus on using user data to find where the primary user-base is and how it grows, changes, and develops- as well as Where people are using the application (doctor's office, bars, at home). 
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## Split Testing
-
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
 
 
 ## Info-Graphic Generator
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## User Character Tree Analysis
 
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
-
 
 ## Cohort/User interaction Analysis
-
-### API
-
-### API Elaborations
-
-### Related Website/Application
-
-### Relevant Project 
-
-### Linked UI Element
-
-### Document Structure
-
-| Property | Value |
-|----------|-------|
-| DB Provider: |  |
-| Database(s): |  |
-| Collection(s): |  | 
-| 3rd Party: |  |
-
-
-		{ 
-			_id: ObjectId("507f1f77bcf86cd799439011"),
-		}
-
-### Information Output
-
-### References
 
 --------------------
 --------------------
