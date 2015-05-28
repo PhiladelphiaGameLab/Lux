@@ -1,0 +1,16 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Add 1","../Contact/adjust.php", {'email_id':'Test', 'email_address':'jake@philadelphiagamelab.org'});
+	Test("Add 2","../Contact/adjust.php", {'email_id':'Test', 'email_address':'jakeailor@gmail.com'});
+	Test("Remove 1","../Contact/adjust.php", {'email_id':'Test', 'email_address':'jakeailor@gmail.com', 'remove':true});
+	Test("Send Mail","../Contact/sendmail.php", {'email_id':'Test', 'sender':'jakeailor@gmail.com', 'body':'This message is a test', 'subject':'this message is a test'});
+	Test("Send Mail","../Contact/sendmail.php", {'email_id':'Test', 'body':'This message is a test also', 'subject':'this message is a test too'});
+</script>
+</head>
+<body>
+
+</body>
+</html>

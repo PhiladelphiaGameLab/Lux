@@ -1,0 +1,18 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Add Location 1", "../POI/adjust.php", {id: "551447a507e5d03d1d7076e3", coll: "Test", lon:-73.97, lat:40.77 });
+	Test("Adjust Location 1", "../POI/adjust.php", {id: "551447a507e5d03d1d7076e3", coll: "Test", lon:-73.97, lat:60.77});
+	Test("Add Location 2", "../POI/adjust.php", {id: "551447a507e5d03f1d7076e3", coll: "Test", lon:-75.97, lat:45.77 });
+	Test("Get Near 1", "../POI/getNear.php", {coll: "Test", lon:-50, lat:30, max:100});
+	Test("Get Near 2", "../POI/getNear.php", {coll: "Test", lon:-75, lat:45, max:100 });
+	Test("Get All", "../POI/getNear.php", {coll: "Test"});
+	Test("Remove Location 2", "../POI/adjust.php", {id: "551447a507e5d03f1d7076e3", coll: "Test"});
+</script>
+</head>
+<body>
+
+</body>
+</html>

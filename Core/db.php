@@ -11,14 +11,18 @@ class Db{
 	private $db;
 	private $OUTPUT;
 
-	function __construct(){
+	function __construct($db){
 		$this->OUTPUT = new Output();
 		if(class_exists("MongoClient")){
 			$MON = new MongoClient("mongodb://localhost/");
 		}else{
 			$this->OUTPUT->error("Lux is not Properly Set-up, can not find MongoClient");
 		}
-		$this->db = $MON->selectDB("Lux2");
+		if($db == null){
+			$this->db = $MON->selectDB("System");
+		}else{
+			$this->db = $MON->selectDB($db);
+		}
 	}
 
 	function selectCollection($collectionName){

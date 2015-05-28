@@ -1,0 +1,35 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Adjust Session 1", "../Session/adjust.php", {key:"test 1", value: "test 1"});
+	Test("Adjust Session 2", "../Session/adjust.php", {key:"test 2", value: "test 2"});
+	Test("Adjust Session 3", "../Session/adjust.php", {key:"test 3", value: "test 3"});
+	Test("Adjust Session 4", "../Session/adjust.php", {key:"test 4", value: "test 4"});
+	Test("Adjust Session 5", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv324mg7",key:"test 5", value: "test 5"});
+	Test("Adjust Session 6", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv324mg7",key:"test 6", value: "test 6"});
+	Test("Adjust Session 7", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv324mg7",key:"test 7", value: "test 7"});
+	Test("Adjust Session 8", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv324mg7",key:"test 8", value: "test 8"});
+	Test("Adjust Session 9", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv3ALPHA",key:"test 9", value: "test 9"});
+	Test("Adjust Session 10", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv3ALPHA",key:"test 10", value: "test 10"});
+	Test("Adjust Session 11", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv3ALPHA",key:"test 11", value: "test 11"});
+	Test("Adjust Session 12", "../Session/adjust.php", {session_id:"vtdl749ips38898ui9nv3ALPHA",key:"test 12", value: "test 12"});
+
+	Test("Fetch Session 1", "../Session/fetch.php");
+	Test("Fetch Session 2", "../Session/fetch.php", {session_id:"vtdl749ips38898ui9nv324mg7"});
+	Test("Fetch Session 3", "../Session/fetch.php", {session_id:"vtdl749ips38898ui9nv3ALPHA"});
+	
+	Test("Renew Session 1", "../Session/renew.php");
+	Test("Renew Session 2", "../Session/renew.php", {session_id:"vtdl749ips38898ui9nv3ALPHA"});
+	Test("Renew Session 3", "../Session/renew.php", {session_id:"vtdl749ips38898ui9nv324mg7"});
+	
+	Test("Annilate Session 1", "../Sessio/Annihilate.php");
+	Test("Annilate Session 2", "../Session/Annihilate.php", {session_id:"vtdl749ips38898ui9nv3ALPHA"});
+	Test("Annilate Session 3", "../Session/Annihilate.php", {session_id:"vtdl749ips38898ui9nv324mg7"});
+</script>
+</head>
+<body>
+
+</body>
+</html>

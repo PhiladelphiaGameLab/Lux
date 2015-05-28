@@ -1,0 +1,16 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Fetch Me", "../Users/fetchMe.php");
+	Test("Adjust Me", "../Users/adjust.php", {"email.primary":"jakailer@gmail.com", "name.given":"Jak", "name.family":"Ailer"});
+	Test("Fetch Me", "../Users/fetchMe.php");
+	Test("Adjust Me", "../Users/adjust.php", {"email.primary":"jake@philadelphiagamelab.org", "email.other[]":"jakailer@gmail.com", "name.given":"Jake", "name.family":"Ailor"});
+	Test("Fetch Me", "../Users/fetchMe.php");
+</script>
+</head>
+<body>
+
+</body>
+</html>

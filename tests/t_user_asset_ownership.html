@@ -1,0 +1,19 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	//Test("Assign 1", "../UserAssetOwnership/adjustPermissionLevel.php", {level:"0", asset:["5514478907e5d0401d7036e4", "5514478907e5d0441d7046e3","5514496f07e5d0411d7056e3"]});
+	Test("Assign 2", "../UserAssetOwnership/adjustPermissionLevel.php", {level:"4", asset:"5514478907e5d0401d7077e8"});
+	Test("Revoke ", "../UserAssetOwnership/adjustPermissionLevel.php", {level:"0", asset:"5514478907e5d0401d7078e4", revoke:true});
+	Test("Fetch  1", "../UserAssetOwnership/fetchPermissionLevel.php", {asset:"5514478907e5d0401d7077e8"});
+	Test("Fetch  2", "../UserAssetOwnership/fetchAssetsAtLevel.php", {level:"2"});
+	Test("Fetch  3", "../UserAssetOwnership/fetchAssetsAtLevel.php", {level:"3"});
+	Test("Fetch  4", "../UserAssetOwnership/fetchAssetsAtLevel.php", {level:"4"});
+	Test("Get 1", "../UserAssetOwnership/getUsersPermissions.php", {uid:"551453d737697bfdd3d591b3"});
+</script>
+</head>
+<body>
+
+</body>
+</html>

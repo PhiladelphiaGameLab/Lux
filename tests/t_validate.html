@@ -1,0 +1,90 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/tests.css">
+<script src="js/func.js"></script>
+<script>
+	Test("Validate 1", "../Validate/validate.php", {
+							values:[
+								{
+									 key:"Test 1"
+									,value:"Test"
+									,validate:'len.min'
+									,param:{length:'10'}
+								},
+							 	{
+									 key:"Test 2"
+									,value:"TEST"
+									,validate:'len.max'
+									,param:{length:'15'}
+									,required:false
+									,deep:true
+								},
+								{
+									 key:"Test 3"
+									,value:"test"
+									,validate:'exists'
+									,required:true
+									,deep:false
+								}
+							       ]
+						       },
+		function(){ return false;}
+	    );
+	Test("Validate 2", "../Validate/validate.php", {
+							values:[
+								{
+									 key:4
+									,value:"testtte"
+									,validate:'len.range'
+									,params:{min:'10', max:'15'}
+									,deep:false
+								},
+							 	{
+									 key:5
+									,value:"test"
+									,validate:'num.min'
+								},
+								{
+									 key:6
+									,value:"testttt"
+									,validate:'num.max'
+								}
+							       ]
+						       }
+	    );
+	Test("Validate 3", "../Validate/validate.php", {
+							values:[
+								{
+									 key:7
+									,value:"test@gmail.com"
+									,validate:'email'
+								},
+								{
+									 key:8
+									,value:"http://test.pgl.org"
+									,validate:'url'
+								},
+							 	{
+									 key:9
+									,value:"testtest"
+									,validate:'date'
+								},
+								{
+									 key:10
+									,value:"testTest"
+									,validate:'num'
+								},
+								{
+									 key:11
+									,value:"testetest"
+									,validate:'alpha'
+								}
+							       ]
+						       }
+	    );
+</script>
+</head>
+<body>
+
+</body>
+</html>
