@@ -1,10 +1,10 @@
 # lux Software Development Toolkit
 ## Intro
 
-Lux is focused on creating an accessible environment for start-ups and front-end developers; allowing them to be more self-reliant and more focused on developing their technology at their speed. Lux is not just a back-end as a service, but a full suite of products that are integrated into a single package that allows for creation of products, services, and business tools with a strong online presence. Lux is built to be built to grow, every aspect of lux can be easily tied together, while still being treated as a separate entity. This ability to grow and change with it's needs allows lux to be a powerful tool, and  big reason to make open-source a staple in that tool.
+Lux is focused on creating a more friendly market for start-ups and front-end developers to work in which allows them to be more self-reliant and more focused on developing their technology at their speed. Lux is not just a back-end as a service, but a full suite of products that are integrated into a single package that allows for creation of products, services, and business tools with a strong online presence. Lux is built to be built to grow, every aspect of lux can be easily tied together, while still being treated as a separate entity. This ability to grow and change with its needs allows lux to be a powerful tool, and  big reason to make open-source a staple in that tool.
 
 ### Resources needed
-
+The resources needed to finish lux are a combination of people and time. The time listed below is by no means a 100% accurate estimate, but only an estimation given current knowledge and best guesses on the subject. If priorities 0-4 are met before June 15th, then the lux will be useable as a stand alone product by this summer. My preference would be to complete up through level 5 by this summer, which is a stretch- but might be possible. 
 
 
 | Priority Level | Description | Jake's Est | Team Mi Exp | Team Max Exp |
