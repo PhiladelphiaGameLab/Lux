@@ -25,4 +25,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("comment successfully edited", $results);
+$OUTPUT->success("comment successfully edited", $results);  

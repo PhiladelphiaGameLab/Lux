@@ -31,3 +31,4 @@ $options = array(
 $results = $collection->update($query, $update, $options);
 
 $OUTPUT->success("success", $results);
+  

@@ -92,3 +92,4 @@ createAndInsertCriteria($db);
 testLogicFramework(getUpserts(), $db);
 
 ?>
+  

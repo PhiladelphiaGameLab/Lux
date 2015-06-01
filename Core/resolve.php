@@ -22,4 +22,4 @@ function resolve($MongoIdArray, $collectionName) {
         }
     }
     return $array;
-}
+}  

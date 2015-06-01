@@ -19,4 +19,4 @@ $level = array(
 
 $results = $collection->insert($level);
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  

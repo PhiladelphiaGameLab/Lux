@@ -23,4 +23,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("upvote successfully removed", $results);
+$OUTPUT->success("upvote successfully removed", $results);  

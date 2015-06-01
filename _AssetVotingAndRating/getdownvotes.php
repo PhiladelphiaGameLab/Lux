@@ -19,4 +19,4 @@ $doc = $collection->findOne($query);
 
 $results = count($doc['downvotes']);
 
-$OUTPUT->success("downvotes quantified", $results);
+$OUTPUT->success("downvotes quantified", $results);  

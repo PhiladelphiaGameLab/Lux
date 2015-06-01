@@ -23,4 +23,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("downvote successfully added", $results);
+$OUTPUT->success("downvote successfully added", $results);  

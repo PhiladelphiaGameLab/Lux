@@ -17,4 +17,4 @@ $query = array(
 
 $results = $collection->remove($query, array("justOne" => true));
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  

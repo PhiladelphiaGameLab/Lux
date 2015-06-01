@@ -23,3 +23,4 @@ $update = array(
 $results = $collection->update($query, $update);
 
 $OUTPUT->success("success", $results);
+  

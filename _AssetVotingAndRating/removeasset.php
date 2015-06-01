@@ -23,4 +23,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("asset successfully removed", $results);
+$OUTPUT->success("asset successfully removed", $results);  

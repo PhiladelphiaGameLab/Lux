@@ -31,3 +31,4 @@ foreach($subscriptions as $subscription){
 $OUTPUT->success("Found Published Material", $documents);
 ?>
 
+  

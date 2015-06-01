@@ -19,4 +19,4 @@ $collection->remove($query, array("justOne" => true));
 
 $results = $collection->insert($query);
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  
