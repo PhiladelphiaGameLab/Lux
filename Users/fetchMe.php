@@ -9,3 +9,4 @@ $document = $AUTH->getClientInfo();
 unset($document["lux_info"]);
 $OUTPUT->success(1, $document, array());
 
+  

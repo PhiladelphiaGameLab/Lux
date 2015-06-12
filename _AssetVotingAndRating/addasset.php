@@ -23,4 +23,4 @@ $asset = array(
 
 $results = $collection->insert($asset);
 
-$OUTPUT->success("asset successfully added", $results);
+$OUTPUT->success("asset successfully added", $results);  

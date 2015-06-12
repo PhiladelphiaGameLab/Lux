@@ -20,4 +20,4 @@ $response = array("score");
 
 $results = $collection->findOne($query, $response);
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  

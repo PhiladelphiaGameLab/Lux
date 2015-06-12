@@ -29,4 +29,4 @@ $results = $collection->update(
     $update
 );
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  

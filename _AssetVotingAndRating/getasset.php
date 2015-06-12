@@ -17,4 +17,4 @@ $query = array(
 
 $results = $collection->findOne($query);
 
-$OUTPUT->success("asset retrieved", $results);
+$OUTPUT->success("asset retrieved", $results);  

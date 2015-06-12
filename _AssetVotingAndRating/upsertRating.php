@@ -23,4 +23,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("rating successfully upserted", $results);
+$OUTPUT->success("rating successfully upserted", $results);  

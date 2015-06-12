@@ -24,4 +24,4 @@ $update = array(
 
 $results = $collection->update($query, $update);
 
-$OUTPUT->success("comment successfully deleted", $results);
+$OUTPUT->success("comment successfully deleted", $results);  

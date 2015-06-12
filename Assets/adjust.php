@@ -37,3 +37,4 @@ if(!$LF->is_avail("noPub") || $LF->fetch_avail("noPub")){
 }
 */
 die();
+  

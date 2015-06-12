@@ -16,3 +16,4 @@ $collectionName = $LF->is_avail("coll") ? $LF->fetch_avail("coll") : "Standard";
 $collection = $db->selectCollection($collectionName);
 
 // This should be included in all Asset Management API files
+  

@@ -48,4 +48,4 @@ $comment = array(
 
 $results = $collection->insert($comment);
 
-$OUTPUT->success("comment successfully added", $results);
+$OUTPUT->success("comment successfully added", $results);  

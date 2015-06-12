@@ -20,4 +20,4 @@ $results = $collection->findOne($query);
 
 $commentThread = resolve($results['parent_ids'], "AssetVotingAndRating");
 array_push($commentThread, $results);
-$OUTPUT->success("comment thread resolved", $commentThread);
+$OUTPUT->success("comment thread resolved", $commentThread);  

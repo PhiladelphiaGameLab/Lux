@@ -31,4 +31,4 @@ $results = $collection->update(
     )
 );
 
-$OUTPUT->success("success", $results);
+$OUTPUT->success("success", $results);  

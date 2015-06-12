@@ -27,4 +27,4 @@ $results = $collection->update(
     )
 );
 
-$OUTPUT->success('Asset successfully adjusted', $results);
+$OUTPUT->success('Asset successfully adjusted', $results);  

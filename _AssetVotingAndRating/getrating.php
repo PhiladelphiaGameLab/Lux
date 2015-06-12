@@ -19,4 +19,4 @@ $doc = $collection->findOne($query);
 
 $results = array_sum($doc['ratings']) / count($doc['ratings']);
 
-$OUTPUT->success("average rating quantified", $results);
+$OUTPUT->success("average rating quantified", $results);  

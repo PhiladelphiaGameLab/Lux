@@ -11,3 +11,4 @@ $query = $LF->fetch_avail("query");
 $db->unsubscribe($query, $AUTH);
 $OUTPUT->success("Successfully Unsubscribed to update", $query);
 ?>
+  
